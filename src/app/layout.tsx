@@ -10,6 +10,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <link rel="shortcut icon" href="/favicon.ico" />
         <meta name="robots" content="noindex,nofollow" />
+        {/*
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-H3KTP1DXZF"
           strategy="afterInteractive"

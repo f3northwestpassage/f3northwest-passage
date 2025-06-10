@@ -9,5 +9,6 @@
   "region_facebook": "https://www.facebook.com/f3northwestpassage",
   "region_map_lat": 29.9628818,
   "region_map_lon": -95.7796868,
-  "region_map_zoom": 12
+  "region_map_zoom": 12,
+  "admin_password": "changeme"
 }
