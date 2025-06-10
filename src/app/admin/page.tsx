@@ -119,6 +119,7 @@ export default function AdminPage() {
   // Simplified Password check and JSX returns
   if (providedPassword !== ADMIN_PASSWORD) {
     return (
+
       <>
         <Header href="/admin" />
         <main className="container mx-auto px-4 py-8 text-center">
@@ -132,6 +133,7 @@ export default function AdminPage() {
         </main>
         <Footer />
       </>
+
     );
   }
 
