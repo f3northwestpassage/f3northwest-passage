@@ -3,17 +3,33 @@ import fs from 'fs';
 import path from 'path';
 import type { Workout } from '../../../utils/fetchWorkoutsData'; // Adjust path as needed
 
-const ADMIN_PASSWORD = 'f3northwestpassageslt'; // Same password as admin page
+// const ADMIN_PASSWORD = 'f3northwestpassageslt'; // REMOVE THIS LINE
 
 export async function POST(request: NextRequest) {
-  // Password check from URL query parameter
+  let localeAdminPassword;
+  try {
+    const localeFilePath = path.join(process.cwd(), 'src', 'locales', 'en.json');
+    const fileContents = fs.readFileSync(localeFilePath, 'utf-8');
+    const localeData = JSON.parse(fileContents);
+    localeAdminPassword = localeData.admin_password;
+
+    if (!localeAdminPassword) {
+      console.error('Admin password not found in src/locales/en.json or is empty.');
+      return NextResponse.json({ message: 'Error: Server configuration error (admin password missing).' }, { status: 500 });
+    }
+  } catch (error) {
+    console.error('Error reading or parsing src/locales/en.json for admin password:', error);
+    return NextResponse.json({ message: 'Error: Server configuration error (cannot read admin password).' }, { status: 500 });
+  }
+
   const { searchParams } = new URL(request.url);
   const providedPassword = searchParams.get('pw');
 
-  if (providedPassword !== ADMIN_PASSWORD) {
+  if (providedPassword !== localeAdminPassword) { // COMPARE WITH PASSWORD FROM JSON
     return NextResponse.json({ message: 'Error: Access Denied. Invalid password.' }, { status: 403 });
   }
 
+  // ... (rest of the try-catch block for saving workouts remains the same)
   try {
     const workouts: Workout[] = await request.json();
 
