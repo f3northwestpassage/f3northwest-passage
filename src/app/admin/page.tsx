@@ -138,7 +138,7 @@ export default function AdminPage() {
       <h1 style={{ fontSize: '24px', fontWeight: 'bold', textAlign: 'center' }}>Admin Access OK</h1>
       <p style={{ marginTop: '16px', textAlign: 'center' }}>Page content would normally be here.</p>
       <p style={{ marginTop: '8px', textAlign: 'center', fontSize: '12px', color: 'gray' }}>
-        (This is a simplified view for debugging. Check console for 'AdminPage: useEffect triggered.' log.)
+        {`(This is a simplified view for debugging. Check console for 'AdminPage: useEffect triggered.' log.)`}
       </p>
     </div>
   );
