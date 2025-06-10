@@ -1,8 +1,6 @@
-
 import workoutsData from '../../data/workouts.json';
 
 export interface Workout { // Added export
-
   ao: string;
   style: string;
   location: {
@@ -13,8 +11,6 @@ export interface Workout { // Added export
   time: string;
 }
 
-
 export function fetchWorkoutsData(): Workout[] {
   return workoutsData as Workout[];
-
 }
