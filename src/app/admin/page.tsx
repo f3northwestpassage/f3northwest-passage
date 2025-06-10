@@ -119,27 +119,96 @@ export default function AdminPage() {
   // Simplified Password check and JSX returns
   if (providedPassword !== ADMIN_PASSWORD) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center', fontFamily: 'sans-serif' }}>
-        <h1 style={{ color: 'red', fontSize: '24px', fontWeight: 'bold' }}>Access Denied</h1>
-        <p style={{ marginTop: '16px' }}>
-          You have not provided the correct password to access this page.
-        </p>
-        {/* Ensure Link is imported from next/link */}
-        <Link href="/" style={{ marginTop: '24px', display: 'inline-block', backgroundColor: '#3b82f6', color: 'white', padding: '8px 16px', borderRadius: '4px', textDecoration: 'none' }}>
-          Go to Homepage
-        </Link>
-      </div>
+
+      <>
+        <Header href="/admin" />
+        <main className="container mx-auto px-4 py-8 text-center">
+          <h1 className="text-2xl font-bold text-red-600">Access Denied</h1>
+          <p className="mt-4">
+            You have not provided the correct password to access this page.
+          </p>
+          <Link href="/" className="mt-6 inline-block bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">
+            Go to Homepage
+          </Link>
+        </main>
+        <Footer />
+      </>
+
     );
   }
 
   // Drastically Simplified Authenticated View
   return (
-    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-      <h1 style={{ fontSize: '24px', fontWeight: 'bold', textAlign: 'center' }}>Admin Access OK</h1>
-      <p style={{ marginTop: '16px', textAlign: 'center' }}>Page content would normally be here.</p>
-      <p style={{ marginTop: '8px', textAlign: 'center', fontSize: '12px', color: 'gray' }}>
-        {`(This is a simplified view for debugging. Check console for 'AdminPage: useEffect triggered.' log.)`}
-      </p>
-    </div>
+    <>
+      <Header href="/admin" />
+      <main className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-center mb-2">
+          Admin Dashboard - Manage Workouts
+        </h1>
+        {isLoading && <p className="text-center text-blue-500">Saving...</p>}
+        {message && (
+          <p className={`text-center p-2 mb-4 ${message.startsWith('Error:') ? 'text-red-500 bg-red-100' : 'text-green-500 bg-green-100'}`}>
+            {message}
+          </p>
+        )}
+        {/* This is where the workout table is. */}
+        {workouts.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white shadow-md rounded-lg">
+              <thead className="bg-gray-800 text-white">
+                <tr>
+                  <th className="py-3 px-4 uppercase font-semibold text-sm text-left">AO</th>
+                  <th className="py-3 px-4 uppercase font-semibold text-sm text-left">Style</th>
+                  <th className="py-3 px-4 uppercase font-semibold text-sm text-left">Location Text</th>
+                  <th className="py-3 px-4 uppercase font-semibold text-sm text-left">Location Link</th>
+                  <th className="py-3 px-4 uppercase font-semibold text-sm text-left">Day</th>
+                  <th className="py-3 px-4 uppercase font-semibold text-sm text-left">Time</th>
+                  <th className="py-3 px-4 uppercase font-semibold text-sm text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="text-gray-700">
+                {workouts.map((workout, index) => (
+                  <tr key={index} className="hover:bg-gray-100 border-b border-gray-200">
+                    {editingWorkoutIndex === index && currentEditData ? (
+                      <>
+                        <td><input type="text" name="ao" value={currentEditData.ao ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
+                        <td><input type="text" name="style" value={currentEditData.style ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
+                        <td><input type="text" name="location.text" value={currentEditData.location?.text ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
+                        <td><input type="text" name="location.href" value={currentEditData.location?.href ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
+                        <td><input type="text" name="day" value={currentEditData.day ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
+                        <td><input type="text" name="time" value={currentEditData.time ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
+                        <td className="py-3 px-4">
+                          <button onClick={handleSaveEdit} className="bg-green-500 text-white px-3 py-1 rounded mr-2 hover:bg-green-600">Save</button>
+                          <button onClick={handleCancelEdit} className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Cancel</button>
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="py-3 px-4">{workout.ao}</td>
+                        <td className="py-3 px-4">{workout.style}</td>
+                        <td className="py-3 px-4">{workout.location.text}</td>
+                        <td className="py-3 px-4">
+                          <a href={workout.location.href} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                            View Map
+                          </a>
+                        </td>
+                        <td className="py-3 px-4">{workout.day}</td>
+                        <td className="py-3 px-4">{workout.time}</td>
+                        <td className="py-3 px-4">
+                          <button onClick={() => handleEdit(index)} className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">Edit</button>
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-center text-gray-500">No workouts found. Or loading...</p>
+        )}
+      </main>
+      <Footer />
+    </>
   );
 }
