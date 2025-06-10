@@ -158,12 +158,12 @@ export default function AdminPage() {
                   <tr key={index} className="hover:bg-gray-100 border-b border-gray-200">
                     {editingWorkoutIndex === index && currentEditData ? (
                       <>
-                        <td><input type="text" name="ao" value={currentEditData.ao} onChange={handleInputChange} className="border p-1 w-full"/></td>
-                        <td><input type="text" name="style" value={currentEditData.style} onChange={handleInputChange} className="border p-1 w-full"/></td>
-                        <td><input type="text" name="location.text" value={currentEditData.location.text} onChange={handleInputChange} className="border p-1 w-full"/></td>
-                        <td><input type="text" name="location.href" value={currentEditData.location.href} onChange={handleInputChange} className="border p-1 w-full"/></td>
-                        <td><input type="text" name="day" value={currentEditData.day} onChange={handleInputChange} className="border p-1 w-full"/></td>
-                        <td><input type="text" name="time" value={currentEditData.time} onChange={handleInputChange} className="border p-1 w-full"/></td>
+                        <td><input type="text" name="ao" value={currentEditData.ao ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
+                        <td><input type="text" name="style" value={currentEditData.style ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
+                        <td><input type="text" name="location.text" value={currentEditData.location?.text ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
+                        <td><input type="text" name="location.href" value={currentEditData.location?.href ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
+                        <td><input type="text" name="day" value={currentEditData.day ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
+                        <td><input type="text" name="time" value={currentEditData.time ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
                         <td className="py-3 px-4">
                           <button onClick={handleSaveEdit} className="bg-green-500 text-white px-3 py-1 rounded mr-2 hover:bg-green-600">Save</button>
                           <button onClick={handleCancelEdit} className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Cancel</button>
