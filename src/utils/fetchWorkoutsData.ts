@@ -26,7 +26,7 @@ export async function fetchWorkoutsData(): Promise<WorkoutClean[]> {
   try {
     // Fetch all workouts and convert Mongoose documents to plain JavaScript objects using .lean()
     // Also, explicitly select fields to match WorkoutClean, including _id as a string
-    const workoutsFromDB: IWorkout[] = await WorkoutModel.find({}).lean().exec();
+    const workoutsFromDB: IWorkout[] = await WorkoutModel.find({}).exec();
 
     // Map to ensure the structure, especially _id conversion
     const cleanedWorkouts: WorkoutClean[] = workoutsFromDB.map(doc => ({
