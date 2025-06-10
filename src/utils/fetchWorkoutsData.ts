@@ -1,5 +1,3 @@
-import Papa from 'papaparse';
-
 interface Workout {
   ao: string;
   style: string;
@@ -11,28 +9,39 @@ interface Workout {
   time: string;
 }
 
-export async function fetchWorkoutsData(): Promise<Workout[]> {
-  const today = new Date();
-  /** update data no more than once per day */
-  const cacheKey = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
-  const sheetURL = 
-    `https://docs.google.com/spreadsheets/d/1aHl-uYuSEL5QX05LnjffOuSQWlIFVLRGa5vWX7LKn9s/gviz/tq?tqx=out:csv&sheet=workouts&cacheKey=${cacheKey}`;
-  const response = await fetch(sheetURL);
-  const csvText = await response.text();
-
-  // Parse CSV into JSON
-  const parsedData = Papa.parse(csvText, { header: true }).data;
-
-  // Transform parsed data into structured objects
-  /** HACK: `row: any` */
-  return parsedData.map((row: any) => ({
-    ao: row.ao || '',
-    style: row.style || '',
+const placeholderWorkouts: Workout[] = [
+  {
+    ao: "The Iron Yard",
+    style: "Bootcamp",
     location: {
-      href: row.location_href || '',
-      text: row.location_text || '',
+      href: "https://maps.app.goo.gl/placeholder1",
+      text: "Community Park",
     },
-    day: row.day || '',
-    time: row.time || '',
-  })) as Workout[];
+    day: "Monday",
+    time: "05:30",
+  },
+  {
+    ao: "Valhalla",
+    style: "Kettlebells",
+    location: {
+      href: "https://maps.app.goo.gl/placeholder2",
+      text: "High School Track",
+    },
+    day: "Wednesday",
+    time: "06:00",
+  },
+  {
+    ao: "The Forge",
+    style: "Ruck",
+    location: {
+      href: "https://maps.app.goo.gl/placeholder3",
+      text: "Nature Trail Entrance",
+    },
+    day: "Friday",
+    time: "05:15",
+  },
+];
+
+export function fetchWorkoutsData(): Workout[] {
+  return placeholderWorkouts;
 }
