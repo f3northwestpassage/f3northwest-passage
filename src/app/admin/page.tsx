@@ -7,7 +7,7 @@ import Link from 'next/link';
 import Header from '../_components/Header';
 import Footer from '../_components/Footer';
 import { fetchWorkoutsData } from '../../utils/fetchWorkoutsData';
-import type { Workout } from '../../utils/fetchWorkoutsData';
+import type { WorkoutClean } from '../../utils/fetchWorkoutsData'; // Changed Workout to WorkoutClean
 import { useState, useEffect } from 'react';
 
 const ADMIN_PASSWORD = 'changeme';
@@ -17,42 +17,56 @@ export default function AdminPage() {
   const providedPassword = searchParams.get('pw');
 
   // State initializations (keep them, useEffect refers to them)
-  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [workouts, setWorkouts] = useState<WorkoutClean[]>([]); // Changed Workout to WorkoutClean
   const [editingWorkoutIndex, setEditingWorkoutIndex] = useState<number | null>(null);
-  const [currentEditData, setCurrentEditData] = useState<Workout | null>(null);
+  const [currentEditData, setCurrentEditData] = useState<WorkoutClean | null>(null); // Changed Workout to WorkoutClean
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    console.log("AdminPage: useEffect triggered."); // Key diagnostic log
+    console.log("AdminPage: useEffect triggered.");
 
-    const data = fetchWorkoutsData();
+    async function loadAdminWorkouts() {
+      console.log("AdminPage: Calling fetchWorkoutsData (async)...");
+      try {
+        const data = await fetchWorkoutsData(); // Correctly await the async function
 
-    console.log("AdminPage: Fetched data in useEffect:", JSON.stringify(data, null, 2));
+        console.log("AdminPage: Fetched data in useEffect:", JSON.stringify(data, null, 2));
 
-    if (!Array.isArray(data)) {
-      console.error('AdminPage: ERROR - Fetched data is not an array! Received:', data);
-      setWorkouts([]); // Ensure workouts is always an array
-      return;
+        if (!Array.isArray(data)) {
+          console.error('AdminPage: ERROR - Fetched data is not an array! Received:', data);
+          setWorkouts([]);
+          return;
+        }
+
+        if (data.length > 0) {
+          const firstItem = data[0];
+          // Note: The Workout type from fetchWorkoutsData is WorkoutClean, which might not have WorkoutClean[]
+          // This check should be adjusted if Workout type is different.
+          // Assuming WorkoutClean interface is used by fetchWorkoutsData:
+          if (typeof firstItem.ao === 'undefined' || typeof firstItem.location === 'undefined') {
+            console.error('AdminPage: ERROR - First workout object in fetched data is missing expected properties (e.g., ao or location). First item:', JSON.stringify(firstItem, null, 2));
+          }
+          if (firstItem.location && (typeof firstItem.location.text === 'undefined' || typeof firstItem.location.href === 'undefined')) {
+             console.error('AdminPage: ERROR - First workout object has a location object, but it is missing text or href. Location:', JSON.stringify(firstItem.location, null, 2));
+          }
+        }
+        setWorkouts(data); // Removed 'as Workout[]' cast
+      } catch (error) {
+        console.error('AdminPage: Error in loadAdminWorkouts:', error);
+        setWorkouts([]); // Set to empty or handle error state appropriately
+      }
     }
 
-    if (data.length > 0) {
-      const firstItem = data[0];
-      if (typeof firstItem.ao === 'undefined' || typeof firstItem.location === 'undefined') {
-        console.error('AdminPage: ERROR - First workout object in fetched data is missing expected properties (e.g., ao or location). First item:', JSON.stringify(firstItem, null, 2));
-      }
-      if (firstItem.location && (typeof firstItem.location.text === 'undefined' || typeof firstItem.location.href === 'undefined')) {
-         console.error('AdminPage: ERROR - First workout object has a location object, but it is missing text or href. Location:', JSON.stringify(firstItem.location, null, 2));
-      }
-    }
-    setWorkouts(data);
-  }, []); // Empty dependency array means this runs once after initial mount
+    loadAdminWorkouts();
+  }, []); // Empty dependency array ensures this runs once on mount
 
   // Event handlers (definitions kept for when JSX is restored)
   const handleEdit = (index: number) => {
     setEditingWorkoutIndex(index);
-    const workoutToEdit = workouts[index];
+    const workoutToEdit = workouts[index]; // workoutToEdit is now WorkoutClean
     setCurrentEditData({
+      _id: workoutToEdit._id, // Preserve _id if it exists
       ao: workoutToEdit.ao ?? '',
       style: workoutToEdit.style ?? '',
       location: {
@@ -61,6 +75,8 @@ export default function AdminPage() {
       },
       day: workoutToEdit.day ?? '',
       time: workoutToEdit.time ?? '',
+      q: workoutToEdit.q ?? '', // Assuming q and avgAttendance are part of WorkoutClean
+      avgAttendance: workoutToEdit.avgAttendance ?? '',
     });
   };
 
@@ -109,10 +125,20 @@ export default function AdminPage() {
     if (!currentEditData) return;
     const { name, value } = event.target;
     if (name.startsWith('location.')) {
-      const key = name.split('.')[1] as keyof Workout['location'];
-      setCurrentEditData({ ...currentEditData, location: { ...currentEditData.location, [key]: value } });
+      // Assuming WorkoutClean has a location structure compatible with this logic
+      const locKey = name.split('.')[1] as keyof WorkoutClean['location'];
+      setCurrentEditData({
+        ...currentEditData,
+        location: {
+          ...currentEditData.location,
+          [locKey]: value,
+        },
+      });
     } else {
-      setCurrentEditData({ ...currentEditData, [name]: value });
+      setCurrentEditData({
+        ...currentEditData,
+        [name]: value,
+      });
     }
   };
 
