@@ -149,12 +149,62 @@ export default function AdminPage() {
             {message}
           </p>
         )}
-
-          <p style={{ textAlign: 'center', margin: '20px', border: '1px dashed #ccc', padding: '20px' }}>
-            Workout table and associated messages would be rendered here.
-            (This section is currently commented out for debugging error #482).
-          </p>
-
+        {/* workouts.length > 0 ? ( ... ) : ( ... ) block restored below */}
+        {workouts.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white shadow-md rounded-lg">
+              <thead className="bg-gray-800 text-white">
+                <tr>
+                  <th className="py-3 px-4 uppercase font-semibold text-sm text-left">AO</th>
+                  <th className="py-3 px-4 uppercase font-semibold text-sm text-left">Style</th>
+                  <th className="py-3 px-4 uppercase font-semibold text-sm text-left">Location Text</th>
+                  <th className="py-3 px-4 uppercase font-semibold text-sm text-left">Location Link</th>
+                  <th className="py-3 px-4 uppercase font-semibold text-sm text-left">Day</th>
+                  <th className="py-3 px-4 uppercase font-semibold text-sm text-left">Time</th>
+                  <th className="py-3 px-4 uppercase font-semibold text-sm text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="text-gray-700">
+                {workouts.map((workout, index) => (
+                  <tr key={index} className="hover:bg-gray-100 border-b border-gray-200">
+                    {editingWorkoutIndex === index && currentEditData ? (
+                      <>
+                        <td><input type="text" name="ao" value={currentEditData.ao ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
+                        <td><input type="text" name="style" value={currentEditData.style ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
+                        <td><input type="text" name="location.text" value={currentEditData.location?.text ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
+                        <td><input type="text" name="location.href" value={currentEditData.location?.href ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
+                        <td><input type="text" name="day" value={currentEditData.day ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
+                        <td><input type="text" name="time" value={currentEditData.time ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
+                        <td className="py-3 px-4">
+                          <button onClick={handleSaveEdit} className="bg-green-500 text-white px-3 py-1 rounded mr-2 hover:bg-green-600">Save</button>
+                          <button onClick={handleCancelEdit} className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Cancel</button>
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="py-3 px-4">{workout.ao}</td>
+                        <td className="py-3 px-4">{workout.style}</td>
+                        <td className="py-3 px-4">{workout.location.text}</td>
+                        <td className="py-3 px-4">
+                          <a href={workout.location.href} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                            View Map
+                          </a>
+                        </td>
+                        <td className="py-3 px-4">{workout.day}</td>
+                        <td className="py-3 px-4">{workout.time}</td>
+                        <td className="py-3 px-4">
+                          <button onClick={() => handleEdit(index)} className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">Edit</button>
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-center text-gray-500">No workouts found. Or loading...</p>
+        )}
       </main>
       <Footer />
     </>
