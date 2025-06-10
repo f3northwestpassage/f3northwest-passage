@@ -10,7 +10,7 @@ import { fetchWorkoutsData } from '../../utils/fetchWorkoutsData';
 import type { Workout } from '../../utils/fetchWorkoutsData';
 import { useState, useEffect } from 'react';
 
-const ADMIN_PASSWORD = 'f3northwestpassgeslt'; // Or your actual hardcoded page access password
+const ADMIN_PASSWORD = 'changeme';
 
 export default function AdminPage() {
   const searchParams = useSearchParams();
