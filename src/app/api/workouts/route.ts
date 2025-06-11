@@ -1,7 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import type { Workout } from '../../../utils/fetchWorkoutsData'; // Adjust path as needed
+// FIX: Import WorkoutClean from its actual source file
+import type { WorkoutClean } from '../../../../types/workout'; // CORRECTED IMPORT PATH AND TYPE NAME
 
 // const ADMIN_PASSWORD = 'f3northwestpassageslt'; // REMOVE THIS LINE
 
@@ -31,7 +32,8 @@ export async function POST(request: NextRequest) {
 
   // ... (rest of the try-catch block for saving workouts remains the same)
   try {
-    const workouts: Workout[] = await request.json();
+    // FIX: Use WorkoutClean type here
+    const workouts: WorkoutClean[] = await request.json();
 
     if (!Array.isArray(workouts)) {
       return NextResponse.json({ message: 'Error: Invalid data format. Expected an array of workouts.' }, { status: 400 });
