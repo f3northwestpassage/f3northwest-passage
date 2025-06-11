@@ -1,4 +1,4 @@
-// src/app/your-page/page.tsx (or similar path)
+// src/app/workouts/page.tsx
 
 import Link from 'next/link';
 
@@ -7,20 +7,32 @@ import Footer from '../_components/Footer';
 import Hero from '../_components/Hero';
 import Button from '../_components/Button';
 // Import WorkoutCard directly as default, and sortWorkouts as a named export
-// You also need WorkoutCardProps here to define the type for the mapped item
-import WorkoutCard, { sortWorkouts, WorkoutCardProps } from '../_components/WorkoutCard';
+// from _components/WorkoutCard.tsx
+import WorkoutCard, { sortWorkouts } from '../_components/WorkoutCard';
 
 /** replace with a regional image */
 import f3HeroImg from '../../../public/f3-darkhorse-2023-11-04.jpg';
 
 import { fetchWorkoutsData } from '../../utils/fetchWorkoutsData';
 import { fetchLocaleData } from '@/utils/fetchLocaleData';
-// Ensure WorkoutClean is imported here if you need to explicitly type 'workouts'
+// Ensure WorkoutClean is imported
 import type { WorkoutClean } from '../../../types/workout';
+// IMPORT THE NEW CONVERSION UTILITY
+import { convertWorkoutsToCardProps } from '../../utils/convertWorkouts';
 
 
 export default async function Page() {
-  const workouts: WorkoutClean[] = await fetchWorkoutsData(); // Explicitly type 'workouts'
+  // 1. Fetch raw data. This returns WorkoutClean[].
+  const rawWorkouts: WorkoutClean[] = await fetchWorkoutsData();
+
+  // 2. CONVERT THE RAW DATA TO WorkoutCardProps[] BEFORE PASSING TO sortWorkouts.
+  // The convertWorkoutsToCardProps function handles the avgAttendance type conversion.
+  const workoutsForDisplay = convertWorkoutsToCardProps(rawWorkouts);
+
+  // 3. Now, sort the array which is already in the correct WorkoutCardProps[] format.
+  // sortWorkouts expects WorkoutCardProps[] and returns WorkoutCardProps[].
+  const sortedWorkouts = sortWorkouts(workoutsForDisplay);
+
   const locales = await fetchLocaleData();
   const href = '/workouts';
   const mapDetails = {
@@ -61,37 +73,20 @@ export default async function Page() {
         <section className={`bg-gloom leading-tight py-16 px-4`}>
           <h2 className="py-5">JOIN US</h2>
           <ul>
-            {/* THIS IS THE KEY CHANGE: Explicitly map AFTER sorting,
-                performing the type conversion directly here */}
-            {sortWorkouts(workouts).map((wClean: WorkoutClean, i) => {
-              // Convert avgAttendance from string | undefined to number | undefined
-              let convertedAvgAttendance: number | undefined;
-              if (wClean.avgAttendance !== undefined) {
-                const parsed = parseFloat(wClean.avgAttendance);
-                if (!isNaN(parsed)) {
-                  convertedAvgAttendance = parsed;
-                }
-              }
-
-              // Create an object that explicitly matches WorkoutCardProps
-              const workoutCardProps: WorkoutCardProps = {
-                ao: wClean.ao,
-                q: wClean.q,
-                avgAttendance: convertedAvgAttendance, // This is now a number or undefined
-                style: wClean.style,
-                location: wClean.location,
-                day: wClean.day,
-                time: wClean.time,
-              };
-
-              return (
-                <li key={i} className={i > 0 ? 'pt-5' : ''}>
-                  <WorkoutCard
-                    {...workoutCardProps} // Spread the correctly typed props
-                  />
-                </li>
-              );
-            })}
+            {/* Pass the correctly typed and sorted array to map */}
+            {sortedWorkouts.map((w, i) => ( // 'w' here is already WorkoutCardProps
+              <li key={i} className={i > 0 ? 'pt-5' : ''}>
+                <WorkoutCard
+                  ao={w.ao}
+                  q={w.q}
+                  avgAttendance={w.avgAttendance} // This is now correctly number | undefined
+                  style={w.style}
+                  location={w.location}
+                  day={w.day}
+                  time={w.time}
+                />
+              </li>
+            ))}
           </ul>
         </section>
       </main>

@@ -1,7 +1,7 @@
 // src/utils/convertWorkouts.ts
 
 import type { WorkoutClean } from '../../types/workout'; // Adjust path as needed
-import type { WorkoutCardProps } from '../../src/app/_components/WorkoutCard'; // Adjust path as needed
+import type { WorkoutCardProps } from '../app/_components/WorkoutCard'; // Adjust path as needed
 
 /**
  * Converts an array of WorkoutClean objects to an array of WorkoutCardProps objects.
