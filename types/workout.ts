@@ -10,5 +10,5 @@ export interface WorkoutClean {
     day: string;
     time: string;
     q?: string;
-    avgAttendance?: string;
+    avgAttendance?: string | undefined;
 }
