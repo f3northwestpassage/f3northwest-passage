@@ -97,10 +97,8 @@ export const WorkoutTimes = {
   '0600': '6:00 AM - 7:00 AM',
 };
 
-interface WorkoutCardProps {
+export interface WorkoutCardProps {
   ao: string;
-  q?: string;
-  avgAttendance?: number;
   style: string;
   location: {
     href: string;
@@ -108,6 +106,8 @@ interface WorkoutCardProps {
   };
   day: string;
   time: string;
+  q?: string;
+  avgAttendance?: number; // <<-- IMPORTANT: number | undefined here
 }
 
 export default function WorkoutCard({

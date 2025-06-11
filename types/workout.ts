@@ -1,6 +1,6 @@
-// Assuming this is your types/workout.ts file
+// types/workout.ts
 export interface WorkoutClean {
-    _id?: string; // Optional because .lean() might not always return it as a string
+    _id?: string;
     ao: string;
     style: string;
     location: {
@@ -10,5 +10,5 @@ export interface WorkoutClean {
     day: string;
     time: string;
     q?: string;
-    avgAttendance?: string | undefined;
+    avgAttendance?: string; // <<-- IMPORTANT: string | undefined here
 }

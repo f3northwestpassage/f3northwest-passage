@@ -1,6 +1,6 @@
 import dbConnect from '../lib/dbConnect';
 import WorkoutModel from '../models/Workout';
-import type { WorkoutClean } from '../../types/workout'; // Imports WorkoutClean here
+import type { WorkoutClean } from '../../types/workout';
 
 export async function fetchWorkoutsData(): Promise<WorkoutClean[]> {
   await dbConnect();
@@ -10,7 +10,7 @@ export async function fetchWorkoutsData(): Promise<WorkoutClean[]> {
 
     return workoutsFromDB.map(workout => ({
       ...workout,
-      _id: (workout as any)._id?.toString(), // Handle _id conversion
+      _id: (workout as any)._id?.toString(),
     }));
   } catch (error) {
     console.error('Error fetching workouts from MongoDB:', error);
