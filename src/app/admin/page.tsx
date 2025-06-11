@@ -7,7 +7,7 @@ import Link from 'next/link';
 import Header from '../_components/Header';
 import Footer from '../_components/Footer';
 import { fetchWorkoutsData } from '../../utils/fetchWorkoutsData';
-import type { WorkoutClean } from '../../utils/fetchWorkoutsData'; // Changed Workout to WorkoutClean
+import type { WorkoutClean } from '../../../types/workout' // Changed Workout to WorkoutClean
 import { useState, useEffect } from 'react';
 
 const ADMIN_PASSWORD = 'changeme';
@@ -48,7 +48,7 @@ export default function AdminPage() {
             console.error('AdminPage: ERROR - First workout object in fetched data is missing expected properties (e.g., ao or location). First item:', JSON.stringify(firstItem, null, 2));
           }
           if (firstItem.location && (typeof firstItem.location.text === 'undefined' || typeof firstItem.location.href === 'undefined')) {
-             console.error('AdminPage: ERROR - First workout object has a location object, but it is missing text or href. Location:', JSON.stringify(firstItem.location, null, 2));
+            console.error('AdminPage: ERROR - First workout object has a location object, but it is missing text or href. Location:', JSON.stringify(firstItem.location, null, 2));
           }
         }
         setWorkouts(data); // Removed 'as Workout[]' cast
@@ -97,9 +97,9 @@ export default function AdminPage() {
     try {
       const password = searchParams.get('pw');
       if (!password) {
-          setMessage('Error: Admin password not found in URL for API call.');
-          setIsLoading(false);
-          return;
+        setMessage('Error: Admin password not found in URL for API call.');
+        setIsLoading(false);
+        return;
       }
       const response = await fetch(`/api/workouts?pw=${password}`, {
         method: 'POST',
@@ -195,12 +195,12 @@ export default function AdminPage() {
                   <tr key={index} className="hover:bg-gray-100 border-b border-gray-200">
                     {editingWorkoutIndex === index && currentEditData ? (
                       <>
-                        <td><input type="text" name="ao" value={currentEditData.ao ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
-                        <td><input type="text" name="style" value={currentEditData.style ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
-                        <td><input type="text" name="location.text" value={currentEditData.location?.text ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
-                        <td><input type="text" name="location.href" value={currentEditData.location?.href ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
-                        <td><input type="text" name="day" value={currentEditData.day ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
-                        <td><input type="text" name="time" value={currentEditData.time ?? ''} onChange={handleInputChange} className="border p-1 w-full"/></td>
+                        <td><input type="text" name="ao" value={currentEditData.ao ?? ''} onChange={handleInputChange} className="border p-1 w-full" /></td>
+                        <td><input type="text" name="style" value={currentEditData.style ?? ''} onChange={handleInputChange} className="border p-1 w-full" /></td>
+                        <td><input type="text" name="location.text" value={currentEditData.location?.text ?? ''} onChange={handleInputChange} className="border p-1 w-full" /></td>
+                        <td><input type="text" name="location.href" value={currentEditData.location?.href ?? ''} onChange={handleInputChange} className="border p-1 w-full" /></td>
+                        <td><input type="text" name="day" value={currentEditData.day ?? ''} onChange={handleInputChange} className="border p-1 w-full" /></td>
+                        <td><input type="text" name="time" value={currentEditData.time ?? ''} onChange={handleInputChange} className="border p-1 w-full" /></td>
                         <td className="py-3 px-4">
                           <button onClick={handleSaveEdit} className="bg-green-500 text-white px-3 py-1 rounded mr-2 hover:bg-green-600">Save</button>
                           <button onClick={handleCancelEdit} className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Cancel</button>
