@@ -1,45 +1,40 @@
-import mongoose, { Schema, Document, models } from 'mongoose';
+import mongoose, { Schema, Document, Model, models } from 'mongoose';
 
-// Interface for the Location subdocument
-interface ILocation {
-  href: string;
-  text: string;
-}
-
-// Interface for the Workout document (can extend Mongoose Document)
-// This should match the structure used in your application,
-// e.g., from src/utils/fetchWorkoutsData.ts or a shared types file.
-export interface IWorkout extends Document {
+// Schema fields used in MongoDB
+interface WorkoutFields {
   ao: string;
   style: string;
-  location: ILocation;
+  location: {
+    href: string;
+    text: string;
+  };
   day: string;
   time: string;
-  q?: string; // Optional field
-  avgAttendance?: string; // Optional field
+  q?: string;
+  avgAttendance?: string;
 }
 
-// Schema for the Location subdocument
-const LocationSchema: Schema<ILocation> = new Schema({
-  href: { type: String, required: true },
-  text: { type: String, required: true },
-}, { _id: false }); // _id: false because it's a subdocument
+// Mongoose document type (not exported to avoid naming conflicts)
+interface WorkoutMongoDoc extends WorkoutFields, Document { }
 
-// Schema for the Workout document
-const WorkoutSchema: Schema<IWorkout> = new Schema({
+// Define the schema using WorkoutMongoDoc
+const WorkoutSchema = new Schema<WorkoutMongoDoc>({
   ao: { type: String, required: true },
   style: { type: String, required: true },
-  location: { type: LocationSchema, required: true },
+  location: {
+    href: { type: String, required: true },
+    text: { type: String, required: true },
+  },
   day: { type: String, required: true },
   time: { type: String, required: true },
-  q: { type: String, required: false },
-  avgAttendance: { type: String, required: false },
+  q: { type: String },
+  avgAttendance: { type: String },
 });
 
-// Create and export the Mongoose model
-// The third argument (collection name) is optional, Mongoose will infer it (e.g., 'workouts')
-// Using `models.Workout || mongoose.model<IWorkout>('Workout', WorkoutSchema)`
-// is a common pattern in Next.js to prevent redefining the model on hot reloads.
-const WorkoutModel = models.Workout || mongoose.model<IWorkout>('Workout', WorkoutSchema);
+// Model
+const WorkoutModel: Model<WorkoutMongoDoc> =
+  models.Workout || mongoose.model<WorkoutMongoDoc>('Workout', WorkoutSchema);
 
+// ✅ Export only what's needed for outside files
 export default WorkoutModel;
+export type { WorkoutFields }; // Use this for DTOs or lean() types
