@@ -1,72 +1,78 @@
+// app/admin/page.tsx (or pages/admin.tsx if using Pages Router)
 'use client';
 
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-// Import other components like Header, Footer, but they won't be used in the simplified JSX.
-// This is to keep the surrounding code structure for when we revert.
 import Header from '../_components/Header';
 import Footer from '../_components/Footer';
-import { fetchWorkoutsData } from '../../utils/fetchWorkoutsData';
-import type { WorkoutClean } from '../../../types/workout' // Changed Workout to WorkoutClean
+import type { WorkoutClean } from '../../../types/workout'
 import { useState, useEffect } from 'react';
 
-const ADMIN_PASSWORD = 'changeme';
+// REMOVE: const ADMIN_PASSWORD = 'changeme'; // This is no longer used here.
+// Instead, we'll get the password from the locale data via `process.env.NEXT_PUBLIC_ADMIN_PASSWORD`
 
 export default function AdminPage() {
   const searchParams = useSearchParams();
   const providedPassword = searchParams.get('pw');
 
-  // State initializations (keep them, useEffect refers to them)
-  const [workouts, setWorkouts] = useState<WorkoutClean[]>([]); // Changed Workout to WorkoutClean
+  const [workouts, setWorkouts] = useState<WorkoutClean[]>([]);
   const [editingWorkoutIndex, setEditingWorkoutIndex] = useState<number | null>(null);
-  const [currentEditData, setCurrentEditData] = useState<WorkoutClean | null>(null); // Changed Workout to WorkoutClean
+  const [currentEditData, setCurrentEditData] = useState<WorkoutClean | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // Client-side password for display/initial check only
+  const CLIENT_ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
+
 
   useEffect(() => {
     console.log("AdminPage: useEffect triggered.");
 
     async function loadAdminWorkouts() {
-      console.log("AdminPage: Calling fetchWorkoutsData (async)...");
+      setIsLoading(true); // Indicate loading
+      setMessage(null); // Clear previous messages
+      console.log("AdminPage: Calling API for workouts...");
       try {
-        const data = await fetchWorkoutsData(); // Correctly await the async function
+        // Fetch from your existing API route (which now has a GET method)
+        // Ensure this matches the actual path to your API route, e.g., /api/workouts
+        const response = await fetch(`/api/workouts?pw=${providedPassword}`);
+        const data = await response.json();
 
-        console.log("AdminPage: Fetched data in useEffect:", JSON.stringify(data, null, 2));
+        if (!response.ok) {
+          throw new Error(data.message || `API Error: ${response.status}`);
+        }
+
+        console.log("AdminPage: Fetched data from API:", JSON.stringify(data, null, 2));
 
         if (!Array.isArray(data)) {
           console.error('AdminPage: ERROR - Fetched data is not an array! Received:', data);
           setWorkouts([]);
+          setMessage('Error: Data received from server was not in expected format.');
           return;
         }
 
-        if (data.length > 0) {
-          const firstItem = data[0];
-          // Note: The Workout type from fetchWorkoutsData is WorkoutClean, which might not have WorkoutClean[]
-          // This check should be adjusted if Workout type is different.
-          // Assuming WorkoutClean interface is used by fetchWorkoutsData:
-          if (typeof firstItem.ao === 'undefined' || typeof firstItem.location === 'undefined') {
-            console.error('AdminPage: ERROR - First workout object in fetched data is missing expected properties (e.g., ao or location). First item:', JSON.stringify(firstItem, null, 2));
-          }
-          if (firstItem.location && (typeof firstItem.location.text === 'undefined' || typeof firstItem.location.href === 'undefined')) {
-            console.error('AdminPage: ERROR - First workout object has a location object, but it is missing text or href. Location:', JSON.stringify(firstItem.location, null, 2));
-          }
-        }
-        setWorkouts(data); // Removed 'as Workout[]' cast
+        setWorkouts(data);
       } catch (error) {
         console.error('AdminPage: Error in loadAdminWorkouts:', error);
-        setWorkouts([]); // Set to empty or handle error state appropriately
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred while fetching workouts.';
+        setMessage(`Error fetching workouts: ${errorMessage}`);
+        setWorkouts([]);
+      } finally {
+        setIsLoading(false); // End loading
       }
     }
 
-    loadAdminWorkouts();
-  }, []); // Empty dependency array ensures this runs once on mount
+    // Only attempt to load workouts if a password is provided in the URL
+    if (providedPassword) {
+      loadAdminWorkouts();
+    }
+  }, [providedPassword]); // Dependency array ensures this runs if providedPassword changes
 
-  // Event handlers (definitions kept for when JSX is restored)
   const handleEdit = (index: number) => {
     setEditingWorkoutIndex(index);
-    const workoutToEdit = workouts[index]; // workoutToEdit is now WorkoutClean
+    const workoutToEdit = workouts[index];
     setCurrentEditData({
-      _id: workoutToEdit._id, // Preserve _id if it exists
+      _id: workoutToEdit._id,
       ao: workoutToEdit.ao ?? '',
       style: workoutToEdit.style ?? '',
       location: {
@@ -75,7 +81,7 @@ export default function AdminPage() {
       },
       day: workoutToEdit.day ?? '',
       time: workoutToEdit.time ?? '',
-      q: workoutToEdit.q ?? '', // Assuming q and avgAttendance are part of WorkoutClean
+      q: workoutToEdit.q ?? '',
       avgAttendance: workoutToEdit.avgAttendance ?? '',
     });
   };
@@ -92,8 +98,10 @@ export default function AdminPage() {
     }
     setIsLoading(true);
     setMessage(null);
-    const updatedWorkouts = [...workouts];
-    updatedWorkouts[editingWorkoutIndex] = currentEditData;
+
+    const updatedWorkouts = [...workouts]; // Create a copy of the current state
+    updatedWorkouts[editingWorkoutIndex] = currentEditData; // Apply the edit to the copy
+
     try {
       const password = searchParams.get('pw');
       if (!password) {
@@ -101,14 +109,15 @@ export default function AdminPage() {
         setIsLoading(false);
         return;
       }
-      const response = await fetch(`/api/workouts?pw=${password}`, {
+      // Call your existing POST API route (which is the same path)
+      const response = await fetch(`/api/workouts?pw=${password}`, { // Use the same API route path
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedWorkouts),
+        body: JSON.stringify(updatedWorkouts), // Send the entire updated list
       });
       const result = await response.json();
       if (!response.ok) { throw new Error(result.message || `API Error: ${response.status}`); }
-      setWorkouts(updatedWorkouts);
+      setWorkouts(updatedWorkouts); // Update local state only on successful save
       setMessage(result.message || 'Workout saved successfully!');
       setEditingWorkoutIndex(null);
       setCurrentEditData(null);
@@ -125,7 +134,6 @@ export default function AdminPage() {
     if (!currentEditData) return;
     const { name, value } = event.target;
     if (name.startsWith('location.')) {
-      // Assuming WorkoutClean has a location structure compatible with this logic
       const locKey = name.split('.')[1] as keyof WorkoutClean['location'];
       setCurrentEditData({
         ...currentEditData,
@@ -143,7 +151,8 @@ export default function AdminPage() {
   };
 
   // Simplified Password check and JSX returns
-  if (providedPassword !== ADMIN_PASSWORD) {
+  // This client-side check uses NEXT_PUBLIC_ADMIN_PASSWORD
+  if (providedPassword !== CLIENT_ADMIN_PASSWORD) {
     return (
       <>
         <Header href="/admin" />
@@ -161,7 +170,6 @@ export default function AdminPage() {
     );
   }
 
-  // Drastically Simplified Authenticated View
   return (
     <>
       <Header href="/admin" />
@@ -169,13 +177,12 @@ export default function AdminPage() {
         <h1 className="text-3xl font-bold text-center mb-2">
           Admin Dashboard - Manage Workouts
         </h1>
-        {isLoading && <p className="text-center text-blue-500">Saving...</p>}
+        {isLoading && <p className="text-center text-blue-500">Loading/Saving...</p>}
         {message && (
           <p className={`text-center p-2 mb-4 ${message.startsWith('Error:') ? 'text-red-500 bg-red-100' : 'text-green-500 bg-green-100'}`}>
             {message}
           </p>
         )}
-        {/* workouts.length > 0 ? ( ... ) : ( ... ) block restored below */}
         {workouts.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white shadow-md rounded-lg">
@@ -229,7 +236,9 @@ export default function AdminPage() {
             </table>
           </div>
         ) : (
-          <p className="text-center text-gray-500">No workouts found. Or loading...</p>
+          <p className="text-center text-gray-500">
+            {isLoading ? 'Loading workouts...' : 'No workouts found. Check password and API route.'}
+          </p>
         )}
       </main>
       <Footer />
