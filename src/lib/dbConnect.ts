@@ -1,6 +1,7 @@
-import mongoose from 'mongoose';
+// src/lib/dbConnect.ts
+import mongoose from 'mongoose'; // Import mongoose library
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI || "";
 
 if (!MONGODB_URI) {
   throw new Error(
@@ -10,58 +11,29 @@ if (!MONGODB_URI) {
 
 /**
  * Global is used here to maintain a cached connection across hot reloads
- * in development. This prevents connections growing exponentially
- * during API Route usage.
+ * in development. This prevents connections growing exponentially during API calls.
  */
-// Extend the NodeJS.Global interface to include mongoose cache
-interface MongooseCache {
-  conn: typeof mongoose | null;
-  promise: Promise<typeof mongoose> | null;
-}
-
-// Add mongoose to the global type
-declare global {
-  // eslint-disable-next-line no-var
-  var mongooseCache: MongooseCache;
-}
-
-let cached = global.mongooseCache;
+let cached = global.mongoose; // TypeScript now knows about global.mongoose
 
 if (!cached) {
-  cached = global.mongooseCache = { conn: null, promise: null };
+  cached = global.mongoose = { conn: null, promise: null };
 }
 
-async function dbConnect(): Promise<typeof mongoose> {
+async function dbConnect() {
   if (cached.conn) {
-    // console.log('Using cached MongoDB connection.');
     return cached.conn;
   }
 
   if (!cached.promise) {
     const opts = {
-      bufferCommands: false, // Disable command buffering if you want to handle connection errors explicitly
-      // useNewUrlParser: true, // Deprecated, default is true
-      // useUnifiedTopology: true, // Deprecated, default is true
+      bufferCommands: false, // Recommended for serverless environments
     };
 
-    // console.log('Creating new MongoDB connection.');
-    cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongooseInstance) => {
-      // console.log('MongoDB connected!');
-      return mongooseInstance;
-    }).catch(error => {
-      console.error('MongoDB connection error:', error);
-      cached.promise = null; // Reset promise on error so next attempt can try again
-      throw error; // Rethrow error to be caught by caller
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+      return mongoose;
     });
   }
-
-  try {
-    cached.conn = await cached.promise;
-  } catch (e) {
-    cached.promise = null; // Important to null out the promise if it failed.
-    throw e;
-  }
-
+  cached.conn = await cached.promise;
   return cached.conn;
 }
 
