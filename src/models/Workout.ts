@@ -27,8 +27,8 @@ const WorkoutSchema = new Schema<WorkoutMongoDoc>({
   ao: { type: String, required: true },
   style: { type: String, required: true }, // Based on your provided schema
   location: {
-    href: { type: String, required: true },
-    text: { type: String, required: true },
+    href: { type: String },
+    text: { type: String },
   },
   day: { type: String, required: true },
   time: { type: String, required: true },
