@@ -7,14 +7,30 @@ export async function fetchWorkoutsData(): Promise<WorkoutClean[]> {
   await dbConnect(); // Connect to MongoDB
 
   try {
-    // .lean() makes the query return plain JavaScript objects instead of Mongoose Documents,
-    // which also automatically applies the toObject/toJSON transforms from your schema,
-    // ensuring _id and locationId are strings.
-    const workouts = await WorkoutModel.find({}).lean().exec();
+    // .lean() returns plain JavaScript objects. However, _id and locationId are still ObjectId instances.
+    // We explicitly map and convert them to strings to ensure type compatibility and correct matching.
+    const rawWorkoutsFromDb = await WorkoutModel.find({}).lean().exec();
 
-    // The workouts fetched from DB are already in the WorkoutClean format
-    // due to the .lean() call and schema transforms, so direct cast is safer.
-    return workouts as WorkoutClean[];
+    const workouts: WorkoutClean[] = rawWorkoutsFromDb.map(raw => {
+      // Safely convert _id to string. _id should always exist for a document.
+      const _id = raw._id ? raw._id.toString() : '';
+
+      // Safely convert locationId to string. This is crucial for matching with Location._id.
+      // If a workout has no locationId (e.g., old data), it will be an empty string.
+      const locationId = raw.locationId ? raw.locationId.toString() : '';
+
+      return {
+        _id: _id,
+        locationId: locationId,
+        style: raw.style,
+        day: raw.day,
+        time: raw.time,
+        q: raw.q,
+        avgAttendance: raw.avgAttendance
+      };
+    }).filter(workout => workout._id !== '' && workout.locationId !== ''); // Filter out any entries that ended up with empty IDs or missing locationId
+
+    return workouts;
   } catch (error) {
     console.error('Error fetching workouts from DB:', error);
     throw new Error('Failed to retrieve workout data from the database.');

@@ -3,6 +3,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import fs from 'fs'; // Still used for locale.json password retrieval
 import path from 'path';
+import mongoose from 'mongoose'; // ADDED THIS IMPORT
 
 import dbConnect from '@/lib/dbConnect';
 import LocationModel from '@/models/Location'; // Import the new Location Model
@@ -10,6 +11,7 @@ import WorkoutModel from '@/models/Workout'; // Also need WorkoutModel for casca
 import type { LocationClean } from '../../../../types/workout'; // Adjust path as needed
 
 // Helper to get admin password from locale file
+// This helper remains as it's used by POST/DELETE for admin authentication
 async function getAdminPasswordFromLocale(): Promise<string> {
     const localeFilePath = path.join(process.cwd(), 'src', 'locales', 'en.json');
     try {
@@ -28,21 +30,26 @@ async function getAdminPasswordFromLocale(): Promise<string> {
     }
 }
 
-// --- GET Method (Fetches all locations) ---
+// --- GET Method (Fetches all locations - NOW PUBLICLY ACCESSIBLE) ---
 export async function GET(request: NextRequest) {
+    // Removed password check for GET requests, allowing public access for displaying locations.
+    // For POST/DELETE methods, the password check remains in place.
+
     try {
-        const localeAdminPassword = await getAdminPasswordFromLocale();
-        const { searchParams } = new URL(request.url);
-        const providedPassword = searchParams.get('pw');
-
-        if (providedPassword !== localeAdminPassword) {
-            return NextResponse.json({ message: 'Error: Access Denied. Invalid password.' }, { status: 403 });
-        }
-
         await dbConnect(); // Ensure MongoDB connection is established
 
-        const locations = await LocationModel.find({}).lean().exec(); // Use lean() for plain objects
-        return NextResponse.json(locations as LocationClean[]);
+        const rawLocations = await LocationModel.find({}).lean().exec();
+
+        // Explicitly map to LocationClean to ensure _id is typed as string
+        const locations: LocationClean[] = rawLocations.map(loc => ({
+            _id: loc._id.toString(), // Ensure _id is string
+            name: loc.name,
+            mapLink: loc.mapLink,
+            address: loc.address,
+            description: loc.description,
+        }));
+
+        return NextResponse.json(locations);
     } catch (error) {
         console.error('API GET Error fetching locations:', error);
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
@@ -50,7 +57,7 @@ export async function GET(request: NextRequest) {
     }
 }
 
-// --- POST Method (Adds new location or Updates existing location) ---
+// --- POST Method (Adds new location or Updates existing location - REMAINS PROTECTED) ---
 export async function POST(request: NextRequest) {
     let localeAdminPassword: string;
     try {
@@ -105,7 +112,7 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// --- DELETE Method (Deletes a location and its associated workouts) ---
+// --- DELETE Method (Deletes a location and its associated workouts - REMAINS PROTECTED) ---
 export async function DELETE(request: NextRequest) {
     let localeAdminPassword: string;
     try {
@@ -131,7 +138,7 @@ export async function DELETE(request: NextRequest) {
 
     try {
         // Start a Mongoose session for transaction to ensure atomicity
-        const session = await mongoose.startSession();
+        const session = await mongoose.connection.startSession();
         session.startTransaction();
 
         try {
