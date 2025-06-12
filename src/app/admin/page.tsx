@@ -161,8 +161,8 @@ export default function AdminPage() {
     setMessage(null);
 
     // --- ADDED VALIDATION HERE FOR EDITING ---
-    if (!currentEditData.ao.trim() || !currentEditData.location.text.trim() || !currentEditData.location.href.trim() || !currentEditData.day.trim() || !currentEditData.time.trim()) {
-      setMessage('Error: AO, Location Text, Location Map Link, Day, and Time are required fields.');
+    if (!currentEditData.ao.trim() || !currentEditData.day.trim() || !currentEditData.time.trim()) {
+      setMessage('Error: AO, Day, and Time are required fields.');
       setIsLoading(false);
       return;
     }
@@ -244,8 +244,8 @@ export default function AdminPage() {
     setMessage(null);
 
     // --- ADDED VALIDATION HERE FOR NEW WORKOUT ---
-    if (!newWorkoutData.ao.trim() || !newWorkoutData.location.text.trim() || !newWorkoutData.location.href.trim() || !newWorkoutData.day.trim() || !newWorkoutData.time.trim()) {
-      setMessage('Error: AO, Location Text, Location Map Link, Day, and Time are required for new workout.');
+    if (!newWorkoutData.ao.trim() || !newWorkoutData.day.trim() || !newWorkoutData.time.trim()) {
+      setMessage('Error: AO, Day, and Time are required for new workout.');
       setIsLoading(false);
       return;
     }
@@ -370,12 +370,12 @@ export default function AdminPage() {
               <input type="text" id="new-style" name="style" value={newWorkoutData.style ?? ''} onChange={handleNewInputChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="e.g., Bootcamp" />
             </div>
             <div>
-              <label htmlFor="new-location-text" className="block text-sm font-medium text-gray-700">Location Text<span className="text-red-500">*</span></label>
-              <input type="text" id="new-location-text" name="location.text" value={newWorkoutData.location.text} onChange={handleNewInputChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="e.g., Centennial Park" required />
+              <label htmlFor="new-location-text" className="block text-sm font-medium text-gray-700">Location Text</label>
+              <input type="text" id="new-location-text" name="location.text" value={newWorkoutData.location.text} onChange={handleNewInputChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="e.g., Centennial Park" />
             </div>
             <div>
-              <label htmlFor="new-location-href" className="block text-sm font-medium text-gray-700">Location Map Link<span className="text-red-500">*</span></label>
-              <input type="text" id="new-location-href" name="location.href" value={newWorkoutData.location.href} onChange={handleNewInputChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="e.g., https://goo.gl/maps/..." required />
+              <label htmlFor="new-location-href" className="block text-sm font-medium text-gray-700">Location Map Link</label>
+              <input type="text" id="new-location-href" name="location.href" value={newWorkoutData.location.href} onChange={handleNewInputChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="e.g., https://goo.gl/maps/..." />
             </div>
             <div>
               <label htmlFor="new-day" className="block text-sm font-medium text-gray-700">Day<span className="text-red-500">*</span></label>
@@ -437,8 +437,8 @@ export default function AdminPage() {
                                       {/* Added required flags for client-side validation hints */}
                                       <input type="text" name="ao" value={currentEditData.ao} onChange={handleInputChange} placeholder="AO" className="border p-1 text-sm" required />
                                       <input type="text" name="style" value={currentEditData.style ?? ''} onChange={handleInputChange} placeholder="Style" className="border p-1 text-sm" />
-                                      <input type="text" name="location.text" value={currentEditData.location.text} onChange={handleInputChange} placeholder="Location Text" className="border p-1 text-sm" required />
-                                      <input type="text" name="location.href" value={currentEditData.location.href} onChange={handleInputChange} placeholder="Location Link" className="border p-1 text-sm" required />
+                                      <input type="text" name="location.text" value={currentEditData.location.text} onChange={handleInputChange} placeholder="Location Text" className="border p-1 text-sm" />
+                                      <input type="text" name="location.href" value={currentEditData.location.href} onChange={handleInputChange} placeholder="Location Link" className="border p-1 text-sm" />
                                       <input type="text" name="day" value={currentEditData.day} onChange={handleInputChange} placeholder="Day" className="border p-1 text-sm" required />
                                       <input type="text" name="time" value={currentEditData.time} onChange={handleInputChange} placeholder="Time" className="border p-1 text-sm" required />
                                       <input type="text" name="q" value={currentEditData.q ?? ''} onChange={handleInputChange} placeholder="Q" className="border p-1 text-sm" />
