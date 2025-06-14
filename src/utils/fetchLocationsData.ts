@@ -15,6 +15,33 @@ import type { LocationClean } from '../../types/workout'; // Adjust path as need
  * @throws {Error} If there's a problem connecting to the DB or fetching data.
  */
 export async function fetchLocationsData(): Promise<LocationClean[]> {
+  if (process.env.MOCK_DATA === 'true') {
+    console.log('FETCH_LOCATIONS_DATA_DEBUG: MOCK_DATA is true, returning mock locations data.');
+    return [
+      {
+        _id: "mock-location-1",
+        name: "Mock Location Alpha",
+        mapLink: "https://maps.example.com/mockalpha",
+        address: "123 Mock St, Mockville, MS",
+        description: "This is a mock location for Alpha.",
+        q: "MockQ Alpha",
+        embedMapLink: "",
+        imageUrl: "https://placehold.co/150x150/png?text=AO+Logo", // Placeholder
+        paxImageUrl: "https://placehold.co/150x150/png?text=PAX+Image", // Placeholder
+      },
+      {
+        _id: "mock-location-2",
+        name: "Mock Location Bravo",
+        mapLink: "https://maps.example.com/mockbravo",
+        address: "456 Mock Ave, Mocktown, MS",
+        description: "This is a mock location for Bravo.",
+        q: "MockQ Bravo",
+        embedMapLink: "",
+        imageUrl: "https://placehold.co/150x150/png?text=AO+Logo", // Placeholder
+        paxImageUrl: "https://placehold.co/150x150/png?text=PAX+Image", // Placeholder
+      }
+    ];
+  }
     await dbConnect(); // Connect to MongoDB
 
     try {

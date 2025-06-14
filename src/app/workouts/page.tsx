@@ -9,6 +9,7 @@ import Button from '../_components/Button';
 import WorkoutCard, { sortWorkouts } from '../_components/WorkoutCard';
 import type { WorkoutClean, LocationClean } from '../../../types/workout';
 import { fetchWorkoutsData } from '../../utils/fetchWorkoutsData';
+import { fetchLocationsData } from '../../utils/fetchLocationsData'; // Added this import
 import { fetchLocaleData } from '@/utils/fetchLocaleData'; // Remember this also needs its internal fetch updated to relative path
 import MapLinkButton from '../_components/MapLinkButton';
 
@@ -20,34 +21,8 @@ interface GroupedWorkoutsByLocation {
 
 export default async function Page() {
   const rawWorkouts: WorkoutClean[] = await fetchWorkoutsData();
-
-  let rawLocations: LocationClean[] = [];
-  try {
-    let locationsApiURL: string;
-    if (process.env.NODE_ENV === 'development') {
-      locationsApiURL = `http://localhost:3000/api/locations`;
-    } else {
-      locationsApiURL = '/api/locations';
-    }
-
-    const locationsResponse = await fetch(locationsApiURL, { // <-- UPDATED THIS LINE
-      cache: 'no-store'
-    });
-    if (!locationsResponse.ok) {
-      console.error('Workouts Page: Failed to fetch locations:', locationsResponse.status, locationsResponse.statusText);
-      rawLocations = [];
-    } else {
-      rawLocations = await locationsResponse.json();
-      if (!Array.isArray(rawLocations)) {
-        console.error('Workouts Page: Fetched locations data is not an array! Received:', rawLocations);
-        rawLocations = [];
-      }
-    }
-  } catch (error) {
-    console.error('Workouts Page: Error fetching locations:', error);
-    rawLocations = [];
-  }
-
+  // Use the already mocked fetchLocationsData function
+  const rawLocations: LocationClean[] = await fetchLocationsData();
 
   const groupedWorkouts: GroupedWorkoutsByLocation = {};
   rawWorkouts.forEach(workout => {
@@ -59,9 +34,9 @@ export default async function Page() {
     }
   });
 
-  for (const locationId in groupedWorkouts) {
-    sortWorkouts(groupedWorkouts[locationId]);
-  }
+  // for (const locationId in groupedWorkouts) {
+  //   sortWorkouts(groupedWorkouts[locationId]);
+  // }
 
   const sortedLocations = [...rawLocations].sort((a, b) => a.name.localeCompare(b.name));
 

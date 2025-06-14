@@ -28,6 +28,27 @@ async function getAdminPasswordFromLocale(): Promise<string> {
 
 // --- GET Method (Fetches region data - PUBLICLY ACCESSIBLE) ---
 export async function GET(request: NextRequest) {
+  if (process.env.MOCK_DATA === 'true') {
+    console.log('API_REGION_GET_DEBUG: MOCK_DATA is true, returning mock locale data.');
+    return NextResponse.json({
+      _id: "mock-region-id",
+      region_name: "Mock Region",
+      meta_description: "This is a mock region for testing.",
+      hero_title: "Mock Hero Title",
+      hero_subtitle: "Mock Hero Subtitle",
+      // pax_count: 0, // pax_count is not in LocaleData
+      region_city: "Mockville",
+      region_state: "MS",
+      region_facebook: "#",
+      region_map_lat: 30.0,
+      region_map_lon: -90.0,
+      region_map_zoom: 10,
+      region_map_embed_link: "",
+      region_instagram: "",
+      region_linkedin: "",
+      region_x_twitter: "",
+    });
+  }
     try {
         await dbConnect();
 

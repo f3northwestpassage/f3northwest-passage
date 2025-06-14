@@ -20,6 +20,24 @@ export interface LocaleData {
 }
 
 export async function fetchLocaleData(): Promise<LocaleData> {
+  if (process.env.MOCK_DATA === 'true') {
+    console.log('FETCH_LOCALE_DATA_DEBUG: MOCK_DATA is true, returning mock locale data directly.');
+    return {
+      region_name: "Mock F3 Region",
+      meta_description: "This is a mock meta description for F3 Region.",
+      hero_title: "Welcome to Mock F3 Region",
+      hero_subtitle: "The gloom of the morning will be mocked!",
+      pax_count: 123,
+      region_city: "Mockville",
+      region_state: "MS",
+      region_facebook: "https://facebook.com/mockf3region",
+      region_map_lat: 30.123,
+      region_map_lon: -90.123,
+      region_map_zoom: 12,
+      region_map_embed_link: "",
+    };
+  }
+
   try {
     // Construct the API endpoint URL using the environment variable.
     // NEXT_PUBLIC_BASE_URL must be defined locally (.env.local) and on Netlify.
