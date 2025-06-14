@@ -1,44 +1,34 @@
 // src/app/workouts/page.tsx
 
 import Link from 'next/link';
-
+import Image from 'next/image';
 import Header from '../_components/Header';
 import Footer from '../_components/Footer';
 import Hero from '../_components/Hero';
 import Button from '../_components/Button';
-// Import WorkoutCard directly as default, and sortWorkouts as a named export
 import WorkoutCard, { sortWorkouts } from '../_components/WorkoutCard';
-
-/** replace with a regional image */
-import f3HeroImg from '../../../public/f3-darkhorse-2023-11-04.jpg';
-
+import type { WorkoutClean, LocationClean } from '../../../types/workout';
 import { fetchWorkoutsData } from '../../utils/fetchWorkoutsData';
 import { fetchLocaleData } from '@/utils/fetchLocaleData';
-// Ensure WorkoutClean and LocationClean are imported
-import type { WorkoutClean, LocationClean } from '../../../types/workout';
-// IMPORT THE NEW CONVERSION UTILITY
-import { convertWorkoutsToCardProps } from '../../utils/convertWorkouts';
-import type { WorkoutCardProps } from '../_components/WorkoutCard'; // Import WorkoutCardProps for grouping
+import MapLinkButton from '../_components/MapLinkButton'; // <-- Import the new component
 
+import f3HeroImg from '../../../public/f3-darkhorse-2023-11-04.jpg';
 
-// Define a type for the grouped workouts for display on this page
 interface GroupedWorkoutsByLocation {
-  [locationId: string]: WorkoutCardProps[];
+  [locationId: string]: WorkoutClean[];
 }
 
-
 export default async function Page() {
-  // 1. Fetch raw data for workouts. This returns WorkoutClean[].
   const rawWorkouts: WorkoutClean[] = await fetchWorkoutsData();
 
-  // 2. Fetch locations data.
   let rawLocations: LocationClean[] = [];
   try {
-    // Since /api/locations GET method is now public, remove the password parameter from the request.
-    const locationsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/locations`);
+    const locationsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/locations`, {
+      cache: 'no-store'
+    });
     if (!locationsResponse.ok) {
       console.error('Workouts Page: Failed to fetch locations:', locationsResponse.status, locationsResponse.statusText);
-      rawLocations = []; // Fallback to an empty array
+      rawLocations = [];
     } else {
       rawLocations = await locationsResponse.json();
       if (!Array.isArray(rawLocations)) {
@@ -46,44 +36,26 @@ export default async function Page() {
         rawLocations = [];
       }
     }
-    // --- DEBUGGING LOG ---
-    console.log('Workouts Page: Fetched Raw Locations:', rawLocations);
-    // --- END DEBUGGING LOG ---
   } catch (error) {
     console.error('Workouts Page: Error fetching locations:', error);
     rawLocations = [];
   }
 
-
-  // 3. Convert raw workout data to WorkoutCardProps, combining with location data.
-  const workoutsForDisplay = convertWorkoutsToCardProps(rawWorkouts, rawLocations);
-
-  // --- DEBUGGING LOG ---
-  console.log('Workouts Page: Workouts for Display (after conversion):', workoutsForDisplay);
-  // --- END DEBUGGING LOG ---
-
-  // 4. Group workouts by location for structured display
   const groupedWorkouts: GroupedWorkoutsByLocation = {};
-  workoutsForDisplay.forEach(workoutCard => {
-    // Find the original raw workout to get its locationId
-    // It's important that workoutCard._id matches a raw workout's _id to find its locationId
-    const originalRawWorkout = rawWorkouts.find(raw => raw._id === workoutCard._id);
-    if (originalRawWorkout && originalRawWorkout.locationId) {
-      if (!groupedWorkouts[originalRawWorkout.locationId]) {
-        groupedWorkouts[originalRawWorkout.locationId] = [];
+  rawWorkouts.forEach(workout => {
+    if (workout.locationId) {
+      if (!groupedWorkouts[workout.locationId]) {
+        groupedWorkouts[workout.locationId] = [];
       }
-      groupedWorkouts[originalRawWorkout.locationId].push(workoutCard);
+      groupedWorkouts[workout.locationId].push(workout);
     }
   });
 
-  // Sort workouts within each group (by Day, then Time, then Style)
   for (const locationId in groupedWorkouts) {
     sortWorkouts(groupedWorkouts[locationId]);
   }
 
-  // Sort locations by name (AO name) for consistent display order
   const sortedLocations = [...rawLocations].sort((a, b) => a.name.localeCompare(b.name));
-
 
   const locales = await fetchLocaleData();
   const href = '/workouts';
@@ -92,7 +64,8 @@ export default async function Page() {
     lon: locales.region_map_lon,
     zoom: locales.region_map_zoom,
   };
-  const mapUrl = `https://map.f3nation.com/?lat=${mapDetails.lat}&lon=${mapDetails.lon}&zoom=${mapDetails.zoom}`;
+  const mapUrl = `https://map.f3nation.com/?lat=${mapDetails.lat}&lon=-${mapDetails.lon}&zoom=${mapDetails.zoom}`;
+  const embedMapUrl = locales.region_map_embed_link;
 
   return (
     <>
@@ -103,78 +76,136 @@ export default async function Page() {
           subtitle="FREE BEATDOWNS 6X/WEEK"
           imgUrl={f3HeroImg.src}
         />
-        <section className={`bg-iron leading-tight py-16 px-4`}>
-          <h2>AREAS OF OPERATION</h2>
-          <p className="text-cmu pt-5">
+        <section className="bg-iron leading-tight py-12 px-4 text-white text-center">
+          <h2 className="text-4xl font-extrabold mb-4">AREAS OF OPERATION</h2>
+          <p className="text-lg opacity-90 mb-3 max-w-2xl mx-auto">
             F3 workouts are held in any weather conditions, free of charge and
             open to men of all ages.
           </p>
-          <p className="text-cmu pt-5 pb-10">
+          <p className="text-lg opacity-90 mb-8 max-w-2xl mx-auto">
             Find a workout location [AO] below.
           </p>
-          <iframe
-            src={mapUrl}
-            className="w-full pb-10"
-            style={{ height: 500 }}
-            title="F3 Workouts Map"
-            loading="lazy"
-          />
+          {embedMapUrl ? (
+            <iframe
+              src={embedMapUrl}
+              className="w-full rounded-lg shadow-xl mb-10"
+              style={{ height: 500 }}
+              title="F3 Workouts Map"
+              loading="lazy"
+              allowFullScreen
+            />
+          ) : (
+            <iframe
+              src={mapUrl}
+              className="w-full rounded-lg shadow-xl mb-10"
+              style={{ height: 500 }}
+              title="F3 Workouts Map"
+              loading="lazy"
+            />
+          )}
+
           <Button href={mapUrl} text="VIEW FULL SCREEN" target="_blank" />
         </section>
-        <section className={`bg-gloom leading-tight py-16 px-4`}>
-          <h2 className="py-5">JOIN US</h2>
-          <div className="space-y-8"> {/* Added space between location cards */}
-            {sortedLocations.length === 0 && rawWorkouts.length === 0 ? (
-              <p className="text-center text-gray-400">No workouts or locations available at this time.</p>
-            ) : (
-              sortedLocations.map((location) => {
-                const workoutsAtThisLocation = groupedWorkouts[location._id] || [];
 
-                // Always return the location div, even if no workouts are scheduled for it.
-                // This ensures all locations are displayed.
-                return (
-                  <div key={location._id} className="bg-white rounded-lg shadow-xl p-6 border border-gray-200 text-gray-900">
-                    <h3 className="text-2xl font-bold mb-3">{location.name}</h3>
-                    {location.address && <p className="text-gray-700 mb-2"><span className="font-semibold">Address:</span> {location.address}</p>}
-                    <p className="text-gray-700 text-sm mb-2">
-                      <span className="font-semibold">Map:</span>{' '}
-                      <a href={location.mapLink} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline break-all">
-                        {location.mapLink}
-                      </a>
-                    </p>
-                    {location.description && <p className="text-gray-700 mb-4"><span className="font-semibold">Description:</span> {location.description}</p>}
+        <section className="bg-gloom leading-tight py-12 px-4">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-4xl font-extrabold text-white mb-10 text-center">JOIN US</h2>
+            <div className="space-y-6">
+              {sortedLocations.length === 0 && rawWorkouts.length === 0 ? (
+                <div className="text-center bg-gray-700 p-8 rounded-lg shadow-lg">
+                  <p className="text-2xl font-semibold text-gray-300">
+                    No workout locations available at this time.
+                  </p>
+                  <p className="text-gray-400 mt-2">
+                    Please check back later or contact us for more information.
+                  </p>
+                </div>
+              ) : (
+                sortedLocations.map((location) => {
+                  const workoutsAtThisLocation: WorkoutClean[] = groupedWorkouts[location._id] || [];
 
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <h4 className="text-xl font-semibold mb-3">Workout Schedule:</h4>
-                      <ul className="space-y-4">
-                        {workoutsAtThisLocation.length > 0 ? ( // Only map if there are workouts
-                          workoutsAtThisLocation.map((workout) => (
-                            <li key={workout._id}>
-                              <WorkoutCard
-                                _id={workout._id}
-                                ao={workout.ao}
-                                q={workout.q}
-                                avgAttendance={workout.avgAttendance}
-                                style={workout.style}
-                                locationText={workout.locationText}
-                                locationHref={workout.locationHref}
-                                day={workout.day}
-                                time={workout.time}
+                  return (
+                    <Link href={`/workouts/${encodeURIComponent(location.name)}`} key={location._id} passHref>
+                      <div className="bg-white rounded-lg shadow-xl p-4 text-gray-900 cursor-pointer hover:shadow-2xl transition-shadow duration-200">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-3xl font-extrabold text-gray-800 text-center">
+                            {location.name}
+                          </h3>
+                          {location.embedMapLink && (
+                            <MapLinkButton href={location.embedMapLink} text="Map" />
+                          )}
+                          {!location.embedMapLink && location.mapLink && (
+                            <MapLinkButton href={location.mapLink} text="Map" />
+                          )}
+                        </div>
+
+                        {location.address && <p className="text-gray-700 mb-1"><span className="font-semibold">Address:</span> {location.address}</p>}
+                        {
+                          location.q && (
+                            <p className="text-gray-700 mb-1">
+                              <span className="font-semibold">AOQ:</span> {location.q}
+                            </p>
+                          )
+                        }
+                        {location.description && <p className="text-gray-700 mb-3 text-sm leading-relaxed">{location.description}</p>}
+
+                        {
+                          location.imageUrl && (
+                            <div className="mb-3 relative w-full h-32 flex justify-center items-center">
+                              <Image
+                                src={location.imageUrl}
+                                alt={`${location.name} AO Logo`}
+                                width={150}
+                                height={150}
+                                className="rounded-lg shadow-md object-contain"
                               />
-                            </li>
-                          ))
-                        ) : (
-                          <p className="text-gray-500 italic">No workouts scheduled for this location yet.</p>
-                        )}
-                      </ul>
-                    </div>
-                  </div>
-                );
-              })
-            )}
+                            </div>
+                          )
+                        }
+                        {
+                          location.paxImageUrl && (
+                            <div className="mb-3 relative w-full h-32 flex justify-center items-center">
+                              <Image
+                                src={location.paxImageUrl}
+                                alt={`PAX at ${location.name}`}
+                                width={150}
+                                height={150}
+                                className="rounded-lg shadow-md object-contain"
+                              />
+                            </div>
+                          )
+                        }
+
+                        <div className="mt-4 pt-4 border-t border-gray-300">
+                          <h4 className="text-2xl font-bold text-gray-800 mb-3 text-center">Workout Schedule:</h4>
+                          <div className="grid gap-4 d-flex justify-center">
+                            {workoutsAtThisLocation.length > 0 ? (
+                              workoutsAtThisLocation.map((workout) => (
+                                <WorkoutCard
+                                  key={workout._id}
+                                  _id={workout._id}
+                                  locationId={location._id}
+                                  locationName={location.name}
+                                  startTime={workout.startTime}
+                                  endTime={workout.endTime}
+                                  days={workout.days}
+                                  types={workout.types}
+                                />
+                              ))
+                            ) : (
+                              <p className="text-gray-500 italic col-span-full text-center">No workouts scheduled for this location yet.</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })
+              )}
+            </div>
           </div>
         </section>
-      </main>
+      </main >
       <Footer />
     </>
   );

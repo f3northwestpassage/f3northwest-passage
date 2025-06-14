@@ -1,17 +1,16 @@
 // app/api/locations/route.ts
 
 import { type NextRequest, NextResponse } from 'next/server';
-import fs from 'fs'; // Still used for locale.json password retrieval
+import fs from 'fs';
 import path from 'path';
-import mongoose from 'mongoose'; // ADDED THIS IMPORT
+import mongoose from 'mongoose';
 
 import dbConnect from '@/lib/dbConnect';
-import LocationModel from '@/models/Location'; // Import the new Location Model
-import WorkoutModel from '@/models/Workout'; // Also need WorkoutModel for cascading delete
-import type { LocationClean } from '../../../../types/workout'; // Adjust path as needed
+import LocationModel from '@/models/Location';
+import WorkoutModel from '@/models/Workout';
+import type { LocationClean } from '../../../../types/workout';
 
 // Helper to get admin password from locale file
-// This helper remains as it's used by POST/DELETE for admin authentication
 async function getAdminPasswordFromLocale(): Promise<string> {
     const localeFilePath = path.join(process.cwd(), 'src', 'locales', 'en.json');
     try {
@@ -32,11 +31,8 @@ async function getAdminPasswordFromLocale(): Promise<string> {
 
 // --- GET Method (Fetches all locations - NOW PUBLICLY ACCESSIBLE) ---
 export async function GET(request: NextRequest) {
-    // Removed password check for GET requests, allowing public access for displaying locations.
-    // For POST/DELETE methods, the password check remains in place.
-
     try {
-        await dbConnect(); // Ensure MongoDB connection is established
+        await dbConnect();
 
         const rawLocations = await LocationModel.find({}).lean().exec();
 
@@ -47,6 +43,10 @@ export async function GET(request: NextRequest) {
             mapLink: loc.mapLink,
             address: loc.address,
             description: loc.description,
+            q: loc.q, // Include 'q' field when mapping
+            embedMapLink: loc.embedMapLink, // Ensure embedMapLink is included
+            imageUrl: loc.imageUrl, // Ensure imageUrl is included
+            paxImageUrl: loc.paxImageUrl, // <--- ADD THIS LINE to include paxImageUrl
         }));
 
         return NextResponse.json(locations);
@@ -79,16 +79,29 @@ export async function POST(request: NextRequest) {
     try {
         const locationData: LocationClean = await request.json();
 
+        // Ensure these fields are explicitly allowed in your Mongoose schema!
+        // MongoDB will ignore fields not defined in the schema for 'create' and 'update'.
         if (!locationData || typeof locationData !== 'object' || !locationData.name || !locationData.mapLink) {
             return NextResponse.json({ message: 'Error: Invalid data format. Location Name and Map Link are required.' }, { status: 400 });
         }
 
+        // Prepare fields to be updated/created, ensuring all relevant fields are captured.
+        const fieldsToSave = {
+            name: locationData.name,
+            mapLink: locationData.mapLink,
+            address: locationData.address,
+            description: locationData.description,
+            q: locationData.q, // Crucial: ensure 'q' is part of the data being saved
+            embedMapLink: locationData.embedMapLink, // Crucial: ensure 'embedMapLink' is part of the data being saved
+            imageUrl: locationData.imageUrl, // Crucial: ensure 'imageUrl' is part of the data being saved
+            paxImageUrl: locationData.paxImageUrl, // <--- ADD THIS LINE to ensure paxImageUrl is saved/updated
+        };
+
         if (locationData._id) {
             // Update existing location
-            const { _id, ...updateFields } = locationData;
             const updatedLocation = await LocationModel.findByIdAndUpdate(
-                _id,
-                updateFields,
+                locationData._id,
+                fieldsToSave, // Use the carefully prepared fields
                 { new: true, runValidators: true }
             ).lean().exec();
 
@@ -98,7 +111,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ message: 'Success: Location updated successfully.', location: updatedLocation }, { status: 200 });
         } else {
             // Add new location
-            const newLocation = await LocationModel.create(locationData);
+            const newLocation = await LocationModel.create(fieldsToSave); // Use the carefully prepared fields
             return NextResponse.json({ message: 'Success: Location added successfully.', location: newLocation.toObject() }, { status: 201 });
         }
 

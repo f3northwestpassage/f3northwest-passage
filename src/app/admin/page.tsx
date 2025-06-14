@@ -1,713 +1,506 @@
-// app/admin/page.tsx
-'use client';
+// src/app/admin/page.tsx
+'use client'; // This is a Client Component
 
-import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import Header from '../_components/Header';
-import Footer from '../_components/Footer';
-// Import the NEWLY DEFINED types for LocationClean and WorkoutClean
-import type { LocationClean, WorkoutClean } from '../../../types/workout'; // Adjust path if needed
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import type { LocationClean } from '../../../types/workout'; // Assuming this path is correct
+import type { LocaleData, RegionFormState } from '../../../types/locale'; // Import LocaleData and RegionFormState
 
-// For icons
-import { TrashIcon, PlusCircleIcon, PencilIcon } from '@heroicons/react/24/solid'; // Requires @heroicons/react installed: npm install @heroicons/react
+// Define the initial state for the region form
+const initialRegionFormState: RegionFormState = {
+  region_name: '',
+  meta_description: '',
+  hero_title: '',
+  hero_subtitle: '',
+  region_city: '',
+  region_state: '',
+  region_facebook: '',
+  region_map_lat: 0,
+  region_map_lon: 0,
+  region_map_zoom: 12, // Default zoom level
+  region_map_embed_link: '',
+  region_instagram: '',
+  region_linkedin: '',
+  region_x_twitter: '',
+};
 
-// Define interfaces for form states (for modals)
-interface NewLocationFormState extends Omit<LocationClean, '_id'> {
-  _id?: string; // Optional for new location
-}
+// Reusable Input Field Component - **NOW CORRECTLY APPLIES PLACEHOLDER**
+const FormInput = ({ label, id, name, type = 'text', value, onChange, required = false, step, rows, placeholder }: {
+  label: string;
+  id: string;
+  name: string;
+  type?: string;
+  value: string | number;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  required?: boolean;
+  step?: string;
+  rows?: number;
+  placeholder?: string;
+}) => (
+  <div>
+    <label htmlFor={id} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+      {label}
+      {required && <span className="text-red-500 ml-1">*</span>}
+    </label>
+    {type === 'textarea' ? (
+      <textarea
+        id={id}
+        name={name}
+        rows={rows}
+        value={value}
+        onChange={onChange}
+        // --- ADDED THIS LINE ---
+        placeholder={placeholder}
+        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2
+                   bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400"
+        required={required}
+      />
+    ) : (
+      <input
+        type={type}
+        id={id}
+        name={name}
+        value={value}
+        onChange={onChange}
+        // --- ADDED THIS LINE ---
+        placeholder={placeholder}
+        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2
+                   bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400"
+        required={required}
+        step={step}
+      />
+    )}
+  </div>
+);
 
-// Corrected WorkoutFormState to reflect WorkoutClean's fields
-interface WorkoutFormState extends Omit<WorkoutClean, '_id' | 'locationId'> {
-  _id?: string; // Optional for new workout
-  locationId: string; // Mandatory when creating/editing a workout, derived from selected location
-}
-
-// Define type for grouped workouts (for display)
-interface WorkoutsByLocation {
-  [locationId: string]: WorkoutClean[];
-}
 
 export default function AdminPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const providedPassword = searchParams.get('pw');
+  const password = searchParams.get('pw');
+
+  const [activeTab, setActiveTab] = useState<'region' | 'locations'>('region');
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const [locations, setLocations] = useState<LocationClean[]>([]);
-  const [workouts, setWorkouts] = useState<WorkoutClean[]>([]); // Flat list of all workouts
-
-  const [message, setMessage] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  // State for Add/Edit Location Modal
-  const [showLocationModal, setShowLocationModal] = useState(false);
-  const [editingLocationData, setEditingLocationData] = useState<NewLocationFormState | null>(null); // For editing existing location
-
-  // State for Add/Edit Workout Modal
-  const [showWorkoutModal, setShowWorkoutModal] = useState(false);
-  const [currentWorkoutLocationId, setCurrentWorkoutLocationId] = useState<string | null>(null); // Location ID for current workout modal
-  // Corrected initial state for editingWorkoutData to match WorkoutClean's structure
-  const [editingWorkoutData, setEditingWorkoutData] = useState<WorkoutFormState | null>(null); // For editing existing workout
-
-  // New location form state
-  const [newLocationData, setNewLocationData] = useState<NewLocationFormState>({
-    name: '',
-    mapLink: '',
-    address: '',
-    description: '',
+  const [newLocationForm, setNewLocationForm] = useState<Partial<LocationClean>>({
+    name: '', mapLink: '', address: '', description: '', q: '', embedMapLink: '', imageUrl: '', paxImageUrl: '',
   });
+  const [editLocationId, setEditLocationId] = useState<string | null>(null);
 
-  // Corrected newWorkoutData state to match WorkoutClean's structure
-  const [newWorkoutData, setNewWorkoutData] = useState<Omit<WorkoutClean, '_id' | 'locationId'>>({
-    style: '',
-    day: '',
-    time: '',
-    q: '',
-    avgAttendance: '',
-  });
+  const [regionForm, setRegionForm] = useState<RegionFormState>(initialRegionFormState);
+  const [regionLoading, setRegionLoading] = useState(true);
+  const [regionError, setRegionError] = useState<string | null>(null);
+  const [regionSuccess, setRegionSuccess] = useState<string | null>(null);
 
-  const CLIENT_ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
 
-  // --- Data Fetching ---
-  const refreshAllData = useCallback(async () => {
-    setIsLoading(true);
-    setMessage(null);
-    try {
-      const password = providedPassword;
-      if (!password) {
-        setMessage('Error: Admin password not found in URL.');
-        setIsLoading(false);
-        return;
-      }
-
-      // Fetch locations
-      const locationsResponse = await fetch(`/api/locations?pw=${password}`);
-      const locationsData = await locationsResponse.json();
-      if (!locationsResponse.ok) {
-        throw new Error(locationsData.message || `API Error fetching locations: ${locationsResponse.status}`);
-      }
-      if (!Array.isArray(locationsData)) {
-        console.error('AdminPage: ERROR - Fetched locations data is not an array! Received:', locationsData);
-        setLocations([]);
-        setMessage('Error: Locations data from server was not in expected format.');
-        return;
-      }
-      setLocations(locationsData);
-
-      // Fetch workouts
-      const workoutsResponse = await fetch(`/api/workouts?pw=${password}`);
-      const workoutsData = await workoutsResponse.json();
-      if (!workoutsResponse.ok) {
-        throw new Error(workoutsData.message || `API Error fetching workouts: ${workoutsResponse.status}`);
-      }
-      if (!Array.isArray(workoutsData)) {
-        console.error('AdminPage: ERROR - Fetched workouts data is not an array! Received:', workoutsData);
-        setWorkouts([]);
-        setMessage('Error: Workouts data from server was not in expected format.');
-        return;
-      }
-      setWorkouts(workoutsData);
-
-      console.log("AdminPage: All data fetched successfully.");
-    } catch (error) {
-      console.error('AdminPage: Error in refreshAllData:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred while refreshing data.';
-      setMessage(`Error refreshing data: ${errorMessage}`);
-      setLocations([]);
-      setWorkouts([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [providedPassword]); // Added providedPassword to refreshAllData dependencies
-
+  // --- Global Password Check ---
   useEffect(() => {
-    if (providedPassword && providedPassword === CLIENT_ADMIN_PASSWORD) {
-      refreshAllData();
-    } else if (providedPassword && providedPassword !== CLIENT_ADMIN_PASSWORD) {
-      setMessage('Access Denied: Invalid password in URL.');
+    if (!password) {
+      setError('Admin password is required to access the dashboard.');
+      setLoading(false);
+      setRegionLoading(false);
     }
-  }, [providedPassword, CLIENT_ADMIN_PASSWORD, refreshAllData]);
+  }, [password]);
 
-  // --- Grouping Workouts by Location ---
-  const workoutsGroupedByLocation = useMemo(() => {
-    const grouped: WorkoutsByLocation = {};
-    workouts.forEach(workout => {
-      if (workout.locationId) { // Ensure workout has a locationId
-        if (!grouped[workout.locationId]) {
-          grouped[workout.locationId] = [];
+
+  // --- Effect to fetch region data on component mount (or password change) ---
+  useEffect(() => {
+    if (!password) return;
+
+    async function fetchRegionData() {
+      setRegionLoading(true);
+      setRegionError(null);
+      try {
+        const response = await fetch('/api/region');
+        if (!response.ok) {
+          if (response.status === 404) {
+            console.warn('Region configuration not found, initializing empty form. Please create it.');
+            setRegionForm(initialRegionFormState);
+            setRegionSuccess('Region configuration is not set up. Please save to create it.');
+            return;
+          }
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-        grouped[workout.locationId].push(workout);
+        const data: LocaleData = await response.json();
+        setRegionForm({
+          region_name: data.region_name || '',
+          meta_description: data.meta_description || '',
+          hero_title: data.hero_title || '',
+          hero_subtitle: data.hero_subtitle || '',
+          region_city: data.region_city || '',
+          region_state: data.region_state || '',
+          region_facebook: data.region_facebook || '',
+          region_map_lat: data.region_map_lat || 0,
+          region_map_lon: data.region_map_lon || 0,
+          region_map_zoom: data.region_map_zoom || 12,
+          region_map_embed_link: data.region_map_embed_link || '',
+          region_instagram: data.region_instagram || '',
+          region_linkedin: data.region_linkedin || '',
+          region_x_twitter: data.region_x_twitter || '',
+        });
+      } catch (e: any) {
+        setRegionError(`Failed to fetch region data: ${e.message}`);
+        console.error("Failed to fetch region data:", e);
+      } finally {
+        setRegionLoading(false);
       }
-    });
-
-    // Sort workouts within each location by Day, then Time, then Style
-    for (const locId in grouped) {
-      grouped[locId].sort((a, b) => {
-        const daysOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-        const dayA = daysOrder.indexOf(a.day);
-        const dayB = daysOrder.indexOf(b.day);
-        if (dayA !== dayB) return dayA - dayB;
-
-        if (a.time && b.time) {
-          const timeComparison = a.time.localeCompare(b.time);
-          if (timeComparison !== 0) return timeComparison;
-        }
-
-        if (a.style && b.style) {
-          return a.style.localeCompare(b.style);
-        }
-        return 0;
-      });
     }
+    fetchRegionData();
+  }, [password]);
 
-    return grouped;
-  }, [workouts]);
 
-  // --- Location Management Handlers ---
-  const handleOpenAddLocationModal = () => {
-    setEditingLocationData(null); // Clear any previous edit data
-    setNewLocationData({ name: '', mapLink: '', address: '', description: '' }); // Reset form
-    setShowLocationModal(true);
-  };
-
-  const handleOpenEditLocationModal = (location: LocationClean) => {
-    setEditingLocationData({ ...location }); // Populate form with existing data
-    setShowLocationModal(true);
-  };
-
-  const handleCloseLocationModal = () => {
-    setShowLocationModal(false);
-    setEditingLocationData(null);
-    setNewLocationData({ name: '', mapLink: '', address: '', description: '' }); // Reset form
-    setMessage(null); // Clear any modal-specific messages
-  };
-
-  const handleLocationInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  // --- Handlers for Region Form ---
+  const handleRegionFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    if (editingLocationData) {
-      setEditingLocationData(prev => ({ ...prev!, [name]: value }));
-    } else {
-      setNewLocationData(prev => ({ ...prev, [name]: value }));
-    }
+    setRegionForm((prev: any) => ({
+      ...prev,
+      [name]: name.startsWith('region_map_') ? parseFloat(value) || 0 : value,
+    }));
   };
 
-  const handleAddEditLocation = async () => {
-    setIsLoading(true);
-    setMessage(null);
-
-    const dataToSend = editingLocationData || newLocationData;
-    // Method remains POST for both create/update as per previous API design
-    const url = `/api/locations?pw=${providedPassword}`;
-
-    // Basic validation
-    if (!dataToSend.name.trim() || !dataToSend.mapLink.trim()) {
-      setMessage('Error: Location Name and Map Link are required.');
-      setIsLoading(false);
+  const handleRegionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!password) {
+      setRegionError('Admin password is required to update region info.');
       return;
     }
+    setRegionLoading(true);
+    setRegionError(null);
+    setRegionSuccess(null);
 
     try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dataToSend),
+      const response = await fetch(`/api/region?pw=${password}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(regionForm),
       });
-      const result = await response.json();
+
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error(result.message || `API Error: ${response.status}`);
+        throw new Error(data.message || 'Failed to update region configuration.');
       }
 
-      setMessage(result.message || (editingLocationData ? 'Location updated successfully!' : 'Location added successfully!'));
-      handleCloseLocationModal();
-      refreshAllData(); // Refresh all data to include new/updated location
-    } catch (error) {
-      console.error('Failed to add/edit location:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-      setMessage(`Error: ${errorMessage}`);
+      setRegionSuccess(data.message || 'Region configuration updated successfully!');
+    } catch (e: any) {
+      setRegionError(`Error updating region: ${e.message}`);
+      console.error("Error updating region:", e);
     } finally {
-      setIsLoading(false);
+      setRegionLoading(false);
     }
   };
 
-  const handleDeleteLocation = async (locationId: string, locationName: string) => {
-    if (!confirm(`Are you sure you want to delete "${locationName}" and all its associated workouts? This action cannot be undone.`)) {
+
+  // --- Location related Handlers (unchanged) ---
+  useEffect(() => {
+    if (!password) return;
+
+    async function fetchLocations() {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(`/api/locations?pw=${password}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data: LocationClean[] = await response.json();
+        setLocations(data);
+      } catch (e: any) {
+        setError(`Failed to fetch locations: ${e.message}`);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchLocations();
+  }, [password]);
+
+  const handleNewLocationChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setNewLocationForm(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleEditLocation = (location: LocationClean) => {
+    setEditLocationId(location._id);
+    setNewLocationForm(location);
+    setActiveTab('locations');
+    setSuccess(null);
+    setError(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditLocationId(null);
+    setNewLocationForm({
+      name: '', mapLink: '', address: '', description: '', q: '', embedMapLink: '', imageUrl: '', paxImageUrl: '',
+    });
+    setError(null);
+    setSuccess(null);
+  };
+
+  const handleSubmitLocation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!password) {
+      setError('Password is required to submit changes.');
       return;
     }
 
-    setIsLoading(true);
-    setMessage(null);
+    setError(null);
+    setSuccess(null);
+    setLoading(true);
 
     try {
-      const response = await fetch(`/api/locations?pw=${providedPassword}&id=${locationId}`, {
+      const method = 'POST';
+      const body = { ...newLocationForm, _id: editLocationId || undefined };
+
+      const response = await fetch(`/api/locations?pw=${password}`, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to process location.');
+      }
+
+      setSuccess(data.message);
+      const updatedLocationsResponse = await fetch(`/api/locations?pw=${password}`);
+      const updatedLocationsData: LocationClean[] = await updatedLocationsResponse.json();
+      setLocations(updatedLocationsData);
+
+      handleCancelEdit();
+
+    } catch (e: any) {
+      setError(`Error: ${e.message}`);
+      console.error("Error submitting location:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteLocation = async (id: string) => {
+    if (!password) {
+      setError('Password is required to delete locations.');
+      return;
+    }
+    if (!confirm('Are you sure you want to delete this location and all its associated workouts? This action cannot be undone.')) {
+      return;
+    }
+
+    setError(null);
+    setSuccess(null);
+    setLoading(true);
+
+    try {
+      const response = await fetch(`/api/locations?pw=${password}&id=${id}`, {
         method: 'DELETE',
       });
-      const result = await response.json();
+
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error(result.message || `API Error: ${response.status}`);
+        throw new Error(data.message || 'Failed to delete location.');
       }
-      setMessage(result.message || 'Location and its workouts deleted successfully!');
-      refreshAllData();
-    } catch (error) {
-      console.error('Failed to delete location:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-      setMessage(`Error: ${errorMessage}`);
+
+      setSuccess(data.message);
+      setLocations(prev => prev.filter(loc => loc._id !== id));
+    } catch (e: any) {
+      setError(`Error: ${e.message}`);
+      console.error("Error deleting location:", e);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  // --- Workout Management Handlers (within a location card) ---
-  const handleOpenAddWorkoutModal = (locationId: string) => {
-    setCurrentWorkoutLocationId(locationId);
-    setEditingWorkoutData(null); // Clear any previous edit data
-    // Reset newWorkoutData to match WorkoutClean's structure
-    setNewWorkoutData({ style: '', day: '', time: '', q: '', avgAttendance: '' });
-    setShowWorkoutModal(true);
-  };
 
-  const handleOpenEditWorkoutModal = (workout: WorkoutClean) => {
-    setCurrentWorkoutLocationId(workout.locationId);
-    // Populate form with existing data, only workout-specific fields
-    setEditingWorkoutData({
-      _id: workout._id,
-      style: workout.style ?? '',
-      day: workout.day ?? '',
-      time: workout.time ?? '',
-      q: workout.q ?? '',
-      avgAttendance: workout.avgAttendance ?? '',
-      locationId: workout.locationId // Keep locationId for the API call
-    });
-    setShowWorkoutModal(true);
-  };
-
-  const handleCloseWorkoutModal = () => {
-    setShowWorkoutModal(false);
-    setCurrentWorkoutLocationId(null);
-    setEditingWorkoutData(null);
-    // Reset newWorkoutData to match WorkoutClean's structure
-    setNewWorkoutData({ style: '', day: '', time: '', q: '', avgAttendance: '' });
-    setMessage(null); // Clear any modal-specific messages
-  };
-
-  const handleWorkoutInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    // Determine which state to update (editing or new)
-    if (editingWorkoutData) {
-      setEditingWorkoutData(prev => ({ ...prev!, [name]: value }));
-    } else {
-      setNewWorkoutData(prev => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleAddEditWorkout = async () => {
-    setIsLoading(true);
-    setMessage(null);
-
-    let dataToSend: WorkoutClean;
-
-    // Determine if adding or editing
-    if (editingWorkoutData) {
-      // Ensure editing data includes the original locationId
-      dataToSend = { ...editingWorkoutData, locationId: currentWorkoutLocationId! } as WorkoutClean;
-    } else {
-      // For new workouts, ensure locationId is set
-      if (!currentWorkoutLocationId) {
-        setMessage('Error: Workout must be associated with a location.');
-        setIsLoading(false);
-        return;
-      }
-      dataToSend = { ...newWorkoutData, locationId: currentWorkoutLocationId } as WorkoutClean;
-    }
-
-    const url = `/api/workouts?pw=${providedPassword}`;
-
-    // Basic validation for workout fields
-    if (!dataToSend.day.trim() || !dataToSend.time.trim()) {
-      setMessage('Error: Day and Time are required for workouts.');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dataToSend),
-      });
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.message || `API Error: ${response.status}`);
-      }
-
-      setMessage(result.message || (editingWorkoutData ? 'Workout updated successfully!' : 'Workout added successfully!'));
-      handleCloseWorkoutModal();
-      refreshAllData(); // Refresh all data to include new/updated workout
-    } catch (error) {
-      console.error('Failed to add/edit workout:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-      setMessage(`Error: ${errorMessage}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDeleteWorkout = async (workoutId: string) => {
-    if (!confirm('Are you sure you want to delete this workout?')) {
-      return;
-    }
-
-    setIsLoading(true);
-    setMessage(null);
-
-    try {
-      const response = await fetch(`/api/workouts?pw=${providedPassword}&id=${workoutId}`, {
-        method: 'DELETE',
-      });
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.message || `API Error: ${response.status}`);
-      }
-      setMessage(result.message || 'Workout deleted successfully!');
-      refreshAllData();
-    } catch (error) {
-      console.error('Failed to delete workout:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-      setMessage(`Error: ${errorMessage}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // --- Access Denied / Main Render ---
-  if (providedPassword !== CLIENT_ADMIN_PASSWORD) {
+  if (!password) {
     return (
-      <>
-        <Header href="/admin" />
-        <main className="container mx-auto px-4 py-8 text-center">
-          <h1 className="text-2xl font-bold text-red-600">Access Denied</h1>
-          <p className="mt-4">
-            You have not provided the correct password to access this page.
-            {message && <span className="block text-sm text-red-500 mt-2">{message}</span>}
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 p-10 bg-white dark:bg-gray-800 rounded-lg shadow-xl">
+          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white text-center">Admin Access Required</h1>
+          <p className="mt-2 text-center text-sm text-red-600 dark:text-red-400">
+            Please provide the admin password in the URL.
           </p>
-          <Link href="/" className="mt-6 inline-block bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">
-            Go to Homepage
-          </Link>
-        </main>
-        <Footer />
-      </>
+          <p className="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
+            **Security Warning:** This method of password protection is highly insecure for production environments.
+            Please consider implementing a robust authentication system like NextAuth.js.
+          </p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <>
-      <Header href="/admin" />
-      <main className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
-          Admin Dashboard
-        </h1>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8">
+        <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white text-center mb-8">Admin Dashboard</h1>
 
-        {isLoading && <p className="text-center text-blue-500">Loading/Saving data...</p>}
-        {message && (
-          <p className={`text-center p-3 mb-6 rounded-md ${message.startsWith('Error:') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-            {message}
-          </p>
-        )}
+        {/* Global Messages */}
+        {error && <p className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 px-4 py-3 rounded relative mb-4 text-center">{error}</p>}
+        {success && <p className="bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 px-4 py-3 rounded relative mb-4 text-center">{success}</p>}
 
-        {/* Add New Location Button */}
-        <div className="mb-8 text-center">
-          <button
-            onClick={handleOpenAddLocationModal}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg flex items-center justify-center mx-auto transition duration-300 ease-in-out"
-          >
-            <PlusCircleIcon className="h-6 w-6 mr-2" /> Add New Location
-          </button>
+        {/* Tab Navigation */}
+        <div className="mb-8 border-b border-gray-200 dark:border-gray-700">
+          <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+            <button
+              onClick={() => setActiveTab('region')}
+              className={`${activeTab === 'region'
+                ? 'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500'
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg`}
+            >
+              Edit Region Info
+            </button>
+            <button
+              onClick={() => setActiveTab('locations')}
+              className={`${activeTab === 'locations'
+                ? 'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500'
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg`}
+            >
+              Manage Locations
+            </button>
+          </nav>
         </div>
 
-        {/* Locations Grid */}
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">Manage Locations & Workouts</h2>
-        {locations.length === 0 && !isLoading ? (
-          <p className="text-center text-gray-600">No locations found. Click {`"Add New Location"`} to get started!</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {locations.map(location => (
-              <div key={location._id} className="bg-white rounded-lg shadow-xl p-6 border border-gray-200 flex flex-col">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-xl font-bold text-gray-900">{location.name}</h3>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleOpenEditLocationModal(location)}
-                      className="text-blue-600 hover:text-blue-800 p-1 rounded-full hover:bg-blue-50 transition duration-200"
-                      title="Edit Location"
-                    >
-                      <PencilIcon className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteLocation(location._id, location.name)}
-                      className="text-red-600 hover:text-red-800 p-1 rounded-full hover:bg-red-50 transition duration-200"
-                      title="Delete Location"
-                    >
-                      <TrashIcon className="h-5 w-5" />
-                    </button>
+        {/* --- Region Configuration Section --- */}
+        {activeTab === 'region' && (
+          <section className="mb-8 p-6 bg-gray-50 dark:bg-gray-800 rounded-lg shadow-inner">
+            <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-white border-b pb-3 dark:border-gray-700">Region Settings</h2>
+            {regionLoading && <p className="text-center text-gray-600 dark:text-gray-400">Loading region data...</p>}
+            {regionError && <p className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 px-4 py-3 rounded relative mb-4 text-center">{regionError}</p>}
+            {regionSuccess && <p className="bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 px-4 py-3 rounded relative mb-4 text-center">{regionSuccess}</p>}
+
+            {!regionLoading && (
+              <form onSubmit={handleRegionSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormInput label="Region Name" id="region_name" name="region_name" value={regionForm.region_name || ''} onChange={handleRegionFormChange} placeholder="e.g., F3 Houston" />
+                <FormInput label="Meta Description" id="meta_description" name="meta_description" value={regionForm.meta_description || ''} onChange={handleRegionFormChange} placeholder="A brief description for search engines" />
+                <FormInput label="Hero Title" id="hero_title" name="hero_title" value={regionForm.hero_title || ''} onChange={handleRegionFormChange} placeholder="e.g., Iron Sharpens Iron" />
+                <FormInput label="Hero Subtitle" id="hero_subtitle" name="hero_subtitle" value={regionForm.hero_subtitle || ''} onChange={handleRegionFormChange} placeholder="e.g., F3: Fitness, Fellowship, Faith" />
+                <FormInput label="Region City" id="region_city" name="region_city" value={regionForm.region_city || ''} onChange={handleRegionFormChange} placeholder="e.g., Houston" />
+                <FormInput label="Region State" id="region_state" name="region_state" value={regionForm.region_state || ''} onChange={handleRegionFormChange} placeholder="e.g., TX" />
+                <FormInput label="Facebook URL" id="region_facebook" name="region_facebook" type="url" value={regionForm.region_facebook || ''} onChange={handleRegionFormChange} placeholder="https://facebook.com/f3houston" />
+                <FormInput label="Map Latitude" id="region_map_lat" name="region_map_lat" type="number" step="any" value={regionForm.region_map_lat || 0} onChange={handleRegionFormChange} placeholder="e.g., 29.7604" />
+                <FormInput label="Map Longitude" id="region_map_lon" name="region_map_lon" type="number" step="any" value={regionForm.region_map_lon || 0} onChange={handleRegionFormChange} placeholder="e.g., -95.3698" />
+                <FormInput label="Map Zoom" id="region_map_zoom" name="region_map_zoom" type="number" value={regionForm.region_map_zoom || 0} onChange={handleRegionFormChange} placeholder="e.g., 12" />
+                <div className="md:col-span-2">
+                  <FormInput label="Map Embed Link (iframe src)" id="region_map_embed_link" name="region_map_embed_link" type="url" value={regionForm.region_map_embed_link || ''} onChange={handleRegionFormChange} placeholder="https://www.google.com/maps/embed?pb=!1m18!..." />
+                </div>
+
+                {/* Social Media Inputs */}
+                <div className="md:col-span-2 pt-4 border-t border-gray-200 dark:border-gray-700 mt-4">
+                  <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Social Media Links (Optional)</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormInput label="Instagram URL" id="region_instagram" name="region_instagram" type="url" value={regionForm.region_instagram || ''} onChange={handleRegionFormChange} placeholder="https://instagram.com/f3houston" />
+                    <FormInput label="LinkedIn URL" id="region_linkedin" name="region_linkedin" type="url" value={regionForm.region_linkedin || ''} onChange={handleRegionFormChange} placeholder="https://linkedin.com/company/f3houston" />
+                    <FormInput label="X (Twitter) URL" id="region_x_twitter" name="region_x_twitter" type="url" value={regionForm.region_x_twitter || ''} onChange={handleRegionFormChange} placeholder="https://x.com/f3houston" />
                   </div>
                 </div>
-                <p className="text-gray-700 text-sm mb-2">
-                  <span className="font-semibold">Map:</span>{' '}
-                  <a href={location.mapLink} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline break-all">
-                    {location.mapLink}
-                  </a>
-                </p>
-                {location.address && <p className="text-gray-700 text-sm mb-2"><span className="font-semibold">Address:</span> {location.address}</p>}
-                {location.description && <p className="text-gray-700 text-sm mb-4"><span className="font-semibold">Description:</span> {location.description}</p>}
 
-                <div className="mt-auto pt-4 border-t border-gray-200">
-                  <h4 className="text-lg font-semibold mb-3 text-gray-800">Workouts:</h4>
-                  {workoutsGroupedByLocation[location._id] && workoutsGroupedByLocation[location._id].length > 0 ? (
-                    <div className="space-y-3">
-                      {workoutsGroupedByLocation[location._id].map(workout => (
-                        <div key={workout._id} className="bg-gray-50 p-3 rounded-md shadow-sm border border-gray-200 text-sm flex justify-between items-center">
-                          <div>
-                            <p className="font-semibold text-gray-900">{workout.day} at {workout.time}</p>
-                            <p className="text-gray-700">Style: {workout.style || 'N/A'}</p>
-                            <p className="text-gray-700">Q: {workout.q || 'N/A'}</p>
-                            <p className="text-gray-700">Avg. Att: {workout.avgAttendance || 'N/A'}</p>
-                          </div>
-                          <div className="flex space-x-2 flex-shrink-0">
-                            <button
-                              onClick={() => handleOpenEditWorkoutModal(workout)}
-                              className="text-green-600 hover:text-green-800 p-1 rounded-full hover:bg-green-50 transition duration-200"
-                              title="Edit Workout"
-                            >
-                              <PencilIcon className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteWorkout(workout._id)}
-                              className="text-red-600 hover:text-red-800 p-1 rounded-full hover:bg-red-50 transition duration-200"
-                              title="Delete Workout"
-                            >
-                              <TrashIcon className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 italic">No workouts for this location yet.</p>
-                  )}
+                <div className="md:col-span-2 mt-4">
                   <button
-                    onClick={() => handleOpenAddWorkoutModal(location._id)}
-                    className="mt-4 bg-purple-600 hover:bg-purple-700 text-white text-sm py-2 px-4 rounded-md flex items-center justify-center transition duration-300 ease-in-out w-full"
+                    type="submit"
+                    className="w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out
+                               dark:bg-blue-700 dark:hover:bg-blue-600 dark:focus:ring-blue-400"
+                    disabled={regionLoading}
                   >
-                    <PlusCircleIcon className="h-5 w-5 mr-1" /> Add Workout
+                    {regionLoading ? 'Saving...' : 'Save Region Configuration'}
                   </button>
                 </div>
-              </div>
-            ))}
-          </div>
+              </form>
+            )}
+          </section>
         )}
-      </main>
 
-      {/* --- Modals --- */}
-      {/* Location Add/Edit Modal */}
-      {showLocationModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
-            <h2 className="text-2xl font-bold mb-6 text-gray-800">
-              {editingLocationData ? 'Edit Location' : 'Add New Location'}
-            </h2>
-            <form onSubmit={(e) => { e.preventDefault(); handleAddEditLocation(); }}>
-              <div className="mb-4">
-                <label htmlFor="location-name" className="block text-gray-700 text-sm font-bold mb-2">
-                  Location Name (AO)<span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="location-name"
-                  name="name"
-                  value={editingLocationData?.name ?? newLocationData.name}
-                  onChange={handleLocationInputChange}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-900 leading-tight focus:outline-none focus:shadow-outline"
-                  placeholder="e.g., The Pit"
-                  required
-                />
+        {/* --- Location Management Section --- */}
+        {activeTab === 'locations' && (
+          <section className="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg shadow-inner">
+            <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-white border-b pb-3 dark:border-gray-700">{editLocationId ? 'Edit Location' : 'Add New Location'}</h2>
+            {loading && <p className="text-center text-gray-600 dark:text-gray-400">Loading locations...</p>}
+            {error && <p className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 px-4 py-3 rounded relative mb-4 text-center">{error}</p>}
+            {success && <p className="bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 px-4 py-3 rounded relative mb-4 text-center">{success}</p>}
+
+            <form onSubmit={handleSubmitLocation} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormInput label="Location Name" id="name" name="name" value={newLocationForm.name || ''} onChange={handleNewLocationChange} required placeholder="e.g., The Mothership" />
+              <FormInput label="Google Maps Link" id="mapLink" name="mapLink" type="url" value={newLocationForm.mapLink || ''} onChange={handleNewLocationChange} required placeholder="https://maps.app.goo.gl/..." />
+              <FormInput label="Address" id="address" name="address" value={newLocationForm.address || ''} onChange={handleNewLocationChange} placeholder="e.g., 123 Main St, Anytown, ST 12345" />
+              <FormInput label="Permanent Q Name" id="q" name="q" value={newLocationForm.q || ''} onChange={handleNewLocationChange} placeholder="e.g., Dredd" />
+              <FormInput label="Embed Map Link (iframe src)" id="embedMapLink" name="embedMapLink" type="url" value={newLocationForm.embedMapLink || ''} onChange={handleNewLocationChange} placeholder="https://www.google.com/maps/embed?pb=..." />
+              <FormInput label="AO Logo Image URL" id="imageUrl" name="imageUrl" type="url" value={newLocationForm.imageUrl || ''} onChange={handleNewLocationChange} placeholder="https://example.com/logo.png" />
+              <FormInput label="PAX Image URL" id="paxImageUrl" name="paxImageUrl" type="url" value={newLocationForm.paxImageUrl || ''} onChange={handleNewLocationChange} placeholder="https://example.com/pax_image.png" />
+              <div className="md:col-span-2">
+                <FormInput label="Description" id="description" name="description" type="textarea" rows={3} value={newLocationForm.description || ''} onChange={handleNewLocationChange} placeholder="Brief description of the workout location." />
               </div>
-              <div className="mb-4">
-                <label htmlFor="location-mapLink" className="block text-gray-700 text-sm font-bold mb-2">
-                  Map Link<span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="url"
-                  id="location-mapLink"
-                  name="mapLink"
-                  value={editingLocationData?.mapLink ?? newLocationData.mapLink}
-                  onChange={handleLocationInputChange}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-900 leading-tight focus:outline-none focus:shadow-outline"
-                  placeholder="e.g., https://goo.gl/maps/..."
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="location-address" className="block text-gray-700 text-sm font-bold mb-2">
-                  Address
-                </label>
-                <input
-                  type="text"
-                  id="location-address"
-                  name="address"
-                  value={editingLocationData?.address ?? newLocationData.address}
-                  onChange={handleLocationInputChange}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-900 leading-tight focus:outline-none focus:shadow-outline"
-                  placeholder="e.g., 123 Main St, City, State"
-                />
-              </div>
-              <div className="mb-6">
-                <label htmlFor="location-description" className="block text-gray-700 text-sm font-bold mb-2">
-                  Description
-                </label>
-                <textarea
-                  id="location-description"
-                  name="description"
-                  value={editingLocationData?.description ?? newLocationData.description}
-                  onChange={handleLocationInputChange}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-900 leading-tight focus:outline-none focus:shadow-outline h-24 resize-none"
-                  placeholder="e.g., Outdoor park with pull-up bars"
-                />
-              </div>
-              {isLoading && <p className="text-blue-500 text-center mb-4">Saving...</p>}
-              {message && (
-                <p className={`text-center p-2 mb-4 rounded-md ${message.startsWith('Error:') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                  {message}
-                </p>
-              )}
-              <div className="flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={handleCloseLocationModal}
-                  className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                >
-                  Cancel
-                </button>
+              <div className="md:col-span-2 mt-4 space-x-3">
                 <button
                   type="submit"
-                  disabled={isLoading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
+                  className="inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-lg font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out
+                             dark:bg-indigo-700 dark:hover:bg-indigo-600 dark:focus:ring-indigo-400"
+                  disabled={loading}
                 >
-                  {editingLocationData ? 'Save Changes' : 'Add Location'}
+                  {loading ? 'Saving...' : (editLocationId ? 'Update Location' : 'Add Location')}
                 </button>
+                {editLocationId && (
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="inline-flex justify-center py-3 px-6 border border-gray-300 shadow-sm text-lg font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out
+                               dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 dark:focus:ring-gray-500"
+                    disabled={loading}
+                  >
+                    Cancel Edit
+                  </button>
+                )}
               </div>
             </form>
-          </div>
-        </div>
-      )}
 
-      {/* Workout Add/Edit Modal */}
-      {showWorkoutModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
-            <h2 className="text-2xl font-bold mb-6 text-gray-800">
-              {editingWorkoutData ? 'Edit Workout' : 'Add New Workout'}
-            </h2>
-            <p className="text-gray-600 text-sm mb-4">
-              For Location: <span className="font-semibold">{locations.find(loc => loc._id === currentWorkoutLocationId)?.name || 'N/A'}</span>
-            </p>
-            <form onSubmit={(e) => { e.preventDefault(); handleAddEditWorkout(); }}>
-              <div className="mb-4">
-                <label htmlFor="workout-style" className="block text-gray-700 text-sm font-bold mb-2">
-                  Style
-                </label>
-                <input
-                  type="text"
-                  id="workout-style"
-                  name="style"
-                  value={editingWorkoutData?.style ?? newWorkoutData.style}
-                  onChange={handleWorkoutInputChange}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-900 leading-tight focus:outline-none focus:shadow-outline"
-                  placeholder="e.g., Bootcamp"
-                />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="workout-day" className="block text-gray-700 text-sm font-bold mb-2">
-                  Day<span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="workout-day"
-                  name="day"
-                  value={editingWorkoutData?.day ?? newWorkoutData.day}
-                  onChange={handleWorkoutInputChange}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-900 leading-tight focus:outline-none focus:shadow-outline"
-                  placeholder="e.g., Monday"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="workout-time" className="block text-gray-700 text-sm font-bold mb-2">
-                  Time<span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="workout-time"
-                  name="time"
-                  value={editingWorkoutData?.time ?? newWorkoutData.time}
-                  onChange={handleWorkoutInputChange}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-900 leading-tight focus:outline-none focus:shadow-outline"
-                  placeholder="e.g., 05:30"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="workout-q" className="block text-gray-700 text-sm font-bold mb-2">
-                  Q (Leader)
-                </label>
-                <input
-                  type="text"
-                  id="workout-q"
-                  name="q"
-                  value={editingWorkoutData?.q ?? newWorkoutData.q}
-                  onChange={handleWorkoutInputChange}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-900 leading-tight focus:outline-none focus:shadow-outline"
-                  placeholder="e.g., Dredd"
-                />
-              </div>
-              <div className="mb-6">
-                <label htmlFor="workout-avgAttendance" className="block text-gray-700 text-sm font-bold mb-2">
-                  Avg. Attendance
-                </label>
-                <input
-                  type="text"
-                  id="workout-avgAttendance"
-                  name="avgAttendance"
-                  value={editingWorkoutData?.avgAttendance ?? newWorkoutData.avgAttendance}
-                  onChange={handleWorkoutInputChange}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-900 leading-tight focus:outline-none focus:shadow-outline"
-                  placeholder="e.g., 10"
-                />
-              </div>
-              {isLoading && <p className="text-blue-500 text-center mb-4">Saving...</p>}
-              {message && (
-                <p className={`text-center p-2 mb-4 rounded-md ${message.startsWith('Error:') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                  {message}
-                </p>
-              )}
-              <div className="flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={handleCloseWorkoutModal}
-                  className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
-                >
-                  {editingWorkoutData ? 'Save Changes' : 'Add Workout'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-      <Footer />
-    </>
+            <h3 className="text-xl font-semibold mt-10 mb-4 text-gray-800 dark:text-white border-b pb-2 dark:border-gray-700">Existing Locations</h3>
+            {locations.length === 0 && !loading && <p className="text-gray-600 dark:text-gray-400">No locations added yet. Use the form above to add one.</p>}
+            <ul className="space-y-4">
+              {locations.map((loc) => (
+                <li key={loc._id} className="p-4 border border-gray-200 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                  <div className="mb-2 sm:mb-0">
+                    <p className="font-semibold text-lg text-gray-900 dark:text-white">{loc.name}</p>
+                    {loc.address && <p className="text-sm text-gray-600 dark:text-gray-300">{loc.address}</p>}
+                    {loc.q && <p className="text-sm text-gray-600 dark:text-gray-300">Q: {loc.q}</p>}
+                    {loc.mapLink && <a href={loc.mapLink} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 dark:text-blue-400 hover:underline">View Map</a>}
+                  </div>
+                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                    <button
+                      onClick={() => handleEditLocation(loc)}
+                      className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 transition duration-150 ease-in-out
+                                 dark:bg-yellow-600 dark:hover:bg-yellow-500 dark:focus:ring-yellow-300"
+                      disabled={loading}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteLocation(loc._id)}
+                      className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 transition duration-150 ease-in-out
+                                 dark:bg-red-600 dark:hover:bg-red-500 dark:focus:ring-red-300"
+                      disabled={loading}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </div>
+    </div>
   );
 }

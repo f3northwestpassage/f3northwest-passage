@@ -1,7 +1,7 @@
 {
-  "$id": "muletown",
+  "$id": "northwest-passage",
   "$schema": "./region.schema.json",
-  "regionName": "Muletown",
-  "cityName": "Columbia",
-  "stateName": "Tennessee"
+  "regionName": "northwest-passage",
+  "cityName": "Cypress",
+  "stateName": "Texas"
 }

@@ -7,8 +7,8 @@ export async function fetchWorkoutsData(): Promise<WorkoutClean[]> {
   await dbConnect(); // Connect to MongoDB
 
   try {
-    // .lean() returns plain JavaScript objects. However, _id and locationId are still ObjectId instances.
-    // We explicitly map and convert them to strings to ensure type compatibility and correct matching.
+    // .lean() returns plain JavaScript objects.
+    // We explicitly map and convert ObjectId instances to strings for type compatibility.
     const rawWorkoutsFromDb = await WorkoutModel.find({}).lean().exec();
 
     const workouts: WorkoutClean[] = rawWorkoutsFromDb.map(raw => {
@@ -16,17 +16,20 @@ export async function fetchWorkoutsData(): Promise<WorkoutClean[]> {
       const _id = raw._id ? raw._id.toString() : '';
 
       // Safely convert locationId to string. This is crucial for matching with Location._id.
-      // If a workout has no locationId (e.g., old data), it will be an empty string.
+      // If a workout has no locationId (e.g., old/malformed data), it will be an empty string.
       const locationId = raw.locationId ? raw.locationId.toString() : '';
 
       return {
         _id: _id,
         locationId: locationId,
-        style: raw.style,
-        day: raw.day,
-        time: raw.time,
-        q: raw.q,
-        avgAttendance: raw.avgAttendance
+        // Map to the new WorkoutClean structure:
+        startTime: raw.startTime || '', // Ensure startTime exists or default
+        endTime: raw.endTime || '',     // Ensure endTime exists or default
+        days: Array.isArray(raw.days) ? raw.days : [], // Ensure days is an array
+        types: Array.isArray(raw.types) ? raw.types : [], // Ensure types is an array
+
+        // ao, q are not stored on the WorkoutModel itself, as per WorkoutClean definition
+        // avgAttendance is removed from WorkoutClean
       };
     }).filter(workout => workout._id !== '' && workout.locationId !== ''); // Filter out any entries that ended up with empty IDs or missing locationId
 
@@ -36,3 +39,6 @@ export async function fetchWorkoutsData(): Promise<WorkoutClean[]> {
     throw new Error('Failed to retrieve workout data from the database.');
   }
 }
+
+// ADD THIS LINE to re-export WorkoutClean
+export type { WorkoutClean };
