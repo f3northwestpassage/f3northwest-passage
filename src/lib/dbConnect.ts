@@ -21,6 +21,21 @@ import mongoose, { Mongoose } from 'mongoose';
 // It can be `string` or `undefined`.
 const MONGODB_URI_VALUE: string | undefined = process.env.MONGODB_URI;
 
+if (process.env.MOCK_DATA === 'true') {
+  console.log('DB_CONNECT_DEBUG: MOCK_DATA is true, skipping actual DB connection.');
+  // Return a placeholder or null if downstream code can handle it.
+  // For now, we'll let it proceed, and the actual mocking will be in fetch functions.
+  // The main goal here is to prevent errors if MONGODB_URI is missing during mock.
+  if (!process.env.MONGODB_URI) {
+    console.log('DB_CONNECT_DEBUG: MONGODB_URI is undefined, but MOCK_DATA is true. Suppressing error.');
+    // This will prevent the throw new Error for missing MONGODB_URI
+    // The actual connection attempt might still fail if mongoose.connect is called with undefined,
+    // so data fetching functions MUST intercept before calling dbConnect or handle its potential failure.
+    // A better approach for dbConnect would be to not proceed to mongoose.connect if MOCK_DATA is true.
+    // For now, let's rely on fetch functions to bypass DB interaction.
+  }
+}
+
 // --- TEMPORARY DEBUGGING LOGS (REMOVE FOR PRODUCTION) ---
 // These logs will appear in your console (local dev) or Netlify build/function logs (production).
 // They help confirm if the environment variable is picked up and what its value is.
@@ -38,7 +53,7 @@ if (MONGODB_URI_VALUE) {
 
 // Ensure MONGODB_URI is provided. If not, throw a clear error.
 // This check is crucial for runtime safety.
-if (!MONGODB_URI_VALUE) {
+if (!MONGODB_URI_VALUE && process.env.MOCK_DATA !== 'true') {
   throw new Error(
     'Please define the MONGODB_URI environment variable. ' +
     'For local development, add it to your .env.local file. ' +
@@ -55,6 +70,16 @@ if (!cached) {
 }
 
 async function dbConnect() {
+  // If MOCK_DATA is true, return a mock connection object or null.
+  // This prevents any actual database operations.
+  if (process.env.MOCK_DATA === 'true') {
+    console.log('DB_CONNECT_DEBUG: MOCK_DATA is true. Returning mock/null connection from dbConnect itself.');
+    // Ensure this mock/null value is compatible with what downstream code expects.
+    // If mongoose instance is expected, this might need to be a mocked mongoose instance.
+    // For now, returning null as the functions using it are mocked.
+    return null;
+  }
+
   // If a connection is already cached, return it
   if (cached.conn) {
     console.log('DB_CONNECT_DEBUG: Using cached MongoDB connection.');

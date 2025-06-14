@@ -4,6 +4,20 @@ import WorkoutModel from '@/models/Workout';
 import type { WorkoutClean } from '../../types/workout'; // Adjust path as needed
 
 export async function fetchWorkoutsData(): Promise<WorkoutClean[]> {
+  if (process.env.MOCK_DATA === 'true') {
+    console.log('FETCH_WORKOUTS_DATA_DEBUG: MOCK_DATA is true, returning mock workout data.');
+    return [
+      {
+        _id: "mock-workout-1",
+        locationId: "mock-location-1",
+        startTime: "05:30",
+        endTime: "06:15",
+        days: ["Monday", "Wednesday", "Friday"],
+        types: ["Bootcamp"],
+      }
+    ];
+  }
+  // Original dbConnect and data fetching logic follows
   await dbConnect(); // Connect to MongoDB
 
   try {

@@ -20,15 +20,31 @@ export interface WorkoutCardProps {
 export const sortWorkouts = (workouts: any[]) => {
   const dayOrder = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+  // Ensure workouts is an array before trying to sort
+  if (!Array.isArray(workouts)) {
+    console.warn('sortWorkouts: received non-array input, skipping sort.');
+    return;
+  }
+
   workouts.sort((a, b) => {
-    const dayAIndex = dayOrder.indexOf(a.days[0]);
-    const dayBIndex = dayOrder.indexOf(b.days[0]);
+    // Ensure 'a' and 'b' are objects and have the 'days' and 'startTime' properties
+    const safeA = a && typeof a === 'object';
+    const safeB = b && typeof b === 'object';
+
+    const daysA = safeA && Array.isArray(a.days) && a.days.length > 0 ? a.days[0] : '';
+    const daysB = safeB && Array.isArray(b.days) && b.days.length > 0 ? b.days[0] : '';
+
+    const startTimeA = safeA && typeof a.startTime === 'string' ? a.startTime : '00:00';
+    const startTimeB = safeB && typeof b.startTime === 'string' ? b.startTime : '00:00';
+
+    const dayAIndex = dayOrder.indexOf(daysA);
+    const dayBIndex = dayOrder.indexOf(daysB);
 
     if (dayAIndex !== dayBIndex) {
       return dayAIndex - dayBIndex;
     }
 
-    return a.startTime.localeCompare(b.startTime);
+    return startTimeA.localeCompare(startTimeB);
   });
 };
 
