@@ -1,4 +1,5 @@
 // src/app/_components/WorkoutCard.tsx
+'use client';
 import React from 'react';
 // Image import is no longer needed here as logo is removed from card
 // import Image from 'next/image'; // This line can remain commented or be removed

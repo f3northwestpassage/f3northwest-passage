@@ -1,9 +1,11 @@
+"use client";
 import Image from 'next/image';
 import Link from 'next/link';
 
+
 export default function Header({ href }: { href: string }) {
   const pages = [
-    // { href: "/", text: "HOME" },
+    { href: "/", text: "HOME" },
     { href: '/fng', text: 'NEW TO F3 [FNG]' },
     { href: '/workouts', text: 'WORKOUTS [AO]' },
     // { href: '/convergence', text: 'CONVERGENCE [HC]' },
@@ -27,9 +29,8 @@ export default function Header({ href }: { href: string }) {
               <Link
                 href={p.href}
                 title={p.text}
-                className={`font-medium ${
-                  href === p.href ? 'text-drp' : 'text-white'
-                }`}
+                className={`font-medium ${href === p.href ? 'text-drp' : 'text-white'
+                  }`}
               >
                 {p.text}
               </Link>

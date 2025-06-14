@@ -9,8 +9,8 @@ import Button from '../_components/Button';
 import WorkoutCard, { sortWorkouts } from '../_components/WorkoutCard';
 import type { WorkoutClean, LocationClean } from '../../../types/workout';
 import { fetchWorkoutsData } from '../../utils/fetchWorkoutsData';
-import { fetchLocaleData } from '@/utils/fetchLocaleData';
-import MapLinkButton from '../_components/MapLinkButton'; // <-- Import the new component
+import { fetchLocaleData } from '@/utils/fetchLocaleData'; // Remember this also needs its internal fetch updated to relative path
+import MapLinkButton from '../_components/MapLinkButton';
 
 import f3HeroImg from '../../../public/f3-darkhorse-2023-11-04.jpg';
 
@@ -23,7 +23,14 @@ export default async function Page() {
 
   let rawLocations: LocationClean[] = [];
   try {
-    const locationsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/locations`, {
+    let locationsApiURL: string;
+    if (process.env.NODE_ENV === 'development') {
+      locationsApiURL = `http://localhost:3000/api/locations`;
+    } else {
+      locationsApiURL = '/api/locations';
+    }
+
+    const locationsResponse = await fetch(locationsApiURL, { // <-- UPDATED THIS LINE
       cache: 'no-store'
     });
     if (!locationsResponse.ok) {
@@ -41,6 +48,7 @@ export default async function Page() {
     rawLocations = [];
   }
 
+
   const groupedWorkouts: GroupedWorkoutsByLocation = {};
   rawWorkouts.forEach(workout => {
     if (workout.locationId) {
@@ -57,6 +65,8 @@ export default async function Page() {
 
   const sortedLocations = [...rawLocations].sort((a, b) => a.name.localeCompare(b.name));
 
+  // This call to fetchLocaleData() will also benefit from the update
+  // to fetchLocaleData.ts that uses a relative path internally.
   const locales = await fetchLocaleData();
   const href = '/workouts';
   const mapDetails = {
