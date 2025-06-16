@@ -13,6 +13,7 @@ import Button from '../../_components/Button'; // Import Button component for th
 
 // Correct import for fetching locations data and its type
 import { fetchLocationsData, LocationClean } from '@/utils/fetchLocationsData';
+import { fetchLocaleData } from '@/utils/fetchLocaleData';
 // Correct import for fetching workouts data and its type
 import { fetchWorkoutsData, WorkoutClean } from '@/utils/fetchWorkoutsData';
 
@@ -62,6 +63,7 @@ export async function generateMetadata({ params }: LocationPageProps): Promise<M
 
 // --- Main Location Page Component ---
 export default async function LocationPage({ params }: LocationPageProps) {
+    const locales = await fetchLocaleData();
     const decodedName = decodeURIComponent(params.name); // Decode the name from the URL
 
     // Fetch all locations and find the one that matches the decoded name
@@ -176,7 +178,7 @@ export default async function LocationPage({ params }: LocationPageProps) {
                     </div>
                 </div>
             </main >
-            <Footer />
+            <Footer regionName={locales.region_name ?? ""} regionFacebook={locales.region_facebook ?? ""} regionInstagram={locales.region_instagram ?? ""} regionLinkedin={locales.region_linkedin ?? ""} regionXTwitter={locales.region_x_twitter ?? ""} />
         </>
     );
 }
