@@ -3,9 +3,8 @@ import RegionModel from '@/models/RegionConfig';
 import { LocaleData } from '../../types/locale';
 
 export async function fetchLocaleData(): Promise<LocaleData> {
-  // Handle mock mode for development or testing
   if (process.env.MOCK_DATA === 'true') {
-    console.log('FETCH_LOCALE_DATA_DEBUG: MOCK_DATA is true, returning mock locale data.');
+    console.log('FETCH_LOCALE_DATA_DEBUG: Using mock data.');
     return {
       region_name: "Mock F3 Region",
       meta_description: "This is a mock meta description for F3 Region.",
@@ -27,10 +26,10 @@ export async function fetchLocaleData(): Promise<LocaleData> {
   try {
     await dbConnect();
 
-    const rawRegionData = await RegionModel.findOne({}).lean().exec();
+    const region = await RegionModel.findOne({}).lean().exec();
 
-    if (!rawRegionData) {
-      console.warn("No region config found. Falling back to mock data.");
+    if (!region) {
+      console.warn('No region config found. Returning mock data.');
       return {
         region_name: "Mock F3 Region",
         meta_description: "This is a mock meta description for F3 Region.",
@@ -49,27 +48,24 @@ export async function fetchLocaleData(): Promise<LocaleData> {
       };
     }
 
-    // Normalize and fill missing fields
-    const localeData: LocaleData = {
-      region_name: rawRegionData.region_name || 'F3 Default Region',
-      meta_description: rawRegionData.meta_description || 'Default meta description for F3 Region.',
-      hero_title: rawRegionData.hero_title || 'Welcome to F3',
-      hero_subtitle: rawRegionData.hero_subtitle || 'Default subtitle.',
-      region_city: rawRegionData.region_city || 'Your City',
-      region_state: rawRegionData.region_state || 'Your State',
-      region_facebook: rawRegionData.region_facebook || '',
-      region_instagram: rawRegionData.region_instagram || '',
-      region_linkedin: rawRegionData.region_linkedin || '',
-      region_x_twitter: rawRegionData.region_x_twitter || '',
-      region_map_lat: rawRegionData.region_map_lat || 0,
-      region_map_lon: rawRegionData.region_map_lon || 0,
-      region_map_zoom: rawRegionData.region_map_zoom || 12,
-      region_map_embed_link: rawRegionData.region_map_embed_link || '',
+    return {
+      region_name: region.region_name || 'F3 Default Region',
+      meta_description: region.meta_description || '',
+      hero_title: region.hero_title || '',
+      hero_subtitle: region.hero_subtitle || '',
+      region_city: region.region_city || '',
+      region_state: region.region_state || '',
+      region_facebook: region.region_facebook || '',
+      region_instagram: region.region_instagram || '',
+      region_linkedin: region.region_linkedin || '',
+      region_x_twitter: region.region_x_twitter || '',
+      region_map_lat: region.region_map_lat ?? 0,
+      region_map_lon: region.region_map_lon ?? 0,
+      region_map_zoom: region.region_map_zoom ?? 12,
+      region_map_embed_link: region.region_map_embed_link || '',
     };
-
-    return localeData;
   } catch (error) {
-    console.error("FETCH_LOCALE_DATA_ERROR:", error);
-    throw new Error(`Failed to fetch region data from DB: ${error instanceof Error ? error.message : String(error)}`);
+    console.error('FETCH_LOCALE_DATA_ERROR:', error);
+    throw new Error('Failed to load region configuration.');
   }
 }

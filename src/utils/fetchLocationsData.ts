@@ -1,19 +1,9 @@
-// src/utils/fetchLocationsData.ts
-
 import dbConnect from '@/lib/dbConnect';
-import LocationModel, { ILocation } from '@/models/Location'; // Import ILocation for typing lean results
-import type { LocationClean } from '../../types/workout'; // Adjust path as needed for your LocationClean type
-// REMOVED: import { LeanDocument } from 'mongoose'; // This import is no longer needed
+import LocationModel from '@/models/Location';
+import type { LocationClean } from '../../types/workout';
 
-/**
- * Fetches all workout locations from the database.
- * Ensures data is cleaned and formatted to LocationClean type.
- * @returns {Promise<LocationClean[]>} A promise that resolves to an array of cleaned location data.
- * @throws {Error} If there's a problem connecting to the DB or fetching data.
- */
 export async function fetchLocationsData(): Promise<LocationClean[]> {
   if (process.env.MOCK_DATA === 'true') {
-    console.log('FETCH_LOCATIONS_DATA_DEBUG: MOCK_DATA is true, returning mock locations data.');
     return [
       {
         _id: "mock-location-1",
@@ -23,61 +13,34 @@ export async function fetchLocationsData(): Promise<LocationClean[]> {
         description: "This is a mock location for Alpha.",
         q: "MockQ Alpha",
         embedMapLink: "",
-        imageUrl: "https://placehold.co/150x150/png?text=AO+Logo", // Placeholder
-        paxImageUrl: "https://placehold.co/150x150/png?text=PAX+Image", // Placeholder
+        imageUrl: "https://placehold.co/150x150/png?text=AO+Logo",
+        paxImageUrl: "https://placehold.co/150x150/png?text=PAX+Image",
       },
-      {
-        _id: "mock-location-2",
-        name: "Mock Location Bravo",
-        mapLink: "https://maps.example.com/mockbravo",
-        address: "456 Mock Ave, Mocktown, MS",
-        description: "This is a mock location for Bravo.",
-        q: "MockQ Bravo",
-        embedMapLink: "",
-        imageUrl: "https://placehold.co/150x150/png?text=AO+Logo", // Placeholder
-        paxImageUrl: "https://placehold.co/150x150/png?text=PAX+Image", // Placeholder
-      }
     ];
   }
-    await dbConnect(); // Connect to MongoDB
 
-    try {
-        // Fetch all locations from the database using the LocationModel.
-        // .lean() makes the query return plain JavaScript objects instead of Mongoose Documents.
-        // We'll directly use ILocation[] for the type assertion here. Mongoose's .lean()
-        // automatically converts ObjectId to string, so if ILocation._id is ObjectId,
-        // the actual type after .lean() will have _id as string. This is generally compatible
-        // for most operations, especially when immediately mapping to another type.
-        const rawLocationsFromDb: ILocation[] = await LocationModel.find({}).lean().exec();
+  await dbConnect();
 
-        // Map the raw database objects to the LocationClean interface.
-        // This step ensures type safety and consistent data structure for the frontend.
-        const locations: LocationClean[] = rawLocationsFromDb.map((rawLoc) => {
-            // Convert the Mongoose ObjectId (_id) to a string, as expected by LocationClean.
-            // rawLoc._id will already be a string after .lean() if it was an ObjectId in the DB.
-            const _id = rawLoc._id ? rawLoc._id.toString() : '';
+  try {
+    const rawLocations = await LocationModel.find({}).lean().exec();
 
-            return {
-                _id: _id, // Unique identifier for the location
-                name: rawLoc.name || 'Unnamed Location', // Name of the workout area/location
-                mapLink: rawLoc.mapLink || '',       // URL to Google Maps or similar
-                address: rawLoc.address || '',       // Physical address of the location
-                description: rawLoc.description || '', // A brief description of the AO
-                q: rawLoc.q || '',                   // Permanent Q (leader) for this AO
-                embedMapLink: rawLoc.embedMapLink || '', // Embeddable map link (e.g., iframe src)
-                imageUrl: rawLoc.imageUrl || '',     // URL for the AO's logo/image
-                paxImageUrl: rawLoc.paxImageUrl || '', // URL for a PAX (member) image at the AO
-            };
-        }).filter(loc => loc._id !== ''); // Ensure that only locations with valid _id's are returned
+    const cleanedLocations: LocationClean[] = rawLocations.map((loc: any) => ({
+      _id: loc._id?.toString() ?? '', // Safely convert ObjectId or unknown
+      name: loc.name || 'Unnamed Location',
+      mapLink: loc.mapLink || '',
+      address: loc.address || '',
+      description: loc.description || '',
+      q: loc.q || '',
+      embedMapLink: loc.embedMapLink || '',
+      imageUrl: loc.imageUrl || '',
+      paxImageUrl: loc.paxImageUrl || '',
+    }));
 
-        return locations;
-    } catch (error) {
-        console.error('Error fetching locations from DB:', error);
-        // Throw an error so the calling component/page can handle it (e.g., display an error message).
-        throw new Error('Failed to retrieve location data from the database.');
-    }
+    return cleanedLocations;
+  } catch (error) {
+    console.error('FETCH_LOCATIONS_DATA_ERROR:', error);
+    throw new Error('Failed to retrieve location data from the database.');
+  }
 }
 
-// Re-export LocationClean here for convenience when importing fetchLocationsData,
-// so you can use `import { fetchLocationsData, LocationClean } from '@/utils/fetchLocationsData';`
 export type { LocationClean };
