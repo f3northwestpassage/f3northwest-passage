@@ -1,6 +1,8 @@
 import dbConnect from '@/lib/dbConnect';
-import RegionModel, { IRegion } from '@/models/Region';
+import RegionModel from '@/models/F3Region';
 import { LocaleData } from '../../types/locale';
+
+type RegionLean = LocaleData & { _id?: string };
 
 const mockRegion: LocaleData = {
   region_name: "Mock F3 Region",
@@ -23,12 +25,12 @@ export async function fetchLocaleData(): Promise<LocaleData> {
   try {
     await dbConnect();
 
-    let region = await RegionModel.findOne({}).lean<IRegion>().exec();
+    let region = await RegionModel.findOne({}).lean<RegionLean>().exec();
 
     if (!region) {
       console.warn('No region config found. Inserting mock region...');
-      const created = await RegionModel.create(mockRegion);
-      region = created.toObject(); // Convert Mongoose doc to plain object
+      await RegionModel.create(mockRegion);
+      region = await RegionModel.findOne({}).lean<RegionLean>().exec();
     }
 
     return {
@@ -49,6 +51,6 @@ export async function fetchLocaleData(): Promise<LocaleData> {
     };
   } catch (error) {
     console.error('FETCH_LOCALE_DATA_ERROR:', error);
-    throw new Error('Failed to load region configuration.');
+    return mockRegion;
   }
 }

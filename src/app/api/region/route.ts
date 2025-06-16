@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
-import RegionModel from '@/models/Region';
+import F3RegionModel from '@/models/F3Region';
 import mongoose from 'mongoose';
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
@@ -20,13 +20,13 @@ export async function PUT(request: Request) {
         const body = await request.json();
         console.log('Received body for region update:', body);
 
-        const existing = await RegionModel.findOne().exec();
+        const existing = await F3RegionModel.findOne().exec();
 
         if (existing) {
-            await RegionModel.updateOne({ _id: existing._id }, { $set: body });
+            await F3RegionModel.updateOne({ _id: existing._id }, { $set: body });
             return NextResponse.json({ message: 'Region configuration updated successfully' }, { status: 200 });
         } else {
-            const created = await RegionModel.create(body);
+            const created = await F3RegionModel.create(body);
             return NextResponse.json({ id: (created._id as mongoose.Types.ObjectId).toString() });
         }
     } catch (error: any) {
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     try {
         await dbConnect();
 
-        const region = await RegionModel.findOne().lean().exec();
+        const region = await F3RegionModel.findOne().lean().exec();
 
         if (!region) {
             console.warn('No region found, returning mock region');
