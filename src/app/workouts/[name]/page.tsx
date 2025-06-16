@@ -26,9 +26,9 @@ interface LocationPageProps {
 
 // --- generateStaticParams (Optional but Recommended for SEO & Performance) ---
 export async function generateStaticParams() {
+    if (process.env.SKIP_DB === 'true') return [];
+
     const locations = await fetchLocationsData();
-    // Return an array of objects, where each object has the 'name' parameter.
-    // It's crucial to encode the name to match the URL segment.
     return locations.map((location) => ({
         name: encodeURIComponent(location.name),
     }));
@@ -36,8 +36,14 @@ export async function generateStaticParams() {
 
 // --- generateMetadata (Dynamic SEO Titles & Descriptions) ---
 export async function generateMetadata({ params }: LocationPageProps): Promise<Metadata> {
+    if (process.env.SKIP_DB === 'true') {
+        return {
+            title: 'F3 Location',
+            description: 'Location details temporarily unavailable.',
+        };
+    }
+
     const decodedName = decodeURIComponent(params.name);
-    // Fetch all locations to find the specific one for metadata
     const locations = await fetchLocationsData();
     const location = locations.find(loc => loc.name === decodedName);
 
