@@ -19,6 +19,8 @@ const mockRegion: LocaleData = {
   region_map_lon: -90.123,
   region_map_zoom: 12,
   region_map_embed_link: "",
+  region_logo_url: "/f3-muletown-white.png",
+  region_hero_url: "/fod.png",
 };
 
 export async function fetchLocaleData(): Promise<LocaleData> {
@@ -53,6 +55,8 @@ export async function fetchLocaleData(): Promise<LocaleData> {
       region_map_lon: region.region_map_lon ?? mockRegion.region_map_lon,
       region_map_zoom: region.region_map_zoom ?? mockRegion.region_map_zoom,
       region_map_embed_link: region.region_map_embed_link ?? mockRegion.region_map_embed_link,
+      region_logo_url: region.region_logo_url ?? mockRegion.region_logo_url,
+      region_hero_url: region.region_hero_url ?? mockRegion.region_hero_url,
     };
   } catch (error) {
     console.error('FETCH_LOCALE_DATA_ERROR:', error);

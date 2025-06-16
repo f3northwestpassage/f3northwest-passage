@@ -10,9 +10,9 @@ import Hero from './_components/Hero';
 import { fetchLocaleData } from '../utils/fetchLocaleData';
 
 // #region regional images
-// replace these with your region's own images
-import f3MuletownWhite from '../../public/f3-muletown-white.png';
-import f3HeroImg from '../../public/fod.png';
+// // replace these with your region's own images
+// import f3MuletownWhite from '../../public/f3-muletown-white.png';
+// import f3HeroImg from '../../public/fod.png';
 // #endregion
 
 import f3White from '../../public/f3-white.png';
@@ -42,7 +42,7 @@ export default async function Page() {
         <Hero
           title={localeData?.hero_title || ""}
           subtitle={localeData?.hero_subtitle || ""}
-          imgUrl={f3HeroImg.src}
+          imgUrl={localeData?.region_hero_img_url || ""}
         />
         <section className={`bg-gloom ${commonSliceClassNames}`}>
           <div className="shadow-xl">
@@ -55,9 +55,10 @@ export default async function Page() {
             </p>
           </div>
           <Image
-            src={f3MuletownWhite}
-            alt={`${localeData?.region_name} White`}
+            src={localeData?.region_logo_url || ""}
+            alt={`${localeData?.region_name} Logo`}
             width={200}
+            height={200}
             className="pt-8 pb-4 my-0 mx-auto"
           />
         </section>

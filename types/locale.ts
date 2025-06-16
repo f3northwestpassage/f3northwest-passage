@@ -1,7 +1,6 @@
-// types/locale.ts (or wherever your LocaleData interface is defined)
+// types/locale.ts
 
 export interface LocaleData {
-
     region_name?: string;
     meta_description?: string;
     hero_title?: string;
@@ -13,10 +12,15 @@ export interface LocaleData {
     region_instagram?: string;
     region_linkedin?: string;
     region_x_twitter?: string;
+
     region_map_lat?: number;
     region_map_lon?: number;
     region_map_zoom?: number;
     region_map_embed_link?: string;
+
+    region_logo_url?: string;
+    region_hero_url?: string;
 }
+
 // Optional: If you want a type for the form state specifically
 export type RegionFormState = Omit<LocaleData, 'createdAt' | 'updatedAt'>;

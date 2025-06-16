@@ -15,6 +15,8 @@ export interface IF3Region extends Document {
     region_map_lon?: number;
     region_map_zoom?: number;
     region_map_embed_link?: string;
+    region_logo_url?: string; // ✅ new optional field
+    region_hero_img_url?: string; // ✅ new optional field
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -34,9 +36,10 @@ const F3RegionSchema = new Schema<IF3Region>({
     region_map_lon: Number,
     region_map_zoom: Number,
     region_map_embed_link: String,
+    region_logo_url: String,
+    region_hero_img_url: String // ✅ added to schema
 }, { timestamps: true });
 
-// ✅ Only use full path `mongoose.models` and `mongoose.model`
 const RegionModel: Model<IF3Region> =
     (mongoose.models && mongoose.models.F3Region)
         ? mongoose.models.F3Region as Model<IF3Region>

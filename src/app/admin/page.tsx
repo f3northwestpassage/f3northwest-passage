@@ -4,13 +4,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { LocationClean } from '../../../types/workout'; // Assuming this path is correct
 // IMPORTANT: You need to manually update your types/workout.ts file:
-// Remove 'pax_count: number;' from both LocaleData and RegionFormState interfaces.
+// - Remove 'pax_count: number;' from both LocaleData and RegionFormState interfaces.
+// - ADD 'region_logo_url?: string;' and 'region_hero_img_url?: string;' to both LocaleData and RegionFormState interfaces.
 type RegionFormState = { // Re-defining here for self-containment of the example
   region_name: string;
   meta_description: string;
   hero_title: string;
   hero_subtitle: string;
-  // pax_count: number; // <--- REMOVED
+  region_logo_url?: string; // ADDED
+  region_hero_img_url?: string; // ADDED
   region_city: string;
   region_state: string;
   region_facebook: string;
@@ -26,7 +28,8 @@ type LocaleData = { // Re-defining here for self-containment of the example
   meta_description?: string;
   hero_title?: string;
   hero_subtitle?: string;
-  // pax_count?: number; // <--- REMOVED
+  region_logo_url?: string; // ADDED
+  region_hero_img_url?: string; // ADDED
   region_city?: string;
   region_state?: string;
   region_facebook?: string;
@@ -37,13 +40,14 @@ type LocaleData = { // Re-defining here for self-containment of the example
 };
 
 
-// Define the initial state for the region form (pax_count removed)
+// Define the initial state for the region form (pax_count removed, new URLs added)
 const initialRegionFormState: RegionFormState = {
   region_name: '',
   meta_description: '',
   hero_title: '',
   hero_subtitle: '',
-  // pax_count: 0, // Removed
+  region_logo_url: '', // Added
+  region_hero_img_url: '', // Added
   region_city: '',
   region_state: '',
   region_facebook: '',
@@ -169,7 +173,8 @@ export default function AdminPage() {
         meta_description: data.meta_description || '',
         hero_title: data.hero_title || '',
         hero_subtitle: data.hero_subtitle || '',
-        // pax_count: data.pax_count || 0, // Removed pax_count from here
+        region_logo_url: data.region_logo_url || '', // ADDED
+        region_hero_img_url: data.region_hero_img_url || '', // ADDED
         region_city: data.region_city || '',
         region_state: data.region_state || '',
         region_facebook: data.region_facebook || '',
@@ -225,7 +230,7 @@ export default function AdminPage() {
     const { name, value } = e.target;
     setRegionForm((prev: any) => ({
       ...prev,
-      [name]: name.startsWith('region_map_') ? parseFloat(value) || 0 : value, // Removed pax_count check
+      [name]: (name.startsWith('region_map_lat') || name.startsWith('region_map_lon') || name.startsWith('region_map_zoom')) ? parseFloat(value) || 0 : value,
     }));
   };
 
@@ -557,7 +562,34 @@ export default function AdminPage() {
                   placeholder="Supporting text for headline"
                 />
               </div>
-              {/* Removed PAX Count Field */}
+
+              {/* NEW FIELDS: Region Logo URL and Hero Image URL */}
+              <div>
+                <label htmlFor="region_logo_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Region Logo URL</label>
+                <input
+                  type="url"
+                  id="region_logo_url"
+                  name="region_logo_url"
+                  value={regionForm.region_logo_url || ''}
+                  onChange={handleRegionFormChange}
+                  className={inputClasses}
+                  placeholder="https://example.com/region-logo.png"
+                />
+              </div>
+              <div>
+                <label htmlFor="region_hero_img_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Region Hero Image URL</label>
+                <input
+                  type="url"
+                  id="region_hero_img_url"
+                  name="region_hero_img_url"
+                  value={regionForm.region_hero_img_url || ''}
+                  onChange={handleRegionFormChange}
+                  className={inputClasses}
+                  placeholder="https://example.com/region-hero-image.jpg"
+                />
+              </div>
+              {/* END NEW FIELDS */}
+
               <div>
                 <label htmlFor="region_city" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Region City</label>
                 <input
@@ -816,7 +848,7 @@ export default function AdminPage() {
           <section className={sectionClasses}>
             <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">Existing Locations</h2>
             {loading && locations.length === 0 && <p className="text-center py-4 text-gray-600 dark:text-gray-400">Loading locations...</p>}
-            {!loading && locations.length === 0 && !showLocationAddEditForm && <p className="text-center py-4 text-gray-600 dark:text-gray-400">No locations added yet. Click {`"Add New Location"`} to get started!</p>}
+            {!loading && locations.length === 0 && !showLocationAddEditForm && <p className="text-center py-4 text-gray-600 dark:text-gray-400">No locations added yet. Click "Add New Location" to get started!</p>}
             <ul className="space-y-4">
               {locations.map((loc) => (
                 <li key={loc._id} className="p-4 border border-gray-200 rounded-lg shadow-sm bg-gray-50 flex flex-col sm:flex-row justify-between items-start sm:items-center dark:bg-gray-800 dark:border-gray-700">
