@@ -18,20 +18,20 @@ export interface IRegionConfig extends Document {
 }
 
 const RegionConfigSchema = new Schema<IRegionConfig>({
-    region_name: { type: String, required: false },
-    meta_description: { type: String, required: false },
-    hero_title: { type: String, required: false },
-    hero_subtitle: { type: String, required: false },
-    region_city: { type: String, required: false },
-    region_state: { type: String, required: false },
-    region_facebook: { type: String, required: false },
-    region_instagram: { type: String, required: false },
-    region_linkedin: { type: String, required: false },
-    region_x_twitter: { type: String, required: false },
-    region_map_lat: { type: Number, required: false },
-    region_map_lon: { type: Number, required: false },
-    region_map_zoom: { type: Number, required: false },
-    region_map_embed_link: { type: String, required: false },
+    region_name: { type: String },
+    meta_description: { type: String },
+    hero_title: { type: String },
+    hero_subtitle: { type: String },
+    region_city: { type: String },
+    region_state: { type: String },
+    region_facebook: { type: String },
+    region_instagram: { type: String },
+    region_linkedin: { type: String },
+    region_x_twitter: { type: String },
+    region_map_lat: { type: Number },
+    region_map_lon: { type: Number },
+    region_map_zoom: { type: Number },
+    region_map_embed_link: { type: String },
 });
 
 const RegionModel: Model<IRegionConfig> =
