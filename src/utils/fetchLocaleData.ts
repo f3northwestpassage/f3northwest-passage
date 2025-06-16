@@ -33,21 +33,26 @@ export async function fetchLocaleData(): Promise<LocaleData> {
       region = await RegionModel.findOne({}).lean<RegionLean>().exec();
     }
 
+    if (!region) {
+      console.error('Fallback to mockRegion after failed insert.');
+      return mockRegion;
+    }
+
     return {
-      region_name: region?.region_name ?? 'F3 Default Region',
-      meta_description: region?.meta_description ?? '',
-      hero_title: region?.hero_title ?? '',
-      hero_subtitle: region?.hero_subtitle ?? '',
-      region_city: region?.region_city ?? '',
-      region_state: region?.region_state ?? '',
-      region_facebook: region?.region_facebook ?? '',
-      region_instagram: region?.region_instagram ?? '',
-      region_linkedin: region?.region_linkedin ?? '',
-      region_x_twitter: region?.region_x_twitter ?? '',
-      region_map_lat: region?.region_map_lat ?? 0,
-      region_map_lon: region?.region_map_lon ?? 0,
-      region_map_zoom: region?.region_map_zoom ?? 12,
-      region_map_embed_link: region?.region_map_embed_link ?? '',
+      region_name: region.region_name ?? mockRegion.region_name,
+      meta_description: region.meta_description ?? mockRegion.meta_description,
+      hero_title: region.hero_title ?? mockRegion.hero_title,
+      hero_subtitle: region.hero_subtitle ?? mockRegion.hero_subtitle,
+      region_city: region.region_city ?? mockRegion.region_city,
+      region_state: region.region_state ?? mockRegion.region_state,
+      region_facebook: region.region_facebook ?? mockRegion.region_facebook,
+      region_instagram: region.region_instagram ?? mockRegion.region_instagram,
+      region_linkedin: region.region_linkedin ?? mockRegion.region_linkedin,
+      region_x_twitter: region.region_x_twitter ?? mockRegion.region_x_twitter,
+      region_map_lat: region.region_map_lat ?? mockRegion.region_map_lat,
+      region_map_lon: region.region_map_lon ?? mockRegion.region_map_lon,
+      region_map_zoom: region.region_map_zoom ?? mockRegion.region_map_zoom,
+      region_map_embed_link: region.region_map_embed_link ?? mockRegion.region_map_embed_link,
     };
   } catch (error) {
     console.error('FETCH_LOCALE_DATA_ERROR:', error);
