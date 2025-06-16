@@ -1,12 +1,15 @@
 import dbConnect from '@/lib/dbConnect';
-import LocationModel from '@/models/Location';
+import LocationModel, { ILocation } from '@/models/Location';
 import type { LocationClean } from '../../types/workout';
 
 export async function fetchLocationsData(): Promise<LocationClean[]> {
-  if (process.env.MOCK_DATA === 'true') {
-    return [
-      {
-        _id: "mock-location-1",
+  await dbConnect();
+
+  try {
+    let rawLocations = await LocationModel.find({}).lean<ILocation[]>().exec();
+
+    if (!rawLocations || rawLocations.length === 0) {
+      const mockLocation = {
         name: "Mock Location Alpha",
         mapLink: "https://maps.example.com/mockalpha",
         address: "123 Mock St, Mockville, MS",
@@ -15,17 +18,14 @@ export async function fetchLocationsData(): Promise<LocationClean[]> {
         embedMapLink: "",
         imageUrl: "https://placehold.co/150x150/png?text=AO+Logo",
         paxImageUrl: "https://placehold.co/150x150/png?text=PAX+Image",
-      },
-    ];
-  }
+      };
 
-  await dbConnect();
-
-  try {
-    const rawLocations = await LocationModel.find({}).lean().exec();
+      const created = await LocationModel.create(mockLocation);
+      rawLocations = [created.toObject()];
+    }
 
     const cleanedLocations: LocationClean[] = rawLocations.map((loc: any) => ({
-      _id: loc._id?.toString() ?? '', // Safely convert ObjectId or unknown
+      _id: loc._id?.toString() ?? '',
       name: loc.name || 'Unnamed Location',
       mapLink: loc.mapLink || '',
       address: loc.address || '',
