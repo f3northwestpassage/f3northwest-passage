@@ -23,10 +23,7 @@ if (!cached) {
 async function dbConnect() {
   const MONGODB_URI = process.env.MONGODB_URI;
 
-  if (process.env.MOCK_DATA === 'true') {
-    console.log('DB_CONNECT_DEBUG: MOCK_DATA is true. Skipping DB connection.');
-    return null;
-  }
+
 
   if (!MONGODB_URI) {
     throw new Error(
