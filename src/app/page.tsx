@@ -151,7 +151,7 @@ export default async function Page() {
           <Button href="/fng" text="WHAT TO EXPECT" />
         </section>
       </main>
-      <Footer />
+      <Footer regionName={localeData.region_name ?? ""} regionFacebook={localeData.region_facebook ?? ""} regionInstagram={localeData.region_instagram ?? ""} regionLinkedin={localeData.region_linkedin ?? ""} regionXTwitter={localeData.region_x_twitter ?? ""} />
     </>
   );
 }

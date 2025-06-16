@@ -194,7 +194,7 @@ export default async function Page() {
           </div>
         </section>
       </main >
-      <Footer />
+      <Footer regionName={locales.region_name ?? ""} regionFacebook={locales.region_facebook ?? ""} regionInstagram={locales.region_instagram ?? ""} regionLinkedin={locales.region_linkedin ?? ""} regionXTwitter={locales.region_x_twitter ?? ""} />
     </>
   );
 }
