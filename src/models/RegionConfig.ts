@@ -2,7 +2,6 @@
 
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-// Define the interface for a RegionConfig Document in Mongoose.
 export interface IRegionConfig extends Document {
     region_name: string;
     meta_description: string;
@@ -23,7 +22,6 @@ export interface IRegionConfig extends Document {
     updatedAt?: Date;
 }
 
-// Create the Mongoose schema using the interface
 const RegionConfigSchema = new Schema<IRegionConfig>(
     {
         region_name: { type: String, required: true, trim: true },
@@ -47,8 +45,8 @@ const RegionConfigSchema = new Schema<IRegionConfig>(
     }
 );
 
-// Export the Mongoose model
 const RegionConfig: Model<IRegionConfig> =
-    mongoose.models.RegionConfig || mongoose.model<IRegionConfig>('RegionConfig', RegionConfigSchema);
+    (mongoose.models && mongoose.models.RegionConfig as Model<IRegionConfig>) ||
+    mongoose.model<IRegionConfig>('RegionConfig', RegionConfigSchema);
 
 export default RegionConfig;
