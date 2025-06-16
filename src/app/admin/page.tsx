@@ -848,7 +848,7 @@ export default function AdminPage() {
           <section className={sectionClasses}>
             <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">Existing Locations</h2>
             {loading && locations.length === 0 && <p className="text-center py-4 text-gray-600 dark:text-gray-400">Loading locations...</p>}
-            {!loading && locations.length === 0 && !showLocationAddEditForm && <p className="text-center py-4 text-gray-600 dark:text-gray-400">No locations added yet. Click "Add New Location" to get started!</p>}
+            {!loading && locations.length === 0 && !showLocationAddEditForm && <p className="text-center py-4 text-gray-600 dark:text-gray-400">No locations added yet. Click {`"Add New Location"`} to get started!</p>}
             <ul className="space-y-4">
               {locations.map((loc) => (
                 <li key={loc._id} className="p-4 border border-gray-200 rounded-lg shadow-sm bg-gray-50 flex flex-col sm:flex-row justify-between items-start sm:items-center dark:bg-gray-800 dark:border-gray-700">
