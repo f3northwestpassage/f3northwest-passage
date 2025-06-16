@@ -1,5 +1,5 @@
 import dbConnect from '@/lib/dbConnect';
-import RegionModel from '@/models/RegionConfig';
+import RegionModel from '@/models/Region';
 import { LocaleData } from '../../types/locale';
 
 export async function fetchLocaleData(): Promise<LocaleData> {

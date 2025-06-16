@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
-import RegionModel, { IRegionConfig } from '@/models/RegionConfig';
-import RegionConfig from '@/models/RegionConfig';
+import RegionModel, { IRegion } from '@/models/Region';
+import RegionConfig from '@/models/Region';
 import mongoose from 'mongoose';
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
