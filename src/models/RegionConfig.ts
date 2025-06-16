@@ -35,6 +35,6 @@ const RegionConfigSchema = new Schema<IRegionConfig>({
 });
 
 const RegionModel: Model<IRegionConfig> =
-    mongoose.models.RegionConfig || mongoose.model<IRegionConfig>('RegionConfig', RegionConfigSchema);
+    mongoose.models['RegionConfig'] || mongoose.model<IRegionConfig>('RegionConfig', RegionConfigSchema);
 
 export default RegionModel;
