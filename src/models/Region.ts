@@ -34,12 +34,7 @@ const RegionSchema: Schema = new Schema<IRegion>({
     region_map_lon: { type: Number },
     region_map_zoom: { type: Number },
     region_map_embed_link: { type: String },
-}, {
-    timestamps: true,
-});
+}, { timestamps: true });
 
-// Prevent model overwrite errors in dev or serverless
-const RegionModel = (mongoose.models.Region ||
-    mongoose.model<IRegion>('Region', RegionSchema)) as mongoose.Model<IRegion>;
 
-export default RegionModel;
+export default mongoose.models.Region || mongoose.model<IRegion>('Region', RegionSchema);
