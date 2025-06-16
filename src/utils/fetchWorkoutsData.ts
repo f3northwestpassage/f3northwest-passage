@@ -10,6 +10,7 @@ export async function fetchWorkoutsData(): Promise<WorkoutClean[]> {
       {
         _id: "mock-workout-1",
         locationId: "mock-location-1",
+        locationName: "",
         startTime: "05:30",
         endTime: "06:15",
         days: ["Monday", "Wednesday", "Friday"],
@@ -25,6 +26,7 @@ export async function fetchWorkoutsData(): Promise<WorkoutClean[]> {
 
     const workouts: WorkoutClean[] = rawWorkouts.map((workout: any) => ({
       _id: workout._id?.toString() ?? '',
+      locationName: workout.locationName ?? '',
       locationId: workout.locationId?.toString() ?? '',
       startTime: workout.startTime || '',
       endTime: workout.endTime || '',

@@ -937,7 +937,7 @@ export default function AdminPage() {
                     placeholder="Paste the full iframe src URL for your region's custom map (e.g., from Google My Maps embed)"
                   />
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Find this in Google My Maps: "Share" &gt; "Embed on my site" &gt; Copy the `src` attribute from the iframe code.
+                    Find this in Google My Maps: {`"Share"`} &gt; {`"Embed on my site"`} &gt; Copy the {`"src"`} attribute from the iframe code.
                   </p>
                 </div>
               </div>
@@ -1274,7 +1274,7 @@ export default function AdminPage() {
                   ))}
                 </select>
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  e.g., "Every" Monday, "1st Saturday", "Monthly"
+                  e.g., {`"Every" Monday, "1st Saturday", "Monthly"`}
                 </p>
               </div>
               <div className="md:col-span-2">
