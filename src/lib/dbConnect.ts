@@ -1,5 +1,7 @@
 // src/lib/dbConnect.ts
 import mongoose, { Mongoose } from 'mongoose';
+// At the top of your script
+require('dotenv').config({ path: '.env.local' });
 
 // IMPORTANT: Ensure you have a `global.d.ts` file in your project root or `src` directory
 // with the following content (or similar):
@@ -90,7 +92,7 @@ async function dbConnect() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false, // Recommended for serverless environments to prevent buffering operations
-                               // before a connection is established, which can lead to timeouts.
+      // before a connection is established, which can lead to timeouts.
     };
 
     console.log('DB_CONNECT_DEBUG: Establishing new MongoDB connection...');

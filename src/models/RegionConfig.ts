@@ -1,37 +1,51 @@
-// models/Region.ts
-import mongoose, { Schema, Document } from 'mongoose';
-import type { LocaleData } from '../../types/locale'; // Assuming this path is correct
+// src/models/RegionConfig.ts
+import mongoose, { Schema, Document, Model } from 'mongoose';
 
-// Define an interface for the actual data properties that will be stored in MongoDB,
-// EXCLUDING the _id and Mongoose-specific fields like timestamps,
-// because `Document` will provide _id and `timestamps: true` handles createdAt/updatedAt.
-// We can use Omit<LocaleData, '_id'> to get all fields from LocaleData except _id.
-interface IRegion extends Omit<LocaleData, '_id'>, Document {
-    // Mongoose's `Document` already provides the `_id` field (as ObjectId).
-    // No need to redeclare it here or in LocaleData for the Mongoose interface.
-    // LocaleData will still have _id? for client-side representation.
+// Define the interface for a RegionConfig Document in Mongoose.
+export interface IRegionConfig extends Document {
+    region_name: string;
+    meta_description: string;
+    hero_title: string;
+    hero_subtitle: string;
+    pax_count: number;
+    region_city: string;
+    region_state: string;
+    region_facebook: string; // Stored as a URL string
+    region_instagram?: string; // NEW: Optional Instagram URL
+    region_linkedin?: string;  // NEW: Optional LinkedIn URL
+    region_x_twitter?: string; // NEW: Optional X (Twitter) URL
+    region_map_lat: number;
+    region_map_lon: number;
+    region_map_zoom: number;
+    region_map_embed_link?: string; // Optional field for an embeddable map URL
+    createdAt?: Date; // Mongoose timestamps
+    updatedAt?: Date; // Mongoose timestamps
 }
 
-const RegionSchema: Schema = new Schema<IRegion>({
-    region_name: { type: String, default: '' },
-    meta_description: { type: String, default: '' },
-    hero_title: { type: String, default: '' },
-    hero_subtitle: { type: String, default: '' },
-    region_city: { type: String, default: '' },
-    region_state: { type: String, default: '' },
-    region_facebook: { type: String, default: '' },
-    region_map_lat: { type: Number, default: 0 },
-    region_map_lon: { type: Number, default: 0 },
-    region_map_zoom: { type: Number, default: 12 },
-    region_map_embed_link: { type: String, default: '' },
-    region_instagram: { type: String, default: '' },
-    region_linkedin: { type: String, default: '' },
-    region_x_twitter: { type: String, default: '' },
+// Define the Mongoose Schema for the RegionConfig
+const RegionConfigSchema: Schema<IRegionConfig> = new Schema({
+    region_name: { type: String, required: true, trim: true },
+    meta_description: { type: String, required: true, trim: true },
+    hero_title: { type: String, required: true, trim: true },
+    hero_subtitle: { type: String, required: true, trim: true },
+    pax_count: { type: Number, required: true, min: 0 }, // Ensure non-negative
+    region_city: { type: String, required: true, trim: true },
+    region_state: { type: String, required: true, trim: true },
+    region_facebook: { type: String, required: true, trim: true }, // Stored as string
+    region_instagram: { type: String, trim: true, default: '' }, // NEW: Instagram field with default
+    region_linkedin: { type: String, trim: true, default: '' },  // NEW: LinkedIn field with default
+    region_x_twitter: { type: String, trim: true, default: '' }, // NEW: X (Twitter) field with default
+    region_map_lat: { type: Number, required: true },
+    region_map_lon: { type: Number, required: true },
+    region_map_zoom: { type: Number, required: true, min: 0, max: 20 }, // Typical map zoom range
+    region_map_embed_link: { type: String, trim: true }, // Optional
 }, {
-    timestamps: true, // Adds createdAt and updatedAt timestamps automatically by Mongoose
+    timestamps: true, // Automatically adds createdAt and updatedAt fields
 });
 
-const RegionModel = (mongoose.models.Region ||
-    mongoose.model<IRegion>('Region', RegionSchema)) as mongoose.Model<IRegion>;
+// Export the Mongoose Model.
+// This checks if the model already exists to prevent redefinition issues
+// that can occur in Next.js development mode due to hot reloading.
+const RegionConfig = (mongoose.models.RegionConfig as Model<IRegionConfig>) || mongoose.model<IRegionConfig>('RegionConfig', RegionConfigSchema);
 
-export default RegionModel;
+export default RegionConfig;

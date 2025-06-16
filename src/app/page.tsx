@@ -1,88 +1,77 @@
-// app/page.tsx
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 
-// Import your custom components
 import Header from './_components/Header';
 import Footer from './_components/Footer';
 import Button from './_components/Button';
 import Hero from './_components/Hero';
-import CorePrinciple from './_components/CorePrinciple';
 
-// Import data fetching utilities
 import { fetchLocaleData } from '../utils/fetchLocaleData';
-import { fetchWorkoutsData } from '@/utils/fetchWorkoutsData';
 
 // #region regional images
-// Replace these with your region's own images
-import f3MuletownWhite from '../../public/logo.png'; // Assuming this is your region's logo
-import f3HeroImg from '../../public/fod.png'; // Assuming this is your hero image
+// replace these with your region's own images
+import f3MuletownWhite from '../../public/f3-muletown-white.png';
+import f3HeroImg from '../../public/fod.png';
 // #endregion
 
-// Global F3 brand images
 import f3White from '../../public/f3-white.png';
 import f3ShovelFlag from '../../public/f3-shovel-flag.png';
+import CorePrinciple from './_components/CorePrinciple';
+import { fetchWorkoutsData } from '@/utils/fetchWorkoutsData';
 
-// Metadata generation for SEO
 export async function generateMetadata(): Promise<Metadata> {
   const localeData = await fetchLocaleData();
 
   return {
-    title: localeData.region_name,
-    description: localeData.meta_description,
+    title: localeData?.region_name,
+    description: localeData?.meta_description,
   };
 }
 
-// Main Page Component (Server Component by default)
 export default async function Page() {
   const localeData = await fetchLocaleData();
   const workouts = await fetchWorkoutsData();
 
-  const commonSliceClassNames = 'py-8 px-4'; // Reusable class for section padding
-  const href = "/"
+  const href = '/';
+  const commonSliceClassNames = 'py-8 px-4';
   return (
     <>
-      {/* Header component (ensure it's a Client Component if it uses hooks) */}
       <Header href={href} />
       <main>
-        {/* Hero Section */}
         <Hero
-          title={localeData.hero_title}
-          subtitle={localeData.hero_subtitle}
+          title={localeData?.hero_title || ""}
+          subtitle={localeData?.hero_subtitle || ""}
           imgUrl={f3HeroImg.src}
         />
-
-        {/* This is YOUR_REGION Section */}
         <section className={`bg-gloom ${commonSliceClassNames}`}>
           <div className="shadow-xl">
             <h2 className="leading-none">
               <span className="opacity-70">THIS IS</span>
-              <span className="block text-5xl py-5">{localeData.region_name}</span>
+              <span className="block text-5xl py-5">{localeData?.region_name}</span>
             </h2>
             <p className="subtitle text-xl pb-10 opacity-70">
-              {localeData.meta_description}
+              {localeData?.meta_description}
             </p>
           </div>
           <Image
             src={f3MuletownWhite}
-            alt={`${localeData.region_name} White`}
+            alt={`${localeData?.region_name} White`}
             width={200}
-            height={200} // Added height for Image component best practice
             className="pt-8 pb-4 my-0 mx-auto"
           />
         </section>
-
-        {/* We Are / A Part Of Section */}
         <section className={`bg-iron leading-tight ${commonSliceClassNames}`}>
           <div>
             <h3 className="pb-6">WE ARE</h3>
             <p className="pb-6">
-              {localeData.pax_count}+ guys that meet up in small groups to workout in parks and
-              public spaces around {localeData.region_city}, {localeData.region_state}.
+
+              {`${100}+ guys that meet up in small groups`}to workout in parks and
+              public spaces around {localeData?.region_city}, {localeData?.region_state}.
             </p>
             <p className="pb-10 font-bold">
-              We hold {workouts.length}+ workouts in {localeData.region_city} each week. Weekday workouts are
+
+              We hold {workouts.length}+ workouts in {localeData?.region_city} each week. Weekday workouts are
               generally 45 MIN & 60 MIN on Saturday.
             </p>
           </div>
@@ -98,8 +87,6 @@ export default async function Page() {
             </p>
           </div>
         </section>
-
-        {/* Core Principles Section */}
         <section className={`bg-gloom ${commonSliceClassNames}`}>
           <Image
             src={f3White}
@@ -132,8 +119,6 @@ export default async function Page() {
             />
           </ul>
         </section>
-
-        {/* Find a Workout Section */}
         <section className={`bg-iron pt-20 px-4 pb-24`}>
           <Image
             src={f3ShovelFlag}
@@ -146,8 +131,6 @@ export default async function Page() {
           <p className="font-blackops mb-10">all you gotta do is SHOW UP</p>
           <Button href="/workouts" text="FIND A WORKOUT" />
         </section>
-
-        {/* F.N.G. Section */}
         <section className={`bg-gloom leading-tight pt-20 px-4 pb-24`}>
           <h2 className="text-5xl">[F.N.G.]</h2>
           <p className="text-cmu pt-5">
@@ -167,7 +150,6 @@ export default async function Page() {
           <Button href="/fng" text="WHAT TO EXPECT" />
         </section>
       </main>
-      {/* Footer component (ensure it's a Client Component if it uses hooks) */}
       <Footer />
     </>
   );

@@ -1,14 +1,18 @@
-'use client'; // Add this
+"use client";
 
 import Image from 'next/image';
-import { useState, useEffect } from 'react'; // Add useState, useEffect
+import { useState, useEffect } from 'react';
 import fb from '../../../public/fb.svg';
-import { fetchLocaleData } from '@/utils/fetchLocaleData'; // fetchLocaleData is async
+// Make sure this path is correct and fetchLocaleData actually returns LocaleData or null
+import { fetchLocaleData } from '@/utils/fetchLocaleData'; // Import LocaleData if it's defined there, or from '../../types/locale'
+import { LocaleData } from '../../../types/locale';
 
 // Define an interface for the structure of locales, including a default state
 interface FooterLocaleData {
   region_name: string;
   region_facebook: string;
+  // If your LocaleData has pax_count, but FooterLocaleData does not,
+  // ensure the extraction below handles this.
 }
 
 const defaultLocales: FooterLocaleData = {
@@ -16,7 +20,7 @@ const defaultLocales: FooterLocaleData = {
   region_facebook: "#",      // Placeholder
 };
 
-export default function Footer() { // Remove async
+export default function Footer() {
   const [locales, setLocales] = useState<FooterLocaleData>(defaultLocales);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -24,21 +28,23 @@ export default function Footer() { // Remove async
     async function loadData() {
       setIsLoading(true);
       try {
-        // fetchLocaleData returns more than just region_name and region_facebook
-        // but we only need these for the footer.
-        // Ensure the full type from fetchLocaleData is compatible or cast/map appropriately.
-        // For simplicity, let's assume fetchLocaleData's return type is compatible enough
-        // or that we can extract what we need.
-        const fetchedData = await fetchLocaleData();
-        // Update only the properties needed if fetchedData is larger
-        setLocales({
+        const fetchedData: LocaleData | null = await fetchLocaleData(); // Explicitly type fetchedData here
+
+        if (fetchedData) {
+          setLocales({
             region_name: fetchedData.region_name || defaultLocales.region_name,
             region_facebook: fetchedData.region_facebook || defaultLocales.region_facebook,
-        });
+            // Only assign properties that are part of FooterLocaleData
+            // If LocaleData has more fields (like pax_count, meta_description, etc.)
+            // and FooterLocaleData does not, this mapping is crucial.
+          });
+        } else {
+          // If fetchedData is null (e.g., no region config in DB), use defaults
+          setLocales(defaultLocales);
+        }
       } catch (error) {
         console.error("Failed to fetch locale data for footer:", error);
-        // Keep defaultLocales on error
-        setLocales(defaultLocales);
+        setLocales(defaultLocales); // Keep defaultLocales on error
       } finally {
         setIsLoading(false);
       }
@@ -47,7 +53,6 @@ export default function Footer() { // Remove async
   }, []); // Empty dependency array, runs once on mount
 
   if (isLoading) {
-    // Optional: render a minimal loading state for the footer
     return <footer className="text-center py-10 px-4"><p>Loading footer...</p></footer>;
   }
 
@@ -62,7 +67,7 @@ export default function Footer() { // Remove async
           <li>
             <a href={locales.region_facebook} target="_blank" rel="noopener noreferrer">
               <Image
-                src={fb.src} // Assuming fb.src is correct
+                src={fb.src}
                 alt="Facebook"
                 width={35}
                 height={35}

@@ -1,12 +1,9 @@
 // src/utils/fetchLocationsData.ts
 
 import dbConnect from '@/lib/dbConnect';
-// Import ILocationLean from your Location model file
-import LocationModel, { ILocationLean } from '@/models/Location';
+import LocationModel, { ILocation } from '@/models/Location'; // Import ILocation for typing lean results
 import type { LocationClean } from '../../types/workout'; // Adjust path as needed for your LocationClean type
-
-// Remove the problematic import:
-// import { LeanDocument } from 'mongoose'; // <-- DELETE THIS LINE
+// REMOVED: import { LeanDocument } from 'mongoose'; // This import is no longer needed
 
 /**
  * Fetches all workout locations from the database.
@@ -45,13 +42,19 @@ export async function fetchLocationsData(): Promise<LocationClean[]> {
     await dbConnect(); // Connect to MongoDB
 
     try {
-        // Type the raw results using ILocationLean
-        const rawLocationsFromDb: ILocationLean[] = await LocationModel.find({}).lean().exec();
+        // Fetch all locations from the database using the LocationModel.
+        // .lean() makes the query return plain JavaScript objects instead of Mongoose Documents.
+        // We'll directly use ILocation[] for the type assertion here. Mongoose's .lean()
+        // automatically converts ObjectId to string, so if ILocation._id is ObjectId,
+        // the actual type after .lean() will have _id as string. This is generally compatible
+        // for most operations, especially when immediately mapping to another type.
+        const rawLocationsFromDb: ILocation[] = await LocationModel.find({}).lean().exec();
 
         // Map the raw database objects to the LocationClean interface.
         // This step ensures type safety and consistent data structure for the frontend.
-        const locations: LocationClean[] = rawLocationsFromDb.map((rawLoc: ILocationLean) => {
+        const locations: LocationClean[] = rawLocationsFromDb.map((rawLoc) => {
             // Convert the Mongoose ObjectId (_id) to a string, as expected by LocationClean.
+            // rawLoc._id will already be a string after .lean() if it was an ObjectId in the DB.
             const _id = rawLoc._id ? rawLoc._id.toString() : '';
 
             return {

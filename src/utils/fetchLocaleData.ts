@@ -1,36 +1,22 @@
-// src/utils/fetchLocaleData.ts
-
-// Define the interface for the data you expect from your database.
-// This should match the schema you designed for your 'regionConfigs' collection/table.
-export interface LocaleData {
-  _id?: string; // MongoDB's default ID field, optional as you might not always use it
-  region_name: string;
-  meta_description: string;
-  hero_title: string;
-  hero_subtitle: string;
-  pax_count: number;
-  region_city: string;
-  region_state: string;
-  region_facebook: string; // URL as a string
-  region_map_lat: number;
-  region_map_lon: number;
-  region_map_zoom: number;
-  region_map_embed_link?: string; // Optional field for an embeddable map URL
-  // Add any other fields you plan to store in your database for locale data
-}
+import dbConnect from '@/lib/dbConnect';
+import RegionModel from '@/models/RegionConfig';
+import { LocaleData } from '../../types/locale';
 
 export async function fetchLocaleData(): Promise<LocaleData> {
+  // Handle mock mode for development or testing
   if (process.env.MOCK_DATA === 'true') {
-    console.log('FETCH_LOCALE_DATA_DEBUG: MOCK_DATA is true, returning mock locale data directly.');
+    console.log('FETCH_LOCALE_DATA_DEBUG: MOCK_DATA is true, returning mock locale data.');
     return {
       region_name: "Mock F3 Region",
       meta_description: "This is a mock meta description for F3 Region.",
       hero_title: "Welcome to Mock F3 Region",
       hero_subtitle: "The gloom of the morning will be mocked!",
-      pax_count: 123,
       region_city: "Mockville",
       region_state: "MS",
       region_facebook: "https://facebook.com/mockf3region",
+      region_instagram: "",
+      region_linkedin: "",
+      region_x_twitter: "",
       region_map_lat: 30.123,
       region_map_lon: -90.123,
       region_map_zoom: 12,
@@ -39,43 +25,51 @@ export async function fetchLocaleData(): Promise<LocaleData> {
   }
 
   try {
-    // Construct the API endpoint URL using the environment variable.
-    // NEXT_PUBLIC_BASE_URL must be defined locally (.env.local) and on Netlify.
-    // This will hit your API route that pulls data from your database.
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    await dbConnect();
 
-    // IMPORTANT: Ensure baseUrl is defined for production builds
-    if (!baseUrl) {
-      // This error will crash the build if NEXT_PUBLIC_BASE_URL is not set,
-      // which is intended to prevent broken deployments.
-      throw new Error('NEXT_PUBLIC_BASE_URL is not defined. Please set it in your environment variables.');
+    const rawRegionData = await RegionModel.findOne({}).lean().exec();
+
+    if (!rawRegionData) {
+      console.warn("No region config found. Falling back to mock data.");
+      return {
+        region_name: "Mock F3 Region",
+        meta_description: "This is a mock meta description for F3 Region.",
+        hero_title: "Welcome to Mock F3 Region",
+        hero_subtitle: "The gloom of the morning will be mocked!",
+        region_city: "Mockville",
+        region_state: "MS",
+        region_facebook: "https://facebook.com/mockf3region",
+        region_instagram: "",
+        region_linkedin: "",
+        region_x_twitter: "",
+        region_map_lat: 30.123,
+        region_map_lon: -90.123,
+        region_map_zoom: 12,
+        region_map_embed_link: "",
+      };
     }
 
-    const apiURL = `${baseUrl}/api/region`;
+    // Normalize and fill missing fields
+    const localeData: LocaleData = {
+      region_name: rawRegionData.region_name || 'F3 Default Region',
+      meta_description: rawRegionData.meta_description || 'Default meta description for F3 Region.',
+      hero_title: rawRegionData.hero_title || 'Welcome to F3',
+      hero_subtitle: rawRegionData.hero_subtitle || 'Default subtitle.',
+      region_city: rawRegionData.region_city || 'Your City',
+      region_state: rawRegionData.region_state || 'Your State',
+      region_facebook: rawRegionData.region_facebook || '',
+      region_instagram: rawRegionData.region_instagram || '',
+      region_linkedin: rawRegionData.region_linkedin || '',
+      region_x_twitter: rawRegionData.region_x_twitter || '',
+      region_map_lat: rawRegionData.region_map_lat || 0,
+      region_map_lon: rawRegionData.region_map_lon || 0,
+      region_map_zoom: rawRegionData.region_map_zoom || 12,
+      region_map_embed_link: rawRegionData.region_map_embed_link || '',
+    };
 
-    const response = await fetch(apiURL, {
-      // Using 'no-store' ensures fresh data on every request (during build and runtime).
-      // If this data doesn't change frequently and you want better performance,
-      // consider 'force-cache' or Next.js's 'next.revalidate' option to cache data.
-      cache: 'no-store',
-      // You can add revalidate here for ISR (Incremental Static Regeneration)
-      // next: { revalidate: 3600 }, // Example: revalidate data every 3600 seconds (1 hour)
-    });
-
-    if (!response.ok) {
-      console.error(
-        `Failed to fetch locale data from API: ${response.status} ${response.statusText}`
-      );
-      // Throw a specific error that can be caught by the calling component/page.
-      throw new Error(`Failed to fetch region configuration data. Status: ${response.status}`);
-    }
-
-    const data: LocaleData = await response.json();
-    return data;
+    return localeData;
   } catch (error) {
-    console.error('Error in fetchLocaleData:', error);
-    // Re-throw the error to ensure it propagates up the call stack,
-    // allowing the calling page or component to handle the failure.
-    throw error;
+    console.error("FETCH_LOCALE_DATA_ERROR:", error);
+    throw new Error(`Failed to fetch region data from DB: ${error instanceof Error ? error.message : String(error)}`);
   }
 }

@@ -1,506 +1,972 @@
-// src/app/admin/page.tsx
-'use client'; // This is a Client Component
+// app/admin/page.tsx
+'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import type { LocationClean } from '../../../types/workout'; // Assuming this path is correct
-import type { LocaleData, RegionFormState } from '../../../types/locale'; // Import LocaleData and RegionFormState
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import Header from '../_components/Header';
+import Footer from '../_components/Footer';
+import type { LocationClean, WorkoutClean } from '../../../types/workout';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 
-// Define the initial state for the region form
-const initialRegionFormState: RegionFormState = {
-  region_name: '',
-  meta_description: '',
-  hero_title: '',
-  hero_subtitle: '',
-  region_city: '',
-  region_state: '',
-  region_facebook: '',
-  region_map_lat: 0,
-  region_map_lon: 0,
-  region_map_zoom: 12, // Default zoom level
-  region_map_embed_link: '',
-  region_instagram: '',
-  region_linkedin: '',
-  region_x_twitter: '',
-};
+// For icons
+import { TrashIcon, PlusCircleIcon, PencilIcon } from '@heroicons/react/24/solid';
 
-// Reusable Input Field Component - **NOW CORRECTLY APPLIES PLACEHOLDER**
-const FormInput = ({ label, id, name, type = 'text', value, onChange, required = false, step, rows, placeholder }: {
-  label: string;
-  id: string;
-  name: string;
-  type?: string;
-  value: string | number;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  required?: boolean;
-  step?: string;
-  rows?: number;
-  placeholder?: string;
-}) => (
-  <div>
-    <label htmlFor={id} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-      {label}
-      {required && <span className="text-red-500 ml-1">*</span>}
-    </label>
-    {type === 'textarea' ? (
-      <textarea
-        id={id}
-        name={name}
-        rows={rows}
-        value={value}
-        onChange={onChange}
-        // --- ADDED THIS LINE ---
-        placeholder={placeholder}
-        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2
-                   bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400"
-        required={required}
-      />
-    ) : (
-      <input
-        type={type}
-        id={id}
-        name={name}
-        value={value}
-        onChange={onChange}
-        // --- ADDED THIS LINE ---
-        placeholder={placeholder}
-        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2
-                   bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400"
-        required={required}
-        step={step}
-      />
-    )}
-  </div>
-);
+// Define interfaces for form states (for modals)
+interface NewLocationFormState extends Omit<LocationClean, '_id'> {
+  _id?: string; // Optional for new location
+  q?: string; // Permanent Q for the location
+  embedMapLink?: string; // Optional embed map link
+  imageUrl?: string; // This will store the URL from Cloudinary (for initial population/display)
+}
 
+// Corrected WorkoutFormState: Reflects new fields, removed 'q' and 'ao'
+interface WorkoutFormState extends Omit<WorkoutClean, '_id' | 'locationId' | 'ao'> {
+  _id?: string; // Optional for new workout
+  locationId: string; // Mandatory when creating/editing a workout, derived from selected location
+}
+
+// Define type for grouped workouts (for display)
+interface WorkoutsByLocation {
+  [locationId: string]: WorkoutClean[];
+}
+
+// Predefined lists for checkboxes
+const DAYS_OF_WEEK = [
+  'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
+  'Every Third Friday', // Special schedule
+  'All Saturdays Except the Last of the Month' // Special schedule
+];
+
+const WORKOUT_TYPES = [
+  'Bootcamp', 'Ruck', 'Running', 'Mobility', 'CrossFit', 'Strength', 'Yoga', 'HIIT', 'Cycling', 'Swimming'
+  // Add/remove as needed for your specific workout types
+];
 
 export default function AdminPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const password = searchParams.get('pw');
-
-  const [activeTab, setActiveTab] = useState<'region' | 'locations'>('region');
-
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const providedPassword = searchParams.get('pw');
 
   const [locations, setLocations] = useState<LocationClean[]>([]);
-  const [newLocationForm, setNewLocationForm] = useState<Partial<LocationClean>>({
-    name: '', mapLink: '', address: '', description: '', q: '', embedMapLink: '', imageUrl: '', paxImageUrl: '',
+  const [workouts, setWorkouts] = useState<WorkoutClean[]>([]);
+
+  const [message, setMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // State for Add/Edit Location Modal
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [editingLocationData, setEditingLocationData] = useState<NewLocationFormState | null>(null);
+
+  // NEW: State for handling image file and its preview
+  const [currentLocationImageFile, setCurrentLocationImageFile] = useState<File | null>(null);
+  const [currentLocationImageUrl, setCurrentLocationImageUrl] = useState<string | null>(null); // For displaying preview (local object URL or existing Cloudinary URL)
+
+
+  // State for Add/Edit Workout Modal
+  const [showWorkoutModal, setShowWorkoutModal] = useState(false);
+  const [currentWorkoutLocationId, setCurrentWorkoutLocationId] = useState<string | null>(null);
+  const [editingWorkoutData, setEditingWorkoutData] = useState<WorkoutFormState | null>(null);
+
+  // New location form state - includes 'q', 'embedMapLink' fields (imageUrl will be handled by file state)
+  const [newLocationData, setNewLocationData] = useState<NewLocationFormState>({
+    name: '',
+    mapLink: '',
+    address: '',
+    description: '',
+    q: '',
+    embedMapLink: '',
+    imageUrl: '', // Initialize here for consistency, but file input will override/manage.
   });
-  const [editLocationId, setEditLocationId] = useState<string | null>(null);
 
-  const [regionForm, setRegionForm] = useState<RegionFormState>(initialRegionFormState);
-  const [regionLoading, setRegionLoading] = useState(true);
-  const [regionError, setRegionError] = useState<string | null>(null);
-  const [regionSuccess, setRegionSuccess] = useState<string | null>(null);
+  // Corrected newWorkoutData state type: Reflects new fields, removed 'q'
+  const [newWorkoutData, setNewWorkoutData] = useState<Omit<WorkoutClean, '_id' | 'locationId' | 'ao'>>({
+    startTime: '',
+    endTime: '',
+    days: [], // Initialize as empty array
+    types: [], // Initialize as empty array
+  });
 
+  const CLIENT_ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
 
-  // --- Global Password Check ---
-  useEffect(() => {
-    if (!password) {
-      setError('Admin password is required to access the dashboard.');
-      setLoading(false);
-      setRegionLoading(false);
-    }
-  }, [password]);
-
-
-  // --- Effect to fetch region data on component mount (or password change) ---
-  useEffect(() => {
-    if (!password) return;
-
-    async function fetchRegionData() {
-      setRegionLoading(true);
-      setRegionError(null);
-      try {
-        const response = await fetch('/api/region');
-        if (!response.ok) {
-          if (response.status === 404) {
-            console.warn('Region configuration not found, initializing empty form. Please create it.');
-            setRegionForm(initialRegionFormState);
-            setRegionSuccess('Region configuration is not set up. Please save to create it.');
-            return;
-          }
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data: LocaleData = await response.json();
-        setRegionForm({
-          region_name: data.region_name || '',
-          meta_description: data.meta_description || '',
-          hero_title: data.hero_title || '',
-          hero_subtitle: data.hero_subtitle || '',
-          region_city: data.region_city || '',
-          region_state: data.region_state || '',
-          region_facebook: data.region_facebook || '',
-          region_map_lat: data.region_map_lat || 0,
-          region_map_lon: data.region_map_lon || 0,
-          region_map_zoom: data.region_map_zoom || 12,
-          region_map_embed_link: data.region_map_embed_link || '',
-          region_instagram: data.region_instagram || '',
-          region_linkedin: data.region_linkedin || '',
-          region_x_twitter: data.region_x_twitter || '',
-        });
-      } catch (e: any) {
-        setRegionError(`Failed to fetch region data: ${e.message}`);
-        console.error("Failed to fetch region data:", e);
-      } finally {
-        setRegionLoading(false);
-      }
-    }
-    fetchRegionData();
-  }, [password]);
-
-
-  // --- Handlers for Region Form ---
-  const handleRegionFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setRegionForm((prev: any) => ({
-      ...prev,
-      [name]: name.startsWith('region_map_') ? parseFloat(value) || 0 : value,
-    }));
-  };
-
-  const handleRegionSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!password) {
-      setRegionError('Admin password is required to update region info.');
-      return;
-    }
-    setRegionLoading(true);
-    setRegionError(null);
-    setRegionSuccess(null);
-
+  // --- Data Fetching ---
+  const refreshAllData = useCallback(async () => {
+    setIsLoading(true);
+    setMessage(null);
     try {
-      const response = await fetch(`/api/region?pw=${password}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(regionForm),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to update region configuration.');
+      const password = providedPassword;
+      if (!password) {
+        setMessage('Error: Admin password not found in URL.');
+        setIsLoading(false);
+        return;
       }
 
-      setRegionSuccess(data.message || 'Region configuration updated successfully!');
-    } catch (e: any) {
-      setRegionError(`Error updating region: ${e.message}`);
-      console.error("Error updating region:", e);
+      // Fetch locations
+      const locationsResponse = await fetch(`/api/locations?pw=${password}`);
+      const locationsData = await locationsResponse.json();
+      if (!locationsResponse.ok) {
+        throw new Error(locationsData.message || `API Error fetching locations: ${locationsResponse.status}`);
+      }
+      if (!Array.isArray(locationsData)) {
+        console.error('AdminPage: ERROR - Fetched locations data is not an array! Received:', locationsData);
+        setLocations([]);
+        setMessage('Error: Locations data from server was not in expected format.');
+        return;
+      }
+      setLocations(locationsData);
+
+      // Fetch workouts
+      const workoutsResponse = await fetch(`/api/workouts?pw=${password}`);
+      const workoutsData = await workoutsResponse.json();
+      if (!workoutsResponse.ok) {
+        throw new Error(workoutsData.message || `API Error fetching workouts: ${workoutsResponse.status}`);
+      }
+      if (!Array.isArray(workoutsData)) {
+        console.error('AdminPage: ERROR - Fetched workouts data is not an array! Received:', workoutsData);
+        setWorkouts([]);
+        setMessage('Error: Workouts data from server was not in expected format.');
+        return;
+      }
+      setWorkouts(workoutsData);
+
+      console.log("AdminPage: All data fetched successfully.");
+    } catch (error) {
+      console.error('AdminPage: Error in refreshAllData:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred while refreshing data.';
+      setMessage(`Error refreshing data: ${errorMessage}`);
+      setLocations([]);
+      setWorkouts([]);
     } finally {
-      setRegionLoading(false);
+      setIsLoading(false);
     }
-  };
+  }, [providedPassword]);
 
-
-  // --- Location related Handlers (unchanged) ---
   useEffect(() => {
-    if (!password) return;
-
-    async function fetchLocations() {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetch(`/api/locations?pw=${password}`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data: LocationClean[] = await response.json();
-        setLocations(data);
-      } catch (e: any) {
-        setError(`Failed to fetch locations: ${e.message}`);
-      } finally {
-        setLoading(false);
-      }
+    if (providedPassword && providedPassword === CLIENT_ADMIN_PASSWORD) {
+      refreshAllData();
+    } else if (providedPassword && providedPassword !== CLIENT_ADMIN_PASSWORD) {
+      setMessage('Access Denied: Invalid password in URL.');
     }
+  }, [providedPassword, CLIENT_ADMIN_PASSWORD, refreshAllData]);
 
-    fetchLocations();
-  }, [password]);
-
-  const handleNewLocationChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setNewLocationForm(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleEditLocation = (location: LocationClean) => {
-    setEditLocationId(location._id);
-    setNewLocationForm(location);
-    setActiveTab('locations');
-    setSuccess(null);
-    setError(null);
-  };
-
-  const handleCancelEdit = () => {
-    setEditLocationId(null);
-    setNewLocationForm({
-      name: '', mapLink: '', address: '', description: '', q: '', embedMapLink: '', imageUrl: '', paxImageUrl: '',
+  // --- Grouping Workouts by Location ---
+  const workoutsGroupedByLocation = useMemo(() => {
+    const grouped: WorkoutsByLocation = {};
+    workouts.forEach(workout => {
+      if (workout.locationId) {
+        if (!grouped[workout.locationId]) {
+          grouped[workout.locationId] = [];
+        }
+        grouped[workout.locationId].push(workout);
+      }
     });
-    setError(null);
-    setSuccess(null);
+
+    // Sort workouts within each location by first Day in days array, then Start Time, then first Type in types array
+    for (const locId in grouped) {
+      grouped[locId].sort((a, b) => {
+        const daysOrder = DAYS_OF_WEEK; // Use the predefined order
+        const dayA = a.days.length > 0 ? daysOrder.indexOf(a.days[0]) : -1;
+        const dayB = b.days.length > 0 ? daysOrder.indexOf(b.days[0]) : -1;
+
+        if (dayA !== dayB) return dayA - dayB;
+
+        // Compare start times directly as strings if they are in 'HH:MM' format
+        if (a.startTime && b.startTime) {
+          const timeComparison = a.startTime.localeCompare(b.startTime);
+          if (timeComparison !== 0) return timeComparison;
+        }
+
+        // Compare first type in types array
+        if (a.types.length > 0 && b.types.length > 0) {
+          return a.types[0].localeCompare(b.types[0]);
+        }
+        return 0;
+      });
+    }
+
+    return grouped;
+  }, [workouts]);
+
+  // --- Location Management Handlers ---
+  const handleOpenAddLocationModal = () => {
+    setEditingLocationData(null);
+    setNewLocationData({ name: '', mapLink: '', address: '', description: '', q: '', embedMapLink: '', imageUrl: '' });
+    setCurrentLocationImageFile(null); // Clear file input
+    if (currentLocationImageUrl) {
+      URL.revokeObjectURL(currentLocationImageUrl); // Clean up previous preview URL
+    }
+    setCurrentLocationImageUrl(null); // Clear image preview
+    setShowLocationModal(true);
   };
 
-  const handleSubmitLocation = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!password) {
-      setError('Password is required to submit changes.');
+  const handleOpenEditLocationModal = (location: LocationClean) => {
+    setEditingLocationData({
+      ...location,
+      q: location.q || '',
+      embedMapLink: location.embedMapLink || '',
+      imageUrl: location.imageUrl || '', // Ensure imageUrl is propagated for display
+    });
+    setCurrentLocationImageFile(null); // Clear file input, a new file will be selected if desired
+    if (currentLocationImageUrl) {
+      URL.revokeObjectURL(currentLocationImageUrl); // Clean up previous preview URL
+    }
+    setCurrentLocationImageUrl(location.imageUrl || null); // Set existing image for preview
+    setShowLocationModal(true);
+  };
+
+  const handleCloseLocationModal = () => {
+    setShowLocationModal(false);
+    setEditingLocationData(null);
+    setNewLocationData({ name: '', mapLink: '', address: '', description: '', q: '', embedMapLink: '', imageUrl: '' });
+    setCurrentLocationImageFile(null);
+    if (currentLocationImageUrl) {
+      URL.revokeObjectURL(currentLocationImageUrl); // Clean up object URL on close
+    }
+    setCurrentLocationImageUrl(null);
+    setMessage(null);
+  };
+
+  const handleLocationInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    if (editingLocationData) {
+      setEditingLocationData(prev => ({ ...prev!, [name]: value }));
+    } else {
+      setNewLocationData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  // NEW: Handler for image file input
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setCurrentLocationImageFile(file);
+
+      // Create an object URL for preview
+      if (currentLocationImageUrl) {
+        URL.revokeObjectURL(currentLocationImageUrl); // Clean up previous URL if exists
+      }
+      setCurrentLocationImageUrl(URL.createObjectURL(file));
+    } else {
+      setCurrentLocationImageFile(null);
+      if (currentLocationImageUrl) {
+        URL.revokeObjectURL(currentLocationImageUrl); // Clean up URL if file is deselected
+      }
+      setCurrentLocationImageUrl(null);
+    }
+  };
+
+  const handleAddEditLocation = async () => {
+    setIsLoading(true);
+    setMessage(null);
+
+    const dataToProcess = editingLocationData || newLocationData;
+
+    // Basic validation
+    if (!dataToProcess.name.trim() || !dataToProcess.mapLink.trim()) {
+      setMessage('Error: Location Name and Map Link are required.');
+      setIsLoading(false);
       return;
     }
 
-    setError(null);
-    setSuccess(null);
-    setLoading(true);
+    const formData = new FormData();
+
+    // Append text fields
+    formData.append('name', dataToProcess.name);
+    formData.append('mapLink', dataToProcess.mapLink);
+    if (dataToProcess.address) formData.append('address', dataToProcess.address);
+    if (dataToProcess.description) formData.append('description', dataToProcess.description);
+    if (dataToProcess.q) formData.append('q', dataToProcess.q);
+    if (dataToProcess.embedMapLink) formData.append('embedMapLink', dataToProcess.embedMapLink);
+
+    // Append _id if editing
+    if (editingLocationData && editingLocationData._id) {
+      formData.append('_id', editingLocationData._id);
+    }
+
+    // Append image file if selected
+    if (currentLocationImageFile) {
+      formData.append('imageFile', currentLocationImageFile);
+    } else if (editingLocationData && editingLocationData.imageUrl) {
+      // If editing and no new file is selected, but an existing image URL exists,
+      // send the existing URL back to preserve it.
+      formData.append('imageUrl', editingLocationData.imageUrl);
+    } else if (!currentLocationImageFile && !editingLocationData?.imageUrl && editingLocationData) {
+      // If editing and image was removed (or never existed and none selected), send an empty string
+      formData.append('imageUrl', '');
+    }
+
+    const url = `/api/locations?pw=${providedPassword}`;
 
     try {
-      const method = 'POST';
-      const body = { ...newLocationForm, _id: editLocationId || undefined };
-
-      const response = await fetch(`/api/locations?pw=${password}`, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
+      const response = await fetch(url, {
+        method: 'POST',
+        // No 'Content-Type' header needed for FormData; browser sets it automatically
+        body: formData,
       });
-
-      const data = await response.json();
-
+      const result = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to process location.');
+        throw new Error(result.message || `API Error: ${response.status}`);
       }
 
-      setSuccess(data.message);
-      const updatedLocationsResponse = await fetch(`/api/locations?pw=${password}`);
-      const updatedLocationsData: LocationClean[] = await updatedLocationsResponse.json();
-      setLocations(updatedLocationsData);
-
-      handleCancelEdit();
-
-    } catch (e: any) {
-      setError(`Error: ${e.message}`);
-      console.error("Error submitting location:", e);
+      setMessage(result.message || (editingLocationData ? 'Location updated successfully!' : 'Location added successfully!'));
+      handleCloseLocationModal();
+      refreshAllData();
+    } catch (error) {
+      console.error('Failed to add/edit location:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+      setMessage(`Error: ${errorMessage}`);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleDeleteLocation = async (id: string) => {
-    if (!password) {
-      setError('Password is required to delete locations.');
-      return;
-    }
-    if (!confirm('Are you sure you want to delete this location and all its associated workouts? This action cannot be undone.')) {
+  const handleDeleteLocation = async (locationId: string, locationName: string) => {
+    if (!confirm(`Are you sure you want to delete "${locationName}" and all its associated workouts? This action cannot be undone.`)) {
       return;
     }
 
-    setError(null);
-    setSuccess(null);
-    setLoading(true);
+    setIsLoading(true);
+    setMessage(null);
 
     try {
-      const response = await fetch(`/api/locations?pw=${password}&id=${id}`, {
+      const response = await fetch(`/api/locations?pw=${providedPassword}&id=${locationId}`, {
         method: 'DELETE',
       });
-
-      const data = await response.json();
-
+      const result = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to delete location.');
+        throw new Error(result.message || `API Error: ${response.status}`);
       }
-
-      setSuccess(data.message);
-      setLocations(prev => prev.filter(loc => loc._id !== id));
-    } catch (e: any) {
-      setError(`Error: ${e.message}`);
-      console.error("Error deleting location:", e);
+      setMessage(result.message || 'Location and its workouts deleted successfully!');
+      refreshAllData();
+    } catch (error) {
+      console.error('Failed to delete location:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+      setMessage(`Error: ${errorMessage}`);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
+  // --- Workout Management Handlers (within a location card) ---
+  const handleOpenAddWorkoutModal = (locationId: string) => {
+    setCurrentWorkoutLocationId(locationId);
+    setEditingWorkoutData(null);
+    setNewWorkoutData({ startTime: '', endTime: '', days: [], types: [] }); // Reset to new workout defaults
+    setShowWorkoutModal(true);
+  };
 
-  if (!password) {
+  const handleOpenEditWorkoutModal = (workout: WorkoutClean) => {
+    setCurrentWorkoutLocationId(workout.locationId);
+    setEditingWorkoutData({
+      _id: workout._id,
+      locationId: workout.locationId,
+      startTime: workout.startTime ?? '',
+      endTime: workout.endTime ?? '',
+      days: workout.days ?? [],
+      types: workout.types ?? [],
+    });
+    setShowWorkoutModal(true);
+  };
+
+  const handleCloseWorkoutModal = () => {
+    setShowWorkoutModal(false);
+    setCurrentWorkoutLocationId(null);
+    setEditingWorkoutData(null);
+    setNewWorkoutData({ startTime: '', endTime: '', days: [], types: [] }); // Reset for next add
+    setMessage(null);
+  };
+
+  // Handler for checkbox lists (days, types)
+  const handleWorkoutCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, checked } = e.target;
+
+    const isEditing = editingWorkoutData !== null;
+
+    type WorkoutArrayField = 'days' | 'types';
+    const fieldName = name as WorkoutArrayField;
+
+    if (checked) {
+      if (isEditing) {
+        setEditingWorkoutData(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            [fieldName]: [...((prev[fieldName] as string[]) || []), value]
+          };
+        });
+      } else {
+        setNewWorkoutData(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            [fieldName]: [...((prev[fieldName] as string[]) || []), value]
+          };
+        });
+      }
+    } else { // if unchecked
+      if (isEditing) {
+        setEditingWorkoutData(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            [fieldName]: ((prev[fieldName] as string[]) || []).filter((item: string) => item !== value)
+          };
+        });
+      } else {
+        setNewWorkoutData(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            [fieldName]: ((prev[fieldName] as string[]) || []).filter((item: string) => item !== value)
+          };
+        });
+      }
+    }
+  };
+
+  // Handler for time inputs (startTime, endTime)
+  const handleWorkoutTimeInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (editingWorkoutData) {
+      setEditingWorkoutData(prev => ({ ...prev!, [name]: value }));
+    } else {
+      setNewWorkoutData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleAddEditWorkout = async () => {
+    setIsLoading(true);
+    setMessage(null);
+
+    type WorkoutPayload = Omit<WorkoutClean, '_id' | 'ao'> & { _id?: string };
+
+    let dataToSend: WorkoutPayload;
+
+    const workoutFormState = editingWorkoutData || newWorkoutData;
+
+    // Basic validation
+    if (!workoutFormState.startTime.trim() || !workoutFormState.endTime.trim()) {
+      setMessage('Error: Start Time and End Time are required for workouts.');
+      setIsLoading(false);
+      return;
+    }
+    if (workoutFormState.days.length === 0) {
+      setMessage('Error: At least one Day must be selected.');
+      setIsLoading(false);
+      return;
+    }
+    if (workoutFormState.types.length === 0) {
+      setMessage('Error: At least one Workout Type must be selected.');
+      setIsLoading(false);
+      return;
+    }
+
+    // Determine if adding or editing
+    if (editingWorkoutData) {
+      dataToSend = {
+        _id: editingWorkoutData._id,
+        locationId: currentWorkoutLocationId!,
+        startTime: workoutFormState.startTime,
+        endTime: workoutFormState.endTime,
+        days: workoutFormState.days,
+        types: workoutFormState.types,
+      };
+    } else {
+      if (!currentWorkoutLocationId) {
+        setMessage('Error: Workout must be associated with a location.');
+        setIsLoading(false);
+        return;
+      }
+      dataToSend = {
+        locationId: currentWorkoutLocationId,
+        startTime: workoutFormState.startTime,
+        endTime: workoutFormState.endTime,
+        days: workoutFormState.days,
+        types: workoutFormState.types,
+      };
+    }
+
+    const url = `/api/workouts?pw=${providedPassword}`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataToSend),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || `API Error: ${response.status}`);
+      }
+
+      setMessage(result.message || (editingWorkoutData ? 'Workout updated successfully!' : 'Workout added successfully!'));
+      handleCloseWorkoutModal();
+      refreshAllData();
+    } catch (error) {
+      console.error('Failed to add/edit workout:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+      setMessage(`Error: ${errorMessage}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteWorkout = async (workoutId: string) => {
+    if (!confirm('Are you sure you want to delete this workout?')) {
+      return;
+    }
+
+    setIsLoading(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch(`/api/workouts?pw=${providedPassword}&id=${workoutId}`, {
+        method: 'DELETE',
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || `API Error: ${response.status}`);
+      }
+      setMessage(result.message || 'Workout deleted successfully!');
+      refreshAllData();
+    } catch (error) {
+      console.error('Failed to delete workout:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+      setMessage(`Error: ${errorMessage}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // --- Access Denied / Main Render ---
+  if (providedPassword !== CLIENT_ADMIN_PASSWORD) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8 p-10 bg-white dark:bg-gray-800 rounded-lg shadow-xl">
-          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white text-center">Admin Access Required</h1>
-          <p className="mt-2 text-center text-sm text-red-600 dark:text-red-400">
-            Please provide the admin password in the URL.
+      <>
+        <Header href="/admin" />
+        <main className="container mx-auto px-4 py-8 text-center bg-gray-50 min-h-screen">
+          <h1 className="text-3xl font-bold text-red-600 mb-4">Access Denied</h1>
+          <p className="text-gray-700 text-lg">
+            You have not provided the correct password to access this page.
+            {message && <span className="block text-sm text-red-500 mt-2">{message}</span>}
           </p>
-          <p className="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
-            **Security Warning:** This method of password protection is highly insecure for production environments.
-            Please consider implementing a robust authentication system like NextAuth.js.
-          </p>
-        </div>
-      </div>
+          <Link href="/" className="mt-8 inline-block bg-blue-600 text-white px-8 py-3 rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-200">
+            Go to Homepage
+          </Link>
+        </main>
+        <Footer />
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8">
-        <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white text-center mb-8">Admin Dashboard</h1>
+    <>
+      <Header href="/admin" />
+      <main className="container mx-auto px-4 py-8 bg-gray-50 min-h-screen">
+        <h1 className="text-4xl font-extrabold text-center mb-10 text-gray-800">
+          Admin Dashboard
+        </h1>
 
-        {/* Global Messages */}
-        {error && <p className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 px-4 py-3 rounded relative mb-4 text-center">{error}</p>}
-        {success && <p className="bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 px-4 py-3 rounded relative mb-4 text-center">{success}</p>}
+        {isLoading && (
+          <div className="text-center text-blue-500 py-4">
+            <svg className="animate-spin h-8 w-8 text-blue-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p className="mt-2">Loading/Saving data...</p>
+          </div>
+        )}
+        {message && (
+          <p className={`text-center p-3 mb-6 rounded-md font-medium ${message.startsWith('Error:') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+            {message}
+          </p>
+        )}
 
-        {/* Tab Navigation */}
-        <div className="mb-8 border-b border-gray-200 dark:border-gray-700">
-          <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-            <button
-              onClick={() => setActiveTab('region')}
-              className={`${activeTab === 'region'
-                ? 'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg`}
-            >
-              Edit Region Info
-            </button>
-            <button
-              onClick={() => setActiveTab('locations')}
-              className={`${activeTab === 'locations'
-                ? 'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg`}
-            >
-              Manage Locations
-            </button>
-          </nav>
+        {/* Add New Location Button */}
+        <div className="mb-10 text-center">
+          <button
+            onClick={handleOpenAddLocationModal}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-xl flex items-center justify-center mx-auto transition duration-300 ease-in-out text-lg"
+          >
+            <PlusCircleIcon className="h-7 w-7 mr-2" /> Add New Location
+          </button>
         </div>
 
-        {/* --- Region Configuration Section --- */}
-        {activeTab === 'region' && (
-          <section className="mb-8 p-6 bg-gray-50 dark:bg-gray-800 rounded-lg shadow-inner">
-            <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-white border-b pb-3 dark:border-gray-700">Region Settings</h2>
-            {regionLoading && <p className="text-center text-gray-600 dark:text-gray-400">Loading region data...</p>}
-            {regionError && <p className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 px-4 py-3 rounded relative mb-4 text-center">{regionError}</p>}
-            {regionSuccess && <p className="bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 px-4 py-3 rounded relative mb-4 text-center">{regionSuccess}</p>}
-
-            {!regionLoading && (
-              <form onSubmit={handleRegionSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormInput label="Region Name" id="region_name" name="region_name" value={regionForm.region_name || ''} onChange={handleRegionFormChange} placeholder="e.g., F3 Houston" />
-                <FormInput label="Meta Description" id="meta_description" name="meta_description" value={regionForm.meta_description || ''} onChange={handleRegionFormChange} placeholder="A brief description for search engines" />
-                <FormInput label="Hero Title" id="hero_title" name="hero_title" value={regionForm.hero_title || ''} onChange={handleRegionFormChange} placeholder="e.g., Iron Sharpens Iron" />
-                <FormInput label="Hero Subtitle" id="hero_subtitle" name="hero_subtitle" value={regionForm.hero_subtitle || ''} onChange={handleRegionFormChange} placeholder="e.g., F3: Fitness, Fellowship, Faith" />
-                <FormInput label="Region City" id="region_city" name="region_city" value={regionForm.region_city || ''} onChange={handleRegionFormChange} placeholder="e.g., Houston" />
-                <FormInput label="Region State" id="region_state" name="region_state" value={regionForm.region_state || ''} onChange={handleRegionFormChange} placeholder="e.g., TX" />
-                <FormInput label="Facebook URL" id="region_facebook" name="region_facebook" type="url" value={regionForm.region_facebook || ''} onChange={handleRegionFormChange} placeholder="https://facebook.com/f3houston" />
-                <FormInput label="Map Latitude" id="region_map_lat" name="region_map_lat" type="number" step="any" value={regionForm.region_map_lat || 0} onChange={handleRegionFormChange} placeholder="e.g., 29.7604" />
-                <FormInput label="Map Longitude" id="region_map_lon" name="region_map_lon" type="number" step="any" value={regionForm.region_map_lon || 0} onChange={handleRegionFormChange} placeholder="e.g., -95.3698" />
-                <FormInput label="Map Zoom" id="region_map_zoom" name="region_map_zoom" type="number" value={regionForm.region_map_zoom || 0} onChange={handleRegionFormChange} placeholder="e.g., 12" />
-                <div className="md:col-span-2">
-                  <FormInput label="Map Embed Link (iframe src)" id="region_map_embed_link" name="region_map_embed_link" type="url" value={regionForm.region_map_embed_link || ''} onChange={handleRegionFormChange} placeholder="https://www.google.com/maps/embed?pb=!1m18!..." />
-                </div>
-
-                {/* Social Media Inputs */}
-                <div className="md:col-span-2 pt-4 border-t border-gray-200 dark:border-gray-700 mt-4">
-                  <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Social Media Links (Optional)</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormInput label="Instagram URL" id="region_instagram" name="region_instagram" type="url" value={regionForm.region_instagram || ''} onChange={handleRegionFormChange} placeholder="https://instagram.com/f3houston" />
-                    <FormInput label="LinkedIn URL" id="region_linkedin" name="region_linkedin" type="url" value={regionForm.region_linkedin || ''} onChange={handleRegionFormChange} placeholder="https://linkedin.com/company/f3houston" />
-                    <FormInput label="X (Twitter) URL" id="region_x_twitter" name="region_x_twitter" type="url" value={regionForm.region_x_twitter || ''} onChange={handleRegionFormChange} placeholder="https://x.com/f3houston" />
+        {/* Locations Grid */}
+        <h2 className="text-3xl font-bold mb-8 text-gray-800 border-b-2 pb-3 border-gray-200">Manage Locations & Workouts</h2>
+        {locations.length === 0 && !isLoading ? (
+          <p className="text-center text-gray-600 text-lg p-6 bg-white rounded-lg shadow-md">No locations found. Click <span className="font-semibold">{`"Add New Location"`}</span> to get started!</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {locations.map(location => (
+              <div key={location._id} className="bg-white rounded-lg shadow-xl p-6 border border-gray-100 flex flex-col h-full">
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-2xl font-extrabold text-gray-900 leading-tight pr-4">{location.name}</h3>
+                  <div className="flex space-x-2 flex-shrink-0">
+                    <button
+                      onClick={() => handleOpenEditLocationModal(location)}
+                      className="text-blue-600 hover:text-blue-800 p-1 rounded-full hover:bg-blue-50 transition duration-200"
+                      title="Edit Location"
+                    >
+                      <PencilIcon className="h-6 w-6" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteLocation(location._id, location.name)}
+                      className="text-red-600 hover:text-red-800 p-1 rounded-full hover:bg-red-50 transition duration-200"
+                      title="Delete Location"
+                    >
+                      <TrashIcon className="h-6 w-6" />
+                    </button>
                   </div>
                 </div>
 
-                <div className="md:col-span-2 mt-4">
+                {location.q && (
+                  <p className="text-gray-700 text-base mb-2">
+                    <span className="font-semibold">Permanent Q:</span> {location.q}
+                  </p>
+                )}
+                {location.address && (
+                  <p className="text-gray-700 text-base mb-2">
+                    <span className="font-semibold">Address:</span> {location.address}
+                  </p>
+                )}
+                <p className="text-gray-700 text-sm mb-2">
+                  <span className="font-semibold">Map Link:</span>{' '}
+                  <a href={location.mapLink} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline break-all">
+                    {location.mapLink}
+                  </a>
+                </p>
+                {/* Display embed map link */}
+                {location.embedMapLink && (
+                  <p className="text-gray-700 text-sm mb-2">
+                    <span className="font-semibold">Embed Map Link:</span>{' '}
+                    <a href={location.embedMapLink} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline break-all">
+                      {location.embedMapLink}
+                    </a>
+                  </p>
+                )}
+                {/* Display image URL and the image itself */}
+                {location.imageUrl && (
+                  <div className="text-gray-700 text-sm mb-4">
+                    <p className="font-semibold">Logo URL:</p>{' '}
+                    <a href={location.imageUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline break-all">
+                      {location.imageUrl}
+                    </a>
+                    <img src={location.imageUrl} alt={`Logo for ${location.name}`} className="mt-2 w-20 h-20 object-cover rounded-full border border-gray-200" />
+                  </div>
+                )}
+
+                {location.description && <p className="text-gray-600 text-sm mb-4 leading-relaxed">{location.description}</p>}
+
+                <div className="mt-auto pt-6 border-t border-gray-200 flex-grow">
+                  <h4 className="text-xl font-bold mb-4 text-gray-800">Scheduled Workouts:</h4>
+                  {workoutsGroupedByLocation[location._id] && workoutsGroupedByLocation[location._id].length > 0 ? (
+                    <div className="space-y-4">
+                      {workoutsGroupedByLocation[location._id].map(workout => (
+                        <div key={workout._id} className="bg-gray-50 p-4 rounded-md shadow-sm border border-gray-100 text-sm flex justify-between items-center transition-colors duration-200 hover:bg-gray-100">
+                          <div className="flex-grow">
+                            <p className="font-bold text-gray-900 text-base">
+                              {workout.days.join(', ')} from {workout.startTime} to {workout.endTime}
+                            </p>
+                            <p className="text-gray-700">Types: <span className="font-medium">{workout.types.join(', ') || 'N/A'}</span></p>
+                          </div>
+                          <div className="flex space-x-2 flex-shrink-0 ml-4">
+                            <button
+                              onClick={() => handleOpenEditWorkoutModal(workout)}
+                              className="text-green-600 hover:text-green-800 p-2 rounded-full hover:bg-green-50 transition duration-200"
+                              title="Edit Workout"
+                            >
+                              <PencilIcon className="h-5 w-5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteWorkout(workout._id)}
+                              className="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition duration-200"
+                              title="Delete Workout"
+                            >
+                              <TrashIcon className="h-5 w-5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 italic p-4 bg-gray-50 rounded-md">No workouts for this location yet. Click{` "Add Workout"`} below.</p>
+                  )}
                   <button
-                    type="submit"
-                    className="w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out
-                               dark:bg-blue-700 dark:hover:bg-blue-600 dark:focus:ring-blue-400"
-                    disabled={regionLoading}
+                    onClick={() => handleOpenAddWorkoutModal(location._id)}
+                    className="mt-6 bg-purple-600 hover:bg-purple-700 text-white text-base py-3 px-6 rounded-lg flex items-center justify-center transition duration-300 ease-in-out w-full"
                   >
-                    {regionLoading ? 'Saving...' : 'Save Region Configuration'}
+                    <PlusCircleIcon className="h-6 w-6 mr-2" /> Add Workout
                   </button>
                 </div>
-              </form>
-            )}
-          </section>
-        )}
-
-        {/* --- Location Management Section --- */}
-        {activeTab === 'locations' && (
-          <section className="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg shadow-inner">
-            <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-white border-b pb-3 dark:border-gray-700">{editLocationId ? 'Edit Location' : 'Add New Location'}</h2>
-            {loading && <p className="text-center text-gray-600 dark:text-gray-400">Loading locations...</p>}
-            {error && <p className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 px-4 py-3 rounded relative mb-4 text-center">{error}</p>}
-            {success && <p className="bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 px-4 py-3 rounded relative mb-4 text-center">{success}</p>}
-
-            <form onSubmit={handleSubmitLocation} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormInput label="Location Name" id="name" name="name" value={newLocationForm.name || ''} onChange={handleNewLocationChange} required placeholder="e.g., The Mothership" />
-              <FormInput label="Google Maps Link" id="mapLink" name="mapLink" type="url" value={newLocationForm.mapLink || ''} onChange={handleNewLocationChange} required placeholder="https://maps.app.goo.gl/..." />
-              <FormInput label="Address" id="address" name="address" value={newLocationForm.address || ''} onChange={handleNewLocationChange} placeholder="e.g., 123 Main St, Anytown, ST 12345" />
-              <FormInput label="Permanent Q Name" id="q" name="q" value={newLocationForm.q || ''} onChange={handleNewLocationChange} placeholder="e.g., Dredd" />
-              <FormInput label="Embed Map Link (iframe src)" id="embedMapLink" name="embedMapLink" type="url" value={newLocationForm.embedMapLink || ''} onChange={handleNewLocationChange} placeholder="https://www.google.com/maps/embed?pb=..." />
-              <FormInput label="AO Logo Image URL" id="imageUrl" name="imageUrl" type="url" value={newLocationForm.imageUrl || ''} onChange={handleNewLocationChange} placeholder="https://example.com/logo.png" />
-              <FormInput label="PAX Image URL" id="paxImageUrl" name="paxImageUrl" type="url" value={newLocationForm.paxImageUrl || ''} onChange={handleNewLocationChange} placeholder="https://example.com/pax_image.png" />
-              <div className="md:col-span-2">
-                <FormInput label="Description" id="description" name="description" type="textarea" rows={3} value={newLocationForm.description || ''} onChange={handleNewLocationChange} placeholder="Brief description of the workout location." />
               </div>
-              <div className="md:col-span-2 mt-4 space-x-3">
-                <button
-                  type="submit"
-                  className="inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-lg font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out
-                             dark:bg-indigo-700 dark:hover:bg-indigo-600 dark:focus:ring-indigo-400"
-                  disabled={loading}
-                >
-                  {loading ? 'Saving...' : (editLocationId ? 'Update Location' : 'Add Location')}
-                </button>
-                {editLocationId && (
+            ))}
+          </div>
+        )}
+      </main>
+
+      {/* --- Modals --- */}
+      {/* Location Add/Edit Modal (updated with new fields) */}
+      {showLocationModal && (
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-md transform scale-95 animate-scale-in">
+            <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center">
+              {editingLocationData ? 'Edit Location' : 'Add New Location'}
+            </h2>
+            <form onSubmit={(e) => { e.preventDefault(); handleAddEditLocation(); }}>
+              <div className="mb-4">
+                <label htmlFor="location-name" className="block text-gray-700 text-sm font-bold mb-2">
+                  Location Name (AO)<span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="location-name"
+                  name="name"
+                  value={editingLocationData?.name ?? newLocationData.name}
+                  onChange={handleLocationInputChange}
+                  className="shadow-sm appearance-none border border-gray-300 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                  placeholder="e.g., The Pit"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="location-mapLink" className="block text-gray-700 text-sm font-bold mb-2">
+                  Map Link<span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="url"
+                  id="location-mapLink"
+                  name="mapLink"
+                  value={editingLocationData?.mapLink ?? newLocationData.mapLink}
+                  onChange={handleLocationInputChange}
+                  className="shadow-sm appearance-none border border-gray-300 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                  placeholder="e.g., https://goo.gl/maps/..."
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="location-embedMapLink" className="block text-gray-700 text-sm font-bold mb-2">
+                  Embed Map Link (iframe src)
+                </label>
+                <input
+                  type="url"
+                  id="location-embedMapLink"
+                  name="embedMapLink"
+                  value={editingLocationData?.embedMapLink ?? newLocationData.embedMapLink}
+                  onChange={handleLocationInputChange}
+                  className="shadow-sm appearance-none border border-gray-300 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                  placeholder="e.g., https://www.google.com/maps/embed?pb=..."
+                />
+              </div>
+              {/* NEW: File input for image upload */}
+              <div className="mb-4">
+                <label htmlFor="location-imageFile" className="block text-gray-700 text-sm font-bold mb-2">
+                  Upload Location Logo Image
+                </label>
+                <input
+                  type="file"
+                  id="location-imageFile"
+                  name="imageFile"
+                  accept="image/*" // Restrict to image files
+                  onChange={handleImageFileChange}
+                  className="block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer bg-gray-50 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                {(currentLocationImageUrl) && (
+                  <div className="mt-4 text-center">
+                    <p className="text-sm text-gray-600 mb-2">Image Preview:</p>
+                    <img src={currentLocationImageUrl} alt="Logo Preview" className="max-h-32 max-w-32 object-contain rounded-full mx-auto border border-gray-200 shadow-md" />
+                    {currentLocationImageFile && (
+                      <p className="text-xs text-gray-500 mt-1">New file selected: {currentLocationImageFile.name}</p>
+                    )}
+                    {!currentLocationImageFile && editingLocationData?.imageUrl && (
+                      <p className="text-xs text-gray-500 mt-1">Current saved image</p>
+                    )}
+                  </div>
+                )}
+                {/* Option to clear existing image if editing and no new file is selected */}
+                {editingLocationData && editingLocationData.imageUrl && !currentLocationImageFile && (
                   <button
                     type="button"
-                    onClick={handleCancelEdit}
-                    className="inline-flex justify-center py-3 px-6 border border-gray-300 shadow-sm text-lg font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out
-                               dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 dark:focus:ring-gray-500"
-                    disabled={loading}
+                    onClick={() => {
+                      setEditingLocationData(prev => ({ ...prev!, imageUrl: '' }));
+                      if (currentLocationImageUrl) URL.revokeObjectURL(currentLocationImageUrl);
+                      setCurrentLocationImageUrl(null);
+                      setCurrentLocationImageFile(null);
+                      setMessage('Existing image will be removed on save.');
+                    }}
+                    className="mt-2 text-red-600 hover:text-red-800 text-sm"
                   >
-                    Cancel Edit
+                    Remove Existing Image
                   </button>
                 )}
               </div>
+              <div className="mb-4">
+                <label htmlFor="location-address" className="block text-gray-700 text-sm font-bold mb-2">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  id="location-address"
+                  name="address"
+                  value={editingLocationData?.address ?? newLocationData.address}
+                  onChange={handleLocationInputChange}
+                  className="shadow-sm appearance-none border border-gray-300 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                  placeholder="e.g., 123 Main St, City, State ZIP"
+                />
+              </div>
+              <div className="mb-6">
+                <label htmlFor="location-description" className="block text-gray-700 text-sm font-bold mb-2">
+                  Description
+                </label>
+                <textarea
+                  id="location-description"
+                  name="description"
+                  rows={3}
+                  value={editingLocationData?.description ?? newLocationData.description}
+                  onChange={handleLocationInputChange}
+                  className="shadow-sm appearance-none border border-gray-300 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                  placeholder="A brief description of the AO, its history, or special notes..."
+                ></textarea>
+              </div>
+              <div className="mb-6">
+                <label htmlFor="location-q" className="block text-gray-700 text-sm font-bold mb-2">
+                  Permanent Q (Optional)
+                </label>
+                <input
+                  type="text"
+                  id="location-q"
+                  name="q"
+                  value={editingLocationData?.q ?? newLocationData.q}
+                  onChange={handleLocationInputChange}
+                  className="shadow-sm appearance-none border border-gray-300 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                  placeholder="F3 Name of the permanent Q"
+                />
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <button
+                  type="button"
+                  onClick={handleCloseLocationModal}
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2.5 px-6 rounded-lg transition duration-200 flex-grow"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-lg transition duration-200 flex-grow disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? 'Saving...' : (editingLocationData ? 'Update Location' : 'Add Location')}
+                </button>
+              </div>
             </form>
+          </div>
+        </div>
+      )}
 
-            <h3 className="text-xl font-semibold mt-10 mb-4 text-gray-800 dark:text-white border-b pb-2 dark:border-gray-700">Existing Locations</h3>
-            {locations.length === 0 && !loading && <p className="text-gray-600 dark:text-gray-400">No locations added yet. Use the form above to add one.</p>}
-            <ul className="space-y-4">
-              {locations.map((loc) => (
-                <li key={loc._id} className="p-4 border border-gray-200 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                  <div className="mb-2 sm:mb-0">
-                    <p className="font-semibold text-lg text-gray-900 dark:text-white">{loc.name}</p>
-                    {loc.address && <p className="text-sm text-gray-600 dark:text-gray-300">{loc.address}</p>}
-                    {loc.q && <p className="text-sm text-gray-600 dark:text-gray-300">Q: {loc.q}</p>}
-                    {loc.mapLink && <a href={loc.mapLink} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 dark:text-blue-400 hover:underline">View Map</a>}
-                  </div>
-                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                    <button
-                      onClick={() => handleEditLocation(loc)}
-                      className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 transition duration-150 ease-in-out
-                                 dark:bg-yellow-600 dark:hover:bg-yellow-500 dark:focus:ring-yellow-300"
-                      disabled={loading}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteLocation(loc._id)}
-                      className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 transition duration-150 ease-in-out
-                                 dark:bg-red-600 dark:hover:bg-red-500 dark:focus:ring-red-300"
-                      disabled={loading}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-      </div>
-    </div>
+      {/* Workout Add/Edit Modal */}
+      {showWorkoutModal && (
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-md transform scale-95 animate-scale-in">
+            <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center">
+              {editingWorkoutData ? 'Edit Workout' : 'Add New Workout'}
+            </h2>
+            <form onSubmit={(e) => { e.preventDefault(); handleAddEditWorkout(); }}>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label htmlFor="workout-startTime" className="block text-gray-700 text-sm font-bold mb-2">
+                    Start Time<span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="time"
+                    id="workout-startTime"
+                    name="startTime"
+                    value={editingWorkoutData?.startTime ?? newWorkoutData.startTime}
+                    onChange={handleWorkoutTimeInputChange}
+                    className="shadow-sm appearance-none border border-gray-300 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="workout-endTime" className="block text-gray-700 text-sm font-bold mb-2">
+                    End Time<span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="time"
+                    id="workout-endTime"
+                    name="endTime"
+                    value={editingWorkoutData?.endTime ?? newWorkoutData.endTime}
+                    onChange={handleWorkoutTimeInputChange}
+                    className="shadow-sm appearance-none border border-gray-300 rounded-md w-full py-2.5 px-4 text-gray-900 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-bold mb-2">
+                  Days<span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {DAYS_OF_WEEK.map(day => (
+                    <div key={day} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id={`day-${day}`}
+                        name="days"
+                        value={day}
+                        checked={(editingWorkoutData?.days ?? newWorkoutData.days).includes(day)}
+                        onChange={handleWorkoutCheckboxChange}
+                        className="h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                      />
+                      <label htmlFor={`day-${day}`} className="ml-2 text-gray-700 text-sm">
+                        {day}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-gray-700 text-sm font-bold mb-2">
+                  Workout Types<span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {WORKOUT_TYPES.map(type => (
+                    <div key={type} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id={`type-${type}`}
+                        name="types"
+                        value={type}
+                        checked={(editingWorkoutData?.types ?? newWorkoutData.types).includes(type)}
+                        onChange={handleWorkoutCheckboxChange}
+                        className="h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                      />
+                      <label htmlFor={`type-${type}`} className="ml-2 text-gray-700 text-sm">
+                        {type}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-4">
+                <button
+                  type="button"
+                  onClick={handleCloseWorkoutModal}
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2.5 px-6 rounded-lg transition duration-200 flex-grow"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-6 rounded-lg transition duration-200 flex-grow disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? 'Saving...' : (editingWorkoutData ? 'Update Workout' : 'Add Workout')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

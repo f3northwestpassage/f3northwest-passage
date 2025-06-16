@@ -45,12 +45,12 @@ export default async function Page() {
   const locales = await fetchLocaleData();
   const href = '/workouts';
   const mapDetails = {
-    lat: locales.region_map_lat,
-    lon: locales.region_map_lon,
-    zoom: locales.region_map_zoom,
+    lat: locales?.region_map_lat,
+    lon: locales?.region_map_lon,
+    zoom: locales?.region_map_zoom,
   };
   const mapUrl = `https://map.f3nation.com/?lat=${mapDetails.lat}&lon=-${mapDetails.lon}&zoom=${mapDetails.zoom}`;
-  const embedMapUrl = locales.region_map_embed_link;
+  const embedMapUrl = locales?.region_map_embed_link;
 
   return (
     <>

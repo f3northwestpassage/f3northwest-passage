@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export default function Header({ href }: { href: string }) {
   const pages = [
-    { href: "/", text: "HOME" },
+    // { href: "/", text: "HOME" },
     { href: '/fng', text: 'NEW TO F3 [FNG]' },
     { href: '/workouts', text: 'WORKOUTS [AO]' },
     // { href: '/convergence', text: 'CONVERGENCE [HC]' },

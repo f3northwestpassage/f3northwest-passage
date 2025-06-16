@@ -1,5 +1,4 @@
-// src/app/_components/MapLinkButton.tsx
-'use client'; // This directive makes this a Client Component
+"use client";
 
 import Link from 'next/link';
 
