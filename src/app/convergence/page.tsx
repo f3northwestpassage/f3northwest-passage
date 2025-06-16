@@ -6,14 +6,16 @@ import f3HeroImg from '../../../public/f3-darkhorse-2023-11-04.jpg';
 import Button from '../_components/Button';
 import shelter from '../../../public/Henry Horton Shelter 2.jpg';
 import Image from 'next/image';
+import { fetchLocaleData } from '@/utils/fetchLocaleData';
 
 /**
  * TODO: Either delete or update this page if not relevant to your region
  */
-export default function Page() {
+export default async function Page() {
   const href = '/convergence';
   const formHref = 'https://forms.gle/afmWCdgtSPTCKbPD7';
   const geolocationHref = 'https://maps.app.goo.gl/nFYveVBeoLAAY4Jf6';
+  const locales = await fetchLocaleData();
   return (
     <>
       <Header href={href} />
@@ -99,7 +101,7 @@ export default function Page() {
         </p>
         <Button href={formHref} text="SUBMIT YOUR HC" target="_blank" />
       </section>
-      <Footer />
+      <Footer regionName={locales.region_name ?? ""} regionFacebook={locales.region_facebook ?? ""} regionInstagram={locales.region_instagram ?? ""} regionLinkedin={locales.region_linkedin ?? ""} regionXTwitter={locales.region_x_twitter ?? ""} />
     </>
   );
 }
