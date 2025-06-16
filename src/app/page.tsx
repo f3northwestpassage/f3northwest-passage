@@ -72,15 +72,15 @@ export default async function Page() {
             </p>
             <p className="pb-10 font-bold">
 
-              We hold {workouts.length}+ workouts in {localeData?.region_city} each week. Weekday workouts are
+              We hold free workouts in {localeData?.region_city} each week. Weekday workouts are
               generally 45 MIN & 60 MIN on Saturday.
             </p>
           </div>
           <div>
             <h3 className="pb-6">A PART OF</h3>
             <p className="pb-6">
-              F3 Nation, a network of 3,275 free, peer-led workouts for men in
-              252 regions with a mission to:
+              F3 Nation, a network of  5,404 free, peer-led workouts for men in
+              450 regions with a mission to:
             </p>
             <p className="font-bold pb-6">
               plant, grow and serve small workout groups for men invigorating
