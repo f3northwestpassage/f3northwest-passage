@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Schema, Document, Types } from 'mongoose';
 
 export interface IRegion extends Document {
     region_name?: string;
@@ -15,27 +15,31 @@ export interface IRegion extends Document {
     region_map_lon?: number;
     region_map_zoom?: number;
     region_map_embed_link?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
-const RegionSchema = new Schema<IRegion>({
-    region_name: String,
-    meta_description: String,
-    hero_title: String,
-    hero_subtitle: String,
-    region_city: String,
-    region_state: String,
-    region_facebook: String,
-    region_instagram: String,
-    region_linkedin: String,
-    region_x_twitter: String,
-    region_map_lat: Number,
-    region_map_lon: Number,
-    region_map_zoom: Number,
-    region_map_embed_link: String,
-}, { timestamps: true });
+const RegionSchema: Schema = new Schema<IRegion>({
+    region_name: { type: String },
+    meta_description: { type: String },
+    hero_title: { type: String },
+    hero_subtitle: { type: String },
+    region_city: { type: String },
+    region_state: { type: String },
+    region_facebook: { type: String },
+    region_instagram: { type: String },
+    region_linkedin: { type: String },
+    region_x_twitter: { type: String },
+    region_map_lat: { type: Number },
+    region_map_lon: { type: Number },
+    region_map_zoom: { type: Number },
+    region_map_embed_link: { type: String },
+}, {
+    timestamps: true,
+});
 
-// IMPORTANT: specify the exact collection name as 'region' if your MongoDB uses that
-const RegionModel: Model<IRegion> =
-    mongoose.models.Region || mongoose.model<IRegion>('Region', RegionSchema, 'region');
+// Prevent model overwrite errors in dev or serverless
+const RegionModel = (mongoose.models.Region ||
+    mongoose.model<IRegion>('Region', RegionSchema)) as mongoose.Model<IRegion>;
 
 export default RegionModel;
