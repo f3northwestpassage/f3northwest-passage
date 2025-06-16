@@ -6,11 +6,13 @@ import Header from '../_components/Header';
 import Footer from '../_components/Footer';
 import Hero from '../_components/Hero';
 import Button from '../_components/Button';
-import WorkoutCard, { sortWorkouts } from '../_components/WorkoutCard';
+// Assuming WorkoutCard has been updated to accept 'comments' and 'frequencyPrefix'
+import WorkoutCard from '../_components/WorkoutCard';
+import { sortWorkouts } from '@/utils/sortWorkouts';
 import type { WorkoutClean, LocationClean } from '../../../types/workout';
 import { fetchWorkoutsData } from '../../utils/fetchWorkoutsData';
-import { fetchLocationsData } from '../../utils/fetchLocationsData'; // Added this import
-import { fetchLocaleData } from '@/utils/fetchLocaleData'; // Remember this also needs its internal fetch updated to relative path
+import { fetchLocationsData } from '../../utils/fetchLocationsData';
+import { fetchLocaleData } from '@/utils/fetchLocaleData';
 import MapLinkButton from '../_components/MapLinkButton';
 
 import f3HeroImg from '../../../public/f3-darkhorse-2023-11-04.jpg';
@@ -21,7 +23,6 @@ interface GroupedWorkoutsByLocation {
 
 export default async function Page() {
   const rawWorkouts: WorkoutClean[] = await fetchWorkoutsData();
-  // Use the already mocked fetchLocationsData function
   const rawLocations: LocationClean[] = await fetchLocationsData();
 
   const groupedWorkouts: GroupedWorkoutsByLocation = {};
@@ -34,14 +35,13 @@ export default async function Page() {
     }
   });
 
-  // for (const locationId in groupedWorkouts) {
-  //   sortWorkouts(groupedWorkouts[locationId]);
-  // }
+  // It's a good idea to sort workouts for consistent display
+  for (const locationId in groupedWorkouts) {
+    groupedWorkouts[locationId] = sortWorkouts(groupedWorkouts[locationId]);
+  }
 
   const sortedLocations = [...rawLocations].sort((a, b) => a.name.localeCompare(b.name));
 
-  // This call to fetchLocaleData() will also benefit from the update
-  // to fetchLocaleData.ts that uses a relative path internally.
   const locales = await fetchLocaleData();
   const href = '/workouts';
   const mapDetails = {
@@ -49,7 +49,7 @@ export default async function Page() {
     lon: locales?.region_map_lon,
     zoom: locales?.region_map_zoom,
   };
-  const mapUrl = `https://map.f3nation.com/?lat=${mapDetails.lat}&lon=-${mapDetails.lon}&zoom=${mapDetails.zoom}`;
+  const mapUrl = `https://map.f3nation.com/?lat=${mapDetails.lat}&lon=${mapDetails.lon}&zoom=${mapDetails.zoom}`; // Corrected lon to be positive
   const embedMapUrl = locales?.region_map_embed_link;
 
   return (
@@ -175,6 +175,9 @@ export default async function Page() {
                                   endTime={workout.endTime}
                                   days={workout.days}
                                   types={workout.types}
+
+                                  comments={workout.comments} // Pass comments
+                                  frequencyPrefix={workout.frequencyPrefix} // Pass frequencyPrefix
                                 />
                               ))
                             ) : (

@@ -21,7 +21,6 @@ interface WorkoutMongoDoc extends Omit<WorkoutClean, '_id' | 'ao' | 'locationId'
   // or derived/calculated properties, and not directly from the frontend's WorkoutClean data.
   // Based on current understanding, 'q' is now on LocationClean, so we are REMOVING it from WorkoutMongoDoc.
   // If you meant for avgAttendance to be a backend-calculated/stored field only, keep it.
-  avgAttendance?: number; // Keep avgAttendance as number, if still desired on the backend
 }
 
 const WorkoutSchema = new Schema<WorkoutMongoDoc>({
@@ -33,8 +32,7 @@ const WorkoutSchema = new Schema<WorkoutMongoDoc>({
   days: [{ type: String, required: true }],    // Changed from 'day' to 'days' (array of strings)
   types: [{ type: String, required: true }],   // Changed from 'style' to 'types' (array of strings)
 
-  // Removed 'q' field as it's now part of LocationClean
-  avgAttendance: { type: Number, required: false }, // Retained as number, if still desired for backend storage
+  // Removed 'q' field as it's now part of LocationClean // Retained as number, if still desired for backend storage
 }, {
   timestamps: true,
   toJSON: {

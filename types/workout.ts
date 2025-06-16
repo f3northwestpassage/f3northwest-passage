@@ -3,11 +3,16 @@
 export interface WorkoutClean {
     _id: string;
     locationId: string;
+    locationName: string;
     ao?: string;
     startTime: string;
     endTime: string;
     days: string[];
     types: string[];
+    frequencyPrefix?: string;
+    comments?: string;
+
+
 
 }
 
