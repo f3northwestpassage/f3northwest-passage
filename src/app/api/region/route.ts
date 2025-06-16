@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import RegionModel, { IRegion } from '@/models/Region';
-import RegionConfig from '@/models/Region';
 import mongoose from 'mongoose';
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
@@ -27,7 +26,7 @@ export async function PUT(request: Request) {
             await RegionModel.updateOne({ _id: existing._id }, { $set: body });
             return NextResponse.json({ message: 'Region configuration updated successfully' }, { status: 200 });
         } else {
-            const created = await RegionConfig.create(body);
+            const created = await RegionModel.create(body);
             return NextResponse.json({ id: (created._id as mongoose.Types.ObjectId).toString() });
         }
     } catch (error: any) {
