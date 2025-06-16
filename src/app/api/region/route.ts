@@ -3,7 +3,7 @@ import dbConnect from '@/lib/dbConnect';
 import F3RegionModel from '@/models/F3Region';
 import mongoose from 'mongoose';
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
 
 // --- PUT: Update or Insert Region Config (Protected) ---
 export async function PUT(request: Request) {
