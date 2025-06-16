@@ -1,52 +1,40 @@
-// src/models/RegionConfig.ts
-
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IRegionConfig extends Document {
-    region_name: string;
-    meta_description: string;
-    hero_title: string;
-    hero_subtitle: string;
-    pax_count: number;
-    region_city: string;
-    region_state: string;
-    region_facebook: string;
+    region_name?: string;
+    meta_description?: string;
+    hero_title?: string;
+    hero_subtitle?: string;
+    region_city?: string;
+    region_state?: string;
+    region_facebook?: string;
     region_instagram?: string;
     region_linkedin?: string;
     region_x_twitter?: string;
-    region_map_lat: number;
-    region_map_lon: number;
-    region_map_zoom: number;
+    region_map_lat?: number;
+    region_map_lon?: number;
+    region_map_zoom?: number;
     region_map_embed_link?: string;
-    createdAt?: Date;
-    updatedAt?: Date;
 }
 
-const RegionConfigSchema = new Schema<IRegionConfig>(
-    {
-        region_name: { type: String, required: true, trim: true },
-        meta_description: { type: String, required: true, trim: true },
-        hero_title: { type: String, required: true, trim: true },
-        hero_subtitle: { type: String, required: true, trim: true },
-        pax_count: { type: Number, required: true, min: 0 },
-        region_city: { type: String, required: true, trim: true },
-        region_state: { type: String, required: true, trim: true },
-        region_facebook: { type: String, required: true, trim: true },
-        region_instagram: { type: String, trim: true, default: '' },
-        region_linkedin: { type: String, trim: true, default: '' },
-        region_x_twitter: { type: String, trim: true, default: '' },
-        region_map_lat: { type: Number, required: true },
-        region_map_lon: { type: Number, required: true },
-        region_map_zoom: { type: Number, required: true, min: 0, max: 20 },
-        region_map_embed_link: { type: String, trim: true, default: '' },
-    },
-    {
-        timestamps: true,
-    }
-);
+const RegionConfigSchema = new Schema<IRegionConfig>({
+    region_name: { type: String, required: false },
+    meta_description: { type: String, required: false },
+    hero_title: { type: String, required: false },
+    hero_subtitle: { type: String, required: false },
+    region_city: { type: String, required: false },
+    region_state: { type: String, required: false },
+    region_facebook: { type: String, required: false },
+    region_instagram: { type: String, required: false },
+    region_linkedin: { type: String, required: false },
+    region_x_twitter: { type: String, required: false },
+    region_map_lat: { type: Number, required: false },
+    region_map_lon: { type: Number, required: false },
+    region_map_zoom: { type: Number, required: false },
+    region_map_embed_link: { type: String, required: false },
+});
 
-const RegionConfig: Model<IRegionConfig> =
-    (mongoose.models && mongoose.models.RegionConfig as Model<IRegionConfig>) ||
-    mongoose.model<IRegionConfig>('RegionConfig', RegionConfigSchema);
+const RegionModel: Model<IRegionConfig> =
+    mongoose.models.RegionConfig || mongoose.model<IRegionConfig>('RegionConfig', RegionConfigSchema);
 
-export default RegionConfig;
+export default RegionModel;
