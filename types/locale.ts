@@ -19,7 +19,7 @@ export interface LocaleData {
     region_map_embed_link?: string;
 
     region_logo_url?: string;
-    region_hero_url?: string;
+    region_hero_img_url?: string;
 }
 
 // Optional: If you want a type for the form state specifically
