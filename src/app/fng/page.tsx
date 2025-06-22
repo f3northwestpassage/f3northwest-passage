@@ -1,3 +1,7 @@
+// app/fng/page.tsx
+// This page displays information for "Friendly New Guys" (FNG).
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 import Link from 'next/link';
 
 import Header from '../_components/Header';
@@ -5,13 +9,22 @@ import Footer from '../_components/Footer';
 import Hero from '../_components/Hero';
 
 /** replace with a regional image */
-import f3HeroImg from '../../../public/fod.png';
+import f3HeroImg from '../../../public/fod.png'; // Make sure this path is correct and the image exists.
 
 import { fetchLocaleData } from '@/utils/fetchLocaleData';
 
 export default async function Page() {
-  const locales = await fetchLocaleData()
-  const href = '/fng';
+  const locales = await fetchLocaleData();
+
+  // Provide default empty strings for locale data if it's null/undefined
+  const regionName = locales?.region_name ?? "";
+  const regionFacebook = locales?.region_facebook ?? "";
+  const regionInstagram = locales?.region_instagram ?? "";
+  const regionLinkedin = locales?.region_linkedin ?? "";
+  const regionXTwitter = locales?.region_x_twitter ?? "";
+
+  const href = '/fng'; // This seems to be the current page's link, adjust if it's meant to be a different 'home' link
+
   return (
     <>
       <Header href={href} />
@@ -20,13 +33,14 @@ export default async function Page() {
           title="NEW TO F3"
           subtitle="WELCOME [FNG]"
           imgUrl={f3HeroImg.src}
+          imgAlt="A group of F3 men exercising outdoors" // Added a descriptive alt text
         />
         <section className={`bg-gloom leading-tight py-16 px-4`}>
           <h2 className="text-5xl">[F.N.G.]</h2>
           <p className="text-cmu pt-5">
             We appreciate you joining us and there is a lot of information to
             tell you but to avoid overwhelming you here are a few ways to keep
-            in touch and know what&apos;s going on in {locales?.region_name}. If you still
+            in touch and know what&apos;s going on in {regionName}. If you still
             have questions just ask any of the guys and they&apos;ll help or
             point you in the right direction!
           </p>
@@ -35,6 +49,7 @@ export default async function Page() {
             <Link
               href="https://f3nation.com/top-five-eh-excuses/"
               target="_blank"
+              rel="noopener noreferrer" // Added for security best practices with target="_blank"
             >
               our favorite excuses
             </Link>{' '}
@@ -76,6 +91,7 @@ export default async function Page() {
               <Link
                 href="https://f3nation.com/disclaimer-and-notice/"
                 target="_blank"
+                rel="noopener noreferrer" // Added for security best practices
               >
                 disclaimer
               </Link>
@@ -89,7 +105,9 @@ export default async function Page() {
             <hr className="my-5" />
             <li>
               Check out the{' '}
-              <Link href="https://f3nation.com/lexicon/" target="_blank">
+              <Link href="https://f3nation.com/lexicon/" target="_blank"
+                rel="noopener noreferrer" // Added for security best practices
+              >
                 Lexicon
               </Link>
               . We have a nick name for everything you do. The Lexicon will give
@@ -110,7 +128,13 @@ export default async function Page() {
           </ul>
         </section>
       </main>
-      <Footer regionName={locales.region_name ?? ""} regionFacebook={locales.region_facebook ?? ""} regionInstagram={locales.region_instagram ?? ""} regionLinkedin={locales.region_linkedin ?? ""} regionXTwitter={locales.region_x_twitter ?? ""} />
+      <Footer
+        regionName={regionName}
+        regionFacebook={regionFacebook}
+        regionInstagram={regionInstagram}
+        regionLinkedin={regionLinkedin}
+        regionXTwitter={regionXTwitter}
+      />
     </>
   );
 }

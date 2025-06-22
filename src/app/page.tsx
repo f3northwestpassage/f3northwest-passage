@@ -1,4 +1,8 @@
-import type { Metadata } from 'next';
+// app/page.tsx (Now a Server Component)
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store'; // Or 'no-store' or 'no-cache' for dynamic content
+
+import type { Metadata } from 'next'; // Keep Metadata import
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -8,55 +12,53 @@ import Button from './_components/Button';
 import Hero from './_components/Hero';
 
 import { fetchLocaleData } from '../utils/fetchLocaleData';
-
-// #region regional images
-// // replace these with your region's own images
-// import f3MuletownWhite from '../../public/f3-muletown-white.png';
-// import f3HeroImg from '../../public/fod.png';
-// #endregion
-
-import f3White from '../../public/f3-white.png';
-import f3ShovelFlag from '../../public/f3-shovel-flag.png';
-import CorePrinciple from './_components/CorePrinciple';
 import { fetchWorkoutsData } from '@/utils/fetchWorkoutsData';
 
-export async function generateMetadata(): Promise<Metadata> {
-  const localeData = await fetchLocaleData();
+import f3White from '../../public/f3-white.png';
+import f3ShovelFlag from '../../public/f3-shovel-flag.png'; // Make sure you have this image
+import CorePrinciple from './_components/CorePrinciple';
 
+export async function generateMetadata(): Promise<Metadata> {
+  const localeData = await fetchLocaleData(); // Fetch here for metadata
   return {
-    title: localeData?.region_name,
-    description: localeData?.meta_description,
+    title: localeData?.region_name || "F3 Northwest Passage",
+    description: localeData?.meta_description || "Discover F3 workouts in your region.",
   };
 }
 
-export default async function Page() {
-  const localeData = await fetchLocaleData();
-  const workouts = await fetchWorkoutsData();
+export default async function Page() { // Make it async
+  const localeData = await fetchLocaleData(); // Fetch directly on the server
+  const workouts = await fetchWorkoutsData(); // Fetch directly on the server
+
+  // Provide robust fallbacks for all data that might be null
+  const currentLocaleData = localeData || {}; // Ensure it's an object, even if empty
 
   const href = '/';
   const commonSliceClassNames = 'py-8 px-4';
+
   return (
     <>
       <Header href={href} />
       <main>
         <Hero
-          title={localeData?.hero_title || ""}
-          subtitle={localeData?.hero_subtitle || ""}
-          imgUrl={localeData?.region_hero_img_url || ""}
+          title={currentLocaleData.hero_title || ""}
+          subtitle={currentLocaleData.hero_subtitle || ""}
+          // IMPORTANT: Provide a local fallback image path if region_hero_img_url can be empty/null
+          imgUrl={currentLocaleData.region_hero_img_url || f3ShovelFlag.src} // Use .src for static imports
         />
         <section className={`bg-gloom ${commonSliceClassNames}`}>
           <div className="shadow-xl">
             <h2 className="leading-none">
               <span className="opacity-70">THIS IS</span>
-              <span className="block text-5xl py-5">{localeData?.region_name}</span>
+              <span className="block text-5xl py-5">{currentLocaleData.region_name || "Your Region"}</span>
             </h2>
             <p className="subtitle text-xl pb-10 opacity-70">
-              {localeData?.meta_description}
+              {currentLocaleData.meta_description || "A F3 region focused on fitness, fellowship, and faith."}
             </p>
           </div>
           <Image
-            src={localeData?.region_logo_url || ""}
-            alt={`${localeData?.region_name} Logo`}
+            src={currentLocaleData.region_logo_url || f3White.src} // Local image fallback
+            alt={`${currentLocaleData.region_name || "F3"} Logo`}
             width={200}
             height={200}
             className="pt-8 pb-4 my-0 mx-auto"
@@ -66,13 +68,11 @@ export default async function Page() {
           <div>
             <h3 className="pb-6">WE ARE</h3>
             <p className="pb-6">
-
               {`${100}+ guys that meet up in small groups `}to workout in parks and
-              public spaces around {localeData?.region_city}, {localeData?.region_state}.
+              public spaces around {currentLocaleData.region_city || "our city"}, {currentLocaleData.region_state || "our state"}.
             </p>
             <p className="pb-10 font-bold">
-
-              We hold free workouts in {localeData?.region_city} each week. Weekday workouts are
+              We hold free workouts in {currentLocaleData.region_city || "our city"} each week. Weekday workouts are
               generally 45 MIN & 60 MIN on Saturday.
             </p>
           </div>
@@ -151,7 +151,13 @@ export default async function Page() {
           <Button href="/fng" text="WHAT TO EXPECT" />
         </section>
       </main>
-      <Footer regionName={localeData.region_name ?? ""} regionFacebook={localeData.region_facebook ?? ""} regionInstagram={localeData.region_instagram ?? ""} regionLinkedin={localeData.region_linkedin ?? ""} regionXTwitter={localeData.region_x_twitter ?? ""} />
+      <Footer
+        regionName={currentLocaleData.region_name ?? ""}
+        regionFacebook={currentLocaleData.region_facebook ?? ""}
+        regionInstagram={currentLocaleData.region_instagram ?? ""}
+        regionLinkedin={currentLocaleData.region_linkedin ?? ""}
+        regionXTwitter={currentLocaleData.region_x_twitter ?? ""}
+      />
     </>
   );
 }
