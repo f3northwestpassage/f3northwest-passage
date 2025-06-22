@@ -53,7 +53,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       className={`${inter.className} bg-iron text-white text-center font-sans text-lg`}
     >
       {/* Google Analytics - this is the correct place for it in App Router layouts */}
-      {enableAnalytics && (
+      {/* {enableAnalytics && (
         <>
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
@@ -68,7 +68,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             `}
           </Script>
         </>
-      )}
+      )} */}
       {children}
     </body>
   );
