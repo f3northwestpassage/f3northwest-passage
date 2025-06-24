@@ -4,7 +4,7 @@ import WorkoutModel from '@/models/Workout';
 import type { WorkoutClean } from '../../types/workout';
 
 export async function fetchWorkoutsData(): Promise<WorkoutClean[]> {
-  if (process.env.MOCK_DATA === 'true') {
+  if (process.env.MOCK_DATA === 'false') {
     console.log('FETCH_WORKOUTS_DATA_DEBUG: MOCK_DATA is true, returning mock workout data.');
     return [
       {

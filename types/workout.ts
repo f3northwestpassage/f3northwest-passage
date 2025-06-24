@@ -1,19 +1,16 @@
-// types/workout.ts 
+// types/workout.ts
 
 export interface WorkoutClean {
     _id: string;
     locationId: string;
-    locationName: string;
-    ao?: string;
+    locationName: string; // Derived/populated from Location for frontend convenience
+    ao?: string;          // Derived/populated for frontend convenience (Location name)
     startTime: string;
     endTime: string;
     days: string[];
     types: string[];
-    frequencyPrefix?: string;
-    comments?: string;
-
-
-
+    frequencyPrefix?: string; // Optional field for frequency
+    comments?: string;        // Optional field for comments
 }
 
 export interface LocationClean {
@@ -22,8 +19,8 @@ export interface LocationClean {
     mapLink: string;
     address?: string;
     description?: string;
-    q?: string;
+    q?: string;           // Now correctly on LocationClean
     embedMapLink?: string;
-    imageUrl?: string; // This is the AO Logo URL
-    paxImageUrl?: string; // This is the PAX Image URL
+    imageUrl?: string;    // AO Logo URL
+    paxImageUrl?: string; // PAX Image URL
 }

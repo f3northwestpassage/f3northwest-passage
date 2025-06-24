@@ -2,62 +2,60 @@
 import mongoose, { Schema, Document, Model, models } from 'mongoose';
 import type { WorkoutClean } from '../../types/workout'; // Adjust path as needed
 
-// Mongoose document type for Workout
-// Omit '_id', 'locationId', and 'ao' from WorkoutClean here, as we define them explicitly below for Mongoose.
-// Also, OMIT 'q' and 'avgAttendance' from WorkoutClean in the interface as they were removed there.
-// If 'q' and 'avgAttendance' are truly *only* on the Workout *model* (and not part of WorkoutClean's expected shape),
-// then we add them back here explicitly.
-interface WorkoutMongoDoc extends Omit<WorkoutClean, '_id' | 'ao' | 'locationId' | 'startTime' | 'endTime' | 'days' | 'types'>, Document {
+// Define the Mongoose document interface
+// We OMIT '_id' and 'locationId' from WorkoutClean because we want to define them
+// with Mongoose's specific ObjectId type for the database model.
+interface WorkoutMongoDoc extends Omit<WorkoutClean, '_id' | 'locationId'>, Document {
   _id: mongoose.Types.ObjectId; // Mongoose internal ObjectId
-  locationId: mongoose.Types.ObjectId; // Store as ObjectId, but retrieve as string
-
-  // New fields matching WorkoutClean
-  startTime: string;    // Stored as string (e.g., "05:30")
-  endTime: string;      // Stored as string (e.g., "06:30")
-  days: string[];       // Stored as array of strings (e.g., ['Monday', 'Wednesday'])
-  types: string[];      // Stored as array of strings (e.g., ['Bootcamp', 'Ruck'])
-
-  // Re-introducing 'q' and 'avgAttendance' if they are only for the backend model's internal use
-  // or derived/calculated properties, and not directly from the frontend's WorkoutClean data.
-  // Based on current understanding, 'q' is now on LocationClean, so we are REMOVING it from WorkoutMongoDoc.
-  // If you meant for avgAttendance to be a backend-calculated/stored field only, keep it.
+  locationId: mongoose.Types.ObjectId; // Store as ObjectId in DB
 }
 
 const WorkoutSchema = new Schema<WorkoutMongoDoc>({
-  locationId: { type: Schema.Types.ObjectId, ref: 'Location', required: true }, // Reference to Location model
+  // Mongoose will automatically handle the creation of `_id`
+  locationId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Location', // This creates a reference to your 'Location' model
+    required: true,
+  },
 
-  // Updated fields to match WorkoutClean
-  startTime: { type: String, required: true }, // Changed from 'time'
-  endTime: { type: String, required: true },   // New field for end time
-  days: [{ type: String, required: true }],    // Changed from 'day' to 'days' (array of strings)
-  types: [{ type: String, required: true }],   // Changed from 'style' to 'types' (array of strings)
+  startTime: { type: String, required: true },
+  endTime: { type: String, required: true },
+  days: [{ type: String, required: true }],
+  types: [{ type: String, required: true }],
 
-  // Removed 'q' field as it's now part of LocationClean // Retained as number, if still desired for backend storage
+  comments: { type: String, required: false },
+  frequencyPrefix: { type: String, required: false },
+
 }, {
-  timestamps: true,
+  timestamps: true, // Adds createdAt and updatedAt fields
   toJSON: {
     virtuals: true,
     transform: (doc, ret) => {
-      ret._id = ret._id.toString(); // Convert workout _id to string
-      ret.locationId = ret.locationId.toString(); // Convert locationId to string
-      // Frontend expects 'ao' to be derived/populated, not directly stored,
-      // so it's not explicitly deleted here.
-      delete ret.__v;
+      // Convert ObjectIds to strings for frontend consumption
+      ret._id = ret._id.toString();
+      ret.locationId = ret.locationId.toString();
+
+      // Ensure that 'ao' (or other virtuals/populated fields) are handled
+      // if you have them in your Workout schema or will populate them.
+
+      delete ret.__v; // Remove the Mongoose version key
       return ret;
     },
   },
   toObject: {
     virtuals: true,
     transform: (doc, ret) => {
-      ret._id = ret._id.toString(); // Convert workout _id to string
-      ret.locationId = ret.locationId.toString(); // Convert locationId to string
-      // As above for 'ao'
-      delete ret.__v;
+      // Convert ObjectIds to strings for frontend consumption
+      ret._id = ret._id.toString();
+      ret.locationId = ret.locationId.toString();
+
+      delete ret.__v; // Remove the Mongoose version key
       return ret;
     },
   },
 });
 
+// Create and export the Mongoose model
 const WorkoutModel: Model<WorkoutMongoDoc> =
   models.Workout || mongoose.model<WorkoutMongoDoc>('Workout', WorkoutSchema);
 

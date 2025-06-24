@@ -1,9 +1,7 @@
 // src/lib/dbConnect.ts
 import mongoose, { Mongoose } from 'mongoose';
 
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config({ path: '.env.local' });
-}
+
 
 // TypeScript global type hint should be in `src/global.d.ts`
 //   declare global {

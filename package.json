@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
-    "@tailwindcss/postcss": "^4.1.10",
     "aws4": "^1.13.2",
     "dotenv": "^16.5.0",
     "mongoose": "^8.16.0",
@@ -22,6 +21,7 @@
   },
   "devDependencies": {
     "@netlify/next": "^1.4.9",
+    "@tailwindcss/postcss": "^4.1.10",
     "@types/node": "^24",
     "@types/papaparse": "^5.3.16",
     "@types/react": "^19",
@@ -29,7 +29,7 @@
     "autoprefixer": "^10.4.21",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
-    "postcss": "^8",
+    "postcss": "^8.5.6",
     "prettier": "^3.5.3",
     "tailwindcss": "^4.1.10",
     "typescript": "^5"

@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
 @font-face {
   font-family: BlackOps;
@@ -8,7 +6,6 @@
 }
 
 a {
-  /** colors.drp */
   color: #ee6059;
 }
 
@@ -30,9 +27,7 @@ h6 * {
 h1 {
   font-size: 3rem;
 }
-h2 {
-  font-size: 1.8rem;
-}
+h2,
 h3 {
   font-size: 1.8rem;
 }
