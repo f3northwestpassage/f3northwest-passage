@@ -335,17 +335,30 @@ export default function AdminPage() {
 
     try {
       const response = await fetch(`/api/region?pw=${password}`, {
-        method: 'PUT',
+        method: 'PUT', // Assuming your API route has a PUT handler
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(regionForm),
       });
 
-      const data = await response.json();
+      // --- CRITICAL CHANGE HERE ---
+      // Parse data conditionally AFTER checking response.ok
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        // If response is not JSON, it's likely an HTML error page.
+        // Log the raw response text to debug what was actually returned.
+        const text = await response.text();
+        console.error("Non-JSON response received:", text);
+        throw new Error(`Server returned non-JSON response (likely an error page). Status: ${response.status}`);
+      }
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to update region configuration.');
+        // If data parsing was successful but response.ok is false,
+        // use the message from the parsed JSON data.
+        throw new Error(data.message || 'Failed to update region configuration (unknown server error).');
       }
 
       setRegionSuccess(data.message || 'Region configuration updated successfully!');
@@ -672,7 +685,7 @@ export default function AdminPage() {
   }
 
   const allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  const allWorkoutTypes = ['Bootcamp', 'Ruck', 'Run', 'CrossFit', 'Strength', 'Yoga', 'Cycling', 'Hybrid']; // Example types
+  const allWorkoutTypes = ['Bootcamp', 'Ruck', 'Run', 'CrossFit', 'Strength', 'Yoga', 'Cycling', 'Hybrid', 'Sandbags', 'Discussion']; // Example types
   const frequencyPrefixOptions = [
     'Every', '1st', '2nd', '3rd', '4th', '5th',
     '1st and 3rd', '2nd and 4th', '1st, 3rd, and 5th', 'Monthly'
