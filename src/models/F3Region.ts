@@ -11,8 +11,8 @@ export interface IF3Region extends Document {
     region_instagram?: string;
     region_linkedin?: string;
     region_x_twitter?: string;
-    region_map_lat?: number;
-    region_map_lon?: number;
+    region_map_lat?: string;
+    region_map_lon?: string;
     region_map_zoom?: number;
     region_map_embed_link?: string;
     region_logo_url?: string; // ✅ new optional field
