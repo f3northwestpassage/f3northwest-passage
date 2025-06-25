@@ -15,6 +15,7 @@ export async function fetchWorkoutsData(): Promise<WorkoutClean[]> {
         endTime: "06:15",
         days: ["Monday", "Wednesday", "Friday"],
         types: ["Bootcamp"],
+        comments: '',
       }
     ];
   }
@@ -32,6 +33,7 @@ export async function fetchWorkoutsData(): Promise<WorkoutClean[]> {
       endTime: workout.endTime || '',
       days: Array.isArray(workout.days) ? workout.days : [],
       types: Array.isArray(workout.types) ? workout.types : [],
+      comments: workout.comments ?? '',
     })).filter(w => w._id && w.locationId);
 
     return workouts;
