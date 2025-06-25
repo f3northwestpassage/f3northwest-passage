@@ -301,17 +301,15 @@ export default function AdminPage() {
         body: JSON.stringify(regionForm),
       });
 
-      // --- CRITICAL CHANGE HERE ---
-      // Parse data conditionally AFTER checking response.ok
+      // --- FIX: Read response text once, then try parsing as JSON ---
+      const responseText = await response.text(); // Read the body stream ONCE as text
       let data;
       try {
-        data = await response.json();
+        data = JSON.parse(responseText); // Attempt to parse the text as JSON
       } catch (jsonError) {
-        // If response is not JSON, it's likely an HTML error page.
-        // Log the raw response text to debug what was actually returned.
-        const text = await response.text();
-        console.error("Non-JSON response received:", text);
-        throw new Error(`Server returned non-JSON response (likely an error page). Status: ${response.status}`);
+        // If parsing fails, it means the response was not valid JSON (e.g., HTML error page)
+        console.error("Non-JSON response received:", responseText);
+        throw new Error(`Server returned non-JSON response. Status: ${response.status}. Response: ${responseText.substring(0, 200)}...`);
       }
 
       if (!response.ok) {
