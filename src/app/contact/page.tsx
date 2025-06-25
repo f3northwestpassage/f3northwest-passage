@@ -56,7 +56,7 @@ export default function ContactPage() {
                 <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-2xl mx-auto">
                     <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-6 text-center">Send us a message</h2>
                     <p className="text-center text-gray-700 dark:text-gray-300 mb-8">
-                        Fill out the form below and we'll get back to you as soon as possible.
+                        Fill out the form below and {`we'll`} get back to you as soon as possible.
                     </p>
 
                     {overallLoading ? (
