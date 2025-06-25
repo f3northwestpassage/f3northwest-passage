@@ -903,7 +903,7 @@ export default function AdminPage() {
                   <div>
                     <label htmlFor="region_map_lat" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Map Latitude</label>
                     <input
-                      type="number"
+                      type="text"
                       id="region_map_lat"
                       name="region_map_lat"
                       value={regionForm.region_map_lat || 0}
@@ -915,7 +915,7 @@ export default function AdminPage() {
                   <div>
                     <label htmlFor="region_map_lon" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Map Longitude</label>
                     <input
-                      type="number"
+                      type="text"
                       id="region_map_lon"
                       name="region_map_lon"
                       value={regionForm.region_map_lon || 0}
@@ -933,8 +933,7 @@ export default function AdminPage() {
                       value={regionForm.region_map_zoom || 12}
                       onChange={handleRegionFormChange}
                       className={inputClasses}
-                      min="1"
-                      max="20"
+
                     />
                   </div>
                 </div>

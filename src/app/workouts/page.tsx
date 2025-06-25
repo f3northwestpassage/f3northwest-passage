@@ -16,6 +16,8 @@ import MapLinkButton from '../_components/MapLinkButton';
 
 import f3HeroImg from '../../../public/f3-darkhorse-2023-11-04.jpg';
 
+export const dynamic = 'force-dynamic';
+
 interface GroupedWorkoutsByLocation {
   [locationId: string]: WorkoutClean[];
 }
@@ -24,11 +26,7 @@ export default async function Page() {
   const rawWorkouts: WorkoutClean[] = await fetchWorkoutsData();
   const rawLocations: LocationClean[] = await fetchLocationsData();
 
-  // --- LOG 1: Raw Fetched Data ---
-  console.log('--- workouts/page.tsx Logs ---');
-  console.log('Raw Workouts Fetched:', rawWorkouts.length, rawWorkouts);
-  console.log('Raw Locations Fetched:', rawLocations.length, rawLocations);
-  console.log('------------------------------');
+
 
   const groupedWorkouts: GroupedWorkoutsByLocation = {};
   rawWorkouts.forEach(workout => {
@@ -53,8 +51,7 @@ export default async function Page() {
     lon: locales?.region_map_lon,
     zoom: locales?.region_map_zoom,
   };
-  // Note: The lon=-${mapDetails.lon} seems unusual. Please confirm if the negative sign is intentional.
-  const mapUrl = `https://map.f3nation.com/?lat=${mapDetails.lat}&lon=-${mapDetails.lon}&zoom=${mapDetails.zoom}`;
+  const mapUrl = `https://map.f3nation.com/?lat=${mapDetails.lat}&lon=${mapDetails.lon}&zoom=${mapDetails.zoom}`;
   const embedMapUrl = locales?.region_map_embed_link;
 
   return (
