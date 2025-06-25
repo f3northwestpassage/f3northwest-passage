@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { LocationClean, WorkoutClean } from '../../../types/workout'; // Assuming 
+import Header from '../_components/Header';
 
 
 type RegionFormState = { // Re-defining here for self-containment of the example
@@ -649,681 +650,685 @@ export default function AdminPage() {
     return location ? location.name : 'Unknown Location';
   };
 
-
+  const href = "/admin"
   return (
-    <div className={`min-h-screen ${baseClasses} container mx-auto p-4 sm:p-6 lg:p-8`}> {/* Adjusted page padding */}
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white text-2xl sm:text-3xl lg:text-4xl">Admin Dashboard</h1> {/* Responsive heading */}
-        <button
-          onClick={toggleDarkMode}
-          className="p-2 rounded-full text-gray-600 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors duration-200"
-          aria-label="Toggle dark mode"
-        >
-          {isDarkMode ? (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h1M4 12H3m15.364 6.364l-.707.707M6.343 6.343l-.707-.707m12.728 0l-.707-.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-            </svg>
-          )}
-        </button>
-      </div>
+    <>
+      <Header href={href} />{/* Adjusted page padding */}
+      <div className={`min-h-screen ${baseClasses} mx-auto p-4 sm:p-6 lg:p-8`}>
 
-
-      {/* Global Toast Notifications */}
-      {error && <Toast message={error} type="error" onClose={() => setError(null)} />}
-      {success && <Toast message={success} type="success" onClose={() => setSuccess(null)} />}
-      {regionError && <Toast message={regionError} type="error" onClose={() => setRegionError(null)} />}
-      {regionSuccess && <Toast message={regionSuccess} type="success" onClose={() => setRegionSuccess(null)} />}
-
-
-      {/* --- Tab Navigation --- */}
-      <div className="mb-6 border-b border-gray-200 dark:border-gray-700 overflow-x-auto"> {/* Added overflow-x-auto here for very small screens */}
-        <nav className="-mb-px flex space-x-4 sm:space-x-8" aria-label="Tabs"> {/* Adjusted space-x for tabs */}
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white text-2xl sm:text-3xl lg:text-4xl">Admin Dashboard</h1> {/* Responsive heading */}
           <button
-            onClick={() => setActiveTab('region')}
-            className={`${activeTab === 'region'
-              ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-300'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base sm:text-lg focus:outline-none transition-colors duration-200`}
+            onClick={toggleDarkMode}
+            className="p-2 rounded-full text-gray-600 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors duration-200"
+            aria-label="Toggle dark mode"
           >
-            Region Config
+            {isDarkMode ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h1M4 12H3m15.364 6.364l-.707.707M6.343 6.343l-.707-.707m12.728 0l-.707-.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            )}
           </button>
-          <button
-            onClick={() => setActiveTab('locations')}
-            className={`${activeTab === 'locations'
-              ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-300'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base sm:text-lg focus:outline-none transition-colors duration-200`}
-          >
-            Locations
-          </button>
-          <button
-            onClick={() => setActiveTab('workouts')}
-            className={`${activeTab === 'workouts'
-              ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-300'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base sm:text-lg focus:outline-none transition-colors duration-200`}
-          >
-            Workouts
-          </button>
-        </nav>
-      </div>
+        </div>
 
-      {/* --- Tab Content: Region --- */}
-      {activeTab === 'region' && (
-        <section className={sectionClasses}>
-          <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100 text-2xl sm:text-3xl">Region Configuration</h2> {/* Responsive heading */}
 
-          {regionLoading && <p className="text-center py-4 text-gray-600 dark:text-gray-400">Loading region data...</p>}
+        {/* Global Toast Notifications */}
+        {error && <Toast message={error} type="error" onClose={() => setError(null)} />}
+        {success && <Toast message={success} type="success" onClose={() => setSuccess(null)} />}
+        {regionError && <Toast message={regionError} type="error" onClose={() => setRegionError(null)} />}
+        {regionSuccess && <Toast message={regionSuccess} type="success" onClose={() => setRegionSuccess(null)} />}
 
-          {!regionLoading && !showRegionConfigForm && (
-            <div className="text-center">
-              <p className="text-gray-700 mb-4 dark:text-gray-300">
-                {regionConfigExists
-                  ? "Manage the overall settings and information for your F3 region."
-                  : "It looks like your region configuration hasn't been set up yet. Click below to create it!"
-                }
-              </p>
-              <button
-                onClick={() => setShowRegionConfigForm(true)}
-                className={buttonPrimaryClasses}
-              >
-                {regionConfigExists ? 'Edit Region Configuration' : 'Create Region Configuration'}
-              </button>
-            </div>
-          )}
 
-          {!regionLoading && showRegionConfigForm && (
-            <form onSubmit={handleRegionSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="region_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Region Name</label>
-                <input
-                  type="text"
-                  id="region_name"
-                  name="region_name"
-                  value={regionForm.region_name || ''}
-                  onChange={handleRegionFormChange}
-                  className={inputClasses}
-                  placeholder="e.g., F3 Houston"
-                />
-              </div>
-              <div>
-                <label htmlFor="meta_description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Meta Description</label>
-                <input
-                  type="text"
-                  id="meta_description"
-                  name="meta_description"
-                  value={regionForm.meta_description || ''}
-                  onChange={handleRegionFormChange}
-                  className={inputClasses}
-                  placeholder="Short description for SEO"
-                />
-              </div>
-              <div>
-                <label htmlFor="hero_title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Hero Title</label>
-                <input
-                  type="text"
-                  id="hero_title"
-                  name="hero_title"
-                  value={regionForm.hero_title || ''}
-                  onChange={handleRegionFormChange}
-                  className={inputClasses}
-                  placeholder="Catchy headline for homepage"
-                />
-              </div>
-              <div>
-                <label htmlFor="hero_subtitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Hero Subtitle</label>
-                <input
-                  type="text"
-                  id="hero_subtitle"
-                  name="hero_subtitle"
-                  value={regionForm.hero_subtitle || ''}
-                  onChange={handleRegionFormChange}
-                  className={inputClasses}
-                  placeholder="Supporting text for headline"
-                />
-              </div>
+        {/* --- Tab Navigation --- */}
+        <div className="mb-6 border-b border-gray-200 dark:border-gray-700 overflow-x-auto"> {/* Added overflow-x-auto here for very small screens */}
+          <nav className="-mb-px flex space-x-4 sm:space-x-8" aria-label="Tabs"> {/* Adjusted space-x for tabs */}
+            <button
+              onClick={() => setActiveTab('region')}
+              className={`${activeTab === 'region'
+                ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-300'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500'
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base sm:text-lg focus:outline-none transition-colors duration-200`}
+            >
+              Region Config
+            </button>
+            <button
+              onClick={() => setActiveTab('locations')}
+              className={`${activeTab === 'locations'
+                ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-300'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500'
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base sm:text-lg focus:outline-none transition-colors duration-200`}
+            >
+              Locations
+            </button>
+            <button
+              onClick={() => setActiveTab('workouts')}
+              className={`${activeTab === 'workouts'
+                ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-300'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500'
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base sm:text-lg focus:outline-none transition-colors duration-200`}
+            >
+              Workouts
+            </button>
+          </nav>
+        </div>
 
-              <div>
-                <label htmlFor="region_logo_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Region Logo URL</label>
-                <input
-                  type="url"
-                  id="region_logo_url"
-                  name="region_logo_url"
-                  value={regionForm.region_logo_url || ''}
-                  onChange={handleRegionFormChange}
-                  className={inputClasses}
-                  placeholder="https://example.com/region-logo.png"
-                />
-              </div>
-              <div>
-                <label htmlFor="region_hero_img_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Region Hero Image URL</label>
-                <input
-                  type="url"
-                  id="region_hero_img_url"
-                  name="region_hero_img_url"
-                  value={regionForm.region_hero_img_url || ''}
-                  onChange={handleRegionFormChange}
-                  className={inputClasses}
-                  placeholder="https://example.com/region-hero-image.jpg"
-                />
-              </div>
+        {/* --- Tab Content: Region --- */}
+        {activeTab === 'region' && (
+          <section className={sectionClasses}>
+            <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100 text-2xl sm:text-3xl">Region Configuration</h2> {/* Responsive heading */}
 
-              <div>
-                <label htmlFor="region_city" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Region City</label>
-                <input
-                  type="text"
-                  id="region_city"
-                  name="region_city"
-                  value={regionForm.region_city || ''}
-                  onChange={handleRegionFormChange}
-                  className={inputClasses}
-                  placeholder="e.g., Houston"
-                />
-              </div>
-              <div>
-                <label htmlFor="region_state" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Region State</label>
-                <input
-                  type="text"
-                  id="region_state"
-                  name="region_state"
-                  value={regionForm.region_state || ''}
-                  onChange={handleRegionFormChange}
-                  className={inputClasses}
-                  placeholder="e.g., TX"
-                />
-              </div>
-              <div>
-                <label htmlFor="region_facebook" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Facebook Group URL</label>
-                <input
-                  type="url"
-                  id="region_facebook"
-                  name="region_facebook"
-                  value={regionForm.region_facebook || ''}
-                  onChange={handleRegionFormChange}
-                  className={inputClasses}
-                  placeholder="https://www.facebook.com/groups/F3Houston"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Map Configuration</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <label htmlFor="region_map_lat" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Map Latitude</label>
-                    <input
-                      type="text"
-                      id="region_map_lat"
-                      name="region_map_lat"
-                      value={regionForm.region_map_lat || 0}
-                      onChange={handleRegionFormChange}
-                      className={inputClasses}
-                      step="any"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="region_map_lon" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Map Longitude</label>
-                    <input
-                      type="text"
-                      id="region_map_lon"
-                      name="region_map_lon"
-                      value={regionForm.region_map_lon || 0}
-                      onChange={handleRegionFormChange}
-                      className={inputClasses}
-                      step="any"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="region_map_zoom" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Map Zoom Level</label>
-                    <input
-                      type="number"
-                      id="region_map_zoom"
-                      name="region_map_zoom"
-                      value={regionForm.region_map_zoom || 12}
-                      onChange={handleRegionFormChange}
-                      className={inputClasses}
+            {regionLoading && <p className="text-center py-4 text-gray-600 dark:text-gray-400">Loading region data...</p>}
 
-                    />
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <label htmlFor="region_map_embed_link" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Map Embed Link (iframe src)</label>
-                  <textarea
-                    id="region_map_embed_link"
-                    name="region_map_embed_link"
-                    value={regionForm.region_map_embed_link || ''}
-                    onChange={handleRegionFormChange}
-                    rows={3}
-                    className={`${inputClasses} resize-y`}
-                    placeholder="Paste the full iframe src URL for your region's custom map (e.g., from Google My Maps embed)"
-                  />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Find this in Google My Maps: {`"Share"`} &gt; {`"Embed on my site"`} &gt; Copy the {`"src"`} attribute from the iframe code.
-                  </p>
-                </div>
-              </div>
-
-              <div className="md:col-span-2 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-6"> {/* Responsive buttons */}
-                <button
-                  type="button"
-                  onClick={handleCancelRegionEdit}
-                  className={buttonSecondaryClasses}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className={buttonPrimaryClasses}
-                  disabled={regionLoading}
-                >
-                  {regionLoading ? 'Saving...' : (regionConfigExists ? 'Update Configuration' : 'Create Configuration')}
-                </button>
-              </div>
-            </form>
-          )}
-        </section>
-      )}
-
-      {/* --- Tab Content: Locations --- */}
-      {activeTab === 'locations' && (
-        <section className={sectionClasses}>
-          <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100 text-2xl sm:text-3xl">Location Management (AOs)</h2>
-
-          {!showLocationAddEditForm && (
-            <div className="flex justify-end mb-4">
-              <button
-                onClick={handleAddLocationClick}
-                className={buttonPrimaryClasses + " !w-auto px-6 py-2"}
-              >
-                + Add New Location
-              </button>
-            </div>
-          )}
-
-          {loading && <p className="text-center py-4 text-gray-600 dark:text-gray-400">Loading locations...</p>}
-
-          {showLocationAddEditForm && (
-            <form onSubmit={handleSubmitLocation} className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 p-6 border border-gray-200 rounded-lg dark:border-gray-700">
-              <h3 className="md:col-span-2 text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">
-                {editLocationId ? 'Edit Location' : 'Add New Location'}
-              </h3>
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Location Name (AO)</label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={newLocationForm.name || ''}
-                  onChange={handleNewLocationChange}
-                  className={inputClasses}
-                  placeholder="e.g., The Mothership"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
-                <input
-                  type="text"
-                  id="address"
-                  name="address"
-                  value={newLocationForm.address || ''}
-                  onChange={handleNewLocationChange}
-                  className={inputClasses}
-                  placeholder="e.g., 123 Main St, Anytown, TX"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="mapLink" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Google Maps Link</label>
-                <input
-                  type="url"
-                  id="mapLink"
-                  name="mapLink"
-                  value={newLocationForm.mapLink || ''}
-                  onChange={handleNewLocationChange}
-                  className={inputClasses}
-                  placeholder="https://maps.app.goo.gl/..."
-                />
-              </div>
-              <div>
-                <label htmlFor="embedMapLink" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Embed Map Link (iframe src)</label>
-                <textarea
-                  id="embedMapLink"
-                  name="embedMapLink"
-                  value={newLocationForm.embedMapLink || ''}
-                  onChange={handleNewLocationChange}
-                  rows={2}
-                  className={`${inputClasses} resize-y`}
-                  placeholder="Paste the full iframe src URL from Google Maps embed"
-                />
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  {`Find this in Google Maps: Share > Embed a map > Copy the "src" attribute from the iframe code.`}
+            {!regionLoading && !showRegionConfigForm && (
+              <div className="text-center">
+                <p className="text-gray-700 mb-4 dark:text-gray-300">
+                  {regionConfigExists
+                    ? "Manage the overall settings and information for your F3 region."
+                    : "It looks like your region configuration hasn't been set up yet. Click below to create it!"
+                  }
                 </p>
-              </div>
-              <div className="md:col-span-2">
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                <textarea
-                  id="description"
-                  name="description"
-                  value={newLocationForm.description || ''}
-                  onChange={handleNewLocationChange}
-                  rows={3}
-                  className={`${inputClasses} resize-y`}
-                  placeholder="Brief description of the AO, parking, etc."
-                />
-              </div>
-              <div>
-                <label htmlFor="q" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Q (Site Q for this AO)</label>
-                <input
-                  type="text"
-                  id="q"
-                  name="q"
-                  value={newLocationForm.q || ''}
-                  onChange={handleNewLocationChange}
-                  className={inputClasses}
-                  placeholder="e.g., Dredd, Hardhat"
-                />
-              </div>
-              <div>
-                <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Image URL</label>
-                <input
-                  type="url"
-                  id="imageUrl"
-                  name="imageUrl"
-                  value={newLocationForm.imageUrl || ''}
-                  onChange={handleNewLocationChange}
-                  className={inputClasses}
-                  placeholder="https://example.com/location-photo.jpg"
-                />
-              </div>
-              <div>
-                <label htmlFor="paxImageUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Pax Image URL</label>
-                <input
-                  type="url"
-                  id="paxImageUrl"
-                  name="paxImageUrl"
-                  value={newLocationForm.paxImageUrl || ''}
-                  onChange={handleNewLocationChange}
-                  className={inputClasses}
-                  placeholder="https://example.com/pax-photo.jpg (e.g., site Q pic)"
-                />
-              </div>
-
-              <div className="md:col-span-2 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-6"> {/* Responsive buttons */}
                 <button
-                  type="button"
-                  onClick={handleCancelLocationEdit}
-                  className={buttonSecondaryClasses}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
+                  onClick={() => setShowRegionConfigForm(true)}
                   className={buttonPrimaryClasses}
-                  disabled={loading}
                 >
-                  {loading ? 'Saving...' : (editLocationId ? 'Update Location' : 'Add Location')}
+                  {regionConfigExists ? 'Edit Region Configuration' : 'Create Region Configuration'}
                 </button>
               </div>
-            </form>
-          )}
+            )}
 
-          {!showLocationAddEditForm && (
-            <>
-              {locations.length === 0 && !loading && (
-                <p className="text-center py-4 text-gray-600 dark:text-gray-400">No locations found. Add one above!</p>
-              )}
-              {locations.length > 0 && (
-                <div className="overflow-x-auto rounded-lg shadow-md"> {/* Added overflow-x-auto here */}
-                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead className="bg-gray-50 dark:bg-gray-800">
-                      <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Name</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Address</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden sm:table-cell">Q</th> {/* Hide Q on extra small screens */}
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
-                      {locations.map((location) => (
-                        <tr key={location._id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{location.name}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{location.address}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">{location.q}</td> {/* Hide Q on extra small screens */}
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button
-                              onClick={() => handleEditLocation(location)}
-                              className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-4"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteLocation(location._id)}
-                              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                            >
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </>
-          )}
-        </section>
-      )}
-
-      {/* --- Tab Content: Workouts --- */}
-      {activeTab === 'workouts' && (
-        <section className={sectionClasses}>
-          <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100 text-2xl sm:text-3xl">Workout Management</h2>
-
-          {!showWorkoutAddEditForm && (
-            <div className="flex justify-end mb-4">
-              <button
-                onClick={handleAddWorkoutClick}
-                className={buttonPrimaryClasses + " !w-auto px-6 py-2"}
-              >
-                + Add New Workout
-              </button>
-            </div>
-          )}
-
-          {loading && <p className="text-center py-4 text-gray-600 dark:text-gray-400">Loading workouts...</p>}
-
-          {showWorkoutAddEditForm && (
-            <form onSubmit={handleSubmitWorkout} className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 p-6 border border-gray-200 rounded-lg dark:border-gray-700">
-              <h3 className="md:col-span-2 text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">
-                {editWorkoutId ? 'Edit Workout' : 'Add New Workout'}
-              </h3>
-              <div>
-                <label htmlFor="locationId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Associated Location (AO)</label>
-                <select
-                  id="locationId"
-                  name="locationId"
-                  value={newWorkoutForm.locationId || ''}
-                  onChange={handleNewWorkoutChange}
-                  className={selectClasses}
-                  required
-                >
-                  <option value="">Select a location</option>
-                  {locations.map(loc => (
-                    <option key={loc._id} value={loc._id}>{loc.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+            {!regionLoading && showRegionConfigForm && (
+              <form onSubmit={handleRegionSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Time</label>
+                  <label htmlFor="region_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Region Name</label>
                   <input
-                    type="time"
-                    id="startTime"
-                    name="startTime"
-                    value={newWorkoutForm.startTime || ''}
-                    onChange={handleNewWorkoutChange}
+                    type="text"
+                    id="region_name"
+                    name="region_name"
+                    value={regionForm.region_name || ''}
+                    onChange={handleRegionFormChange}
                     className={inputClasses}
+                    placeholder="e.g., F3 Houston"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="meta_description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Meta Description</label>
+                  <input
+                    type="text"
+                    id="meta_description"
+                    name="meta_description"
+                    value={regionForm.meta_description || ''}
+                    onChange={handleRegionFormChange}
+                    className={inputClasses}
+                    placeholder="Short description for SEO"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="hero_title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Hero Title</label>
+                  <input
+                    type="text"
+                    id="hero_title"
+                    name="hero_title"
+                    value={regionForm.hero_title || ''}
+                    onChange={handleRegionFormChange}
+                    className={inputClasses}
+                    placeholder="Catchy headline for homepage"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="hero_subtitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Hero Subtitle</label>
+                  <input
+                    type="text"
+                    id="hero_subtitle"
+                    name="hero_subtitle"
+                    value={regionForm.hero_subtitle || ''}
+                    onChange={handleRegionFormChange}
+                    className={inputClasses}
+                    placeholder="Supporting text for headline"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="region_logo_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Region Logo URL</label>
+                  <input
+                    type="url"
+                    id="region_logo_url"
+                    name="region_logo_url"
+                    value={regionForm.region_logo_url || ''}
+                    onChange={handleRegionFormChange}
+                    className={inputClasses}
+                    placeholder="https://example.com/region-logo.png"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="region_hero_img_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Region Hero Image URL</label>
+                  <input
+                    type="url"
+                    id="region_hero_img_url"
+                    name="region_hero_img_url"
+                    value={regionForm.region_hero_img_url || ''}
+                    onChange={handleRegionFormChange}
+                    className={inputClasses}
+                    placeholder="https://example.com/region-hero-image.jpg"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="region_city" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Region City</label>
+                  <input
+                    type="text"
+                    id="region_city"
+                    name="region_city"
+                    value={regionForm.region_city || ''}
+                    onChange={handleRegionFormChange}
+                    className={inputClasses}
+                    placeholder="e.g., Houston"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="region_state" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Region State</label>
+                  <input
+                    type="text"
+                    id="region_state"
+                    name="region_state"
+                    value={regionForm.region_state || ''}
+                    onChange={handleRegionFormChange}
+                    className={inputClasses}
+                    placeholder="e.g., TX"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="region_facebook" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Facebook Group URL</label>
+                  <input
+                    type="url"
+                    id="region_facebook"
+                    name="region_facebook"
+                    value={regionForm.region_facebook || ''}
+                    onChange={handleRegionFormChange}
+                    className={inputClasses}
+                    placeholder="https://www.facebook.com/groups/F3Houston"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Map Configuration</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label htmlFor="region_map_lat" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Map Latitude</label>
+                      <input
+                        type="text"
+                        id="region_map_lat"
+                        name="region_map_lat"
+                        value={regionForm.region_map_lat || 0}
+                        onChange={handleRegionFormChange}
+                        className={inputClasses}
+                        step="any"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="region_map_lon" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Map Longitude</label>
+                      <input
+                        type="text"
+                        id="region_map_lon"
+                        name="region_map_lon"
+                        value={regionForm.region_map_lon || 0}
+                        onChange={handleRegionFormChange}
+                        className={inputClasses}
+                        step="any"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="region_map_zoom" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Map Zoom Level</label>
+                      <input
+                        type="number"
+                        id="region_map_zoom"
+                        name="region_map_zoom"
+                        value={regionForm.region_map_zoom || 12}
+                        onChange={handleRegionFormChange}
+                        className={inputClasses}
+
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label htmlFor="region_map_embed_link" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Map Embed Link (iframe src)</label>
+                    <textarea
+                      id="region_map_embed_link"
+                      name="region_map_embed_link"
+                      value={regionForm.region_map_embed_link || ''}
+                      onChange={handleRegionFormChange}
+                      rows={3}
+                      className={`${inputClasses} resize-y`}
+                      placeholder="Paste the full iframe src URL for your region's custom map (e.g., from Google My Maps embed)"
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Find this in Google My Maps: {`"Share" >`}  {`"Embed on my site" > `} Copy the {`"src"`} attribute from the iframe code.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="md:col-span-2 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-6"> {/* Responsive buttons */}
+                  <button
+                    type="button"
+                    onClick={handleCancelRegionEdit}
+                    className={buttonSecondaryClasses}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className={buttonPrimaryClasses}
+                    disabled={regionLoading}
+                  >
+                    {regionLoading ? 'Saving...' : (regionConfigExists ? 'Update Configuration' : 'Create Configuration')}
+                  </button>
+                </div>
+              </form>
+            )}
+          </section>
+        )}
+
+        {/* --- Tab Content: Locations --- */}
+        {activeTab === 'locations' && (
+          <section className={sectionClasses}>
+            <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100 text-2xl sm:text-3xl">Location Management (AOs)</h2>
+
+            {!showLocationAddEditForm && (
+              <div className="flex justify-end mb-4">
+                <button
+                  onClick={handleAddLocationClick}
+                  className={buttonPrimaryClasses + " !w-auto px-6 py-2"}
+                >
+                  + Add New Location
+                </button>
+              </div>
+            )}
+
+            {loading && <p className="text-center py-4 text-gray-600 dark:text-gray-400">Loading locations...</p>}
+
+            {showLocationAddEditForm && (
+              <form onSubmit={handleSubmitLocation} className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 p-6 border border-gray-200 rounded-lg dark:border-gray-700">
+                <h3 className="md:col-span-2 text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">
+                  {editLocationId ? 'Edit Location' : 'Add New Location'}
+                </h3>
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Location Name (AO)</label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={newLocationForm.name || ''}
+                    onChange={handleNewLocationChange}
+                    className={inputClasses}
+                    placeholder="e.g., The Mothership"
                     required
                   />
                 </div>
                 <div>
-                  <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 dark:text-gray-300">End Time (Optional)</label>
+                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
                   <input
-                    type="time"
-                    id="endTime"
-                    name="endTime"
-                    value={newWorkoutForm.endTime || ''}
-                    onChange={handleNewWorkoutChange}
+                    type="text"
+                    id="address"
+                    name="address"
+                    value={newLocationForm.address || ''}
+                    onChange={handleNewLocationChange}
                     className={inputClasses}
+                    placeholder="e.g., 123 Main St, Anytown, TX"
+                    required
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Days of the Week</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {allDays.map(day => (
-                    <div key={day} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id={`day-${day}`}
-                        name="days"
-                        value={day}
-                        checked={newWorkoutForm.days?.includes(day) || false}
-                        onChange={handleNewWorkoutChange}
-                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:checked:bg-indigo-500"
-                      />
-                      <label htmlFor={`day-${day}`} className="ml-2 text-sm text-gray-900 dark:text-gray-300">{day}</label>
-                    </div>
-                  ))}
+                <div>
+                  <label htmlFor="mapLink" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Google Maps Link</label>
+                  <input
+                    type="url"
+                    id="mapLink"
+                    name="mapLink"
+                    value={newLocationForm.mapLink || ''}
+                    onChange={handleNewLocationChange}
+                    className={inputClasses}
+                    placeholder="https://maps.app.goo.gl/..."
+                  />
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Workout Types</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {allWorkoutTypes.map(type => (
-                    <div key={type} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id={`type-${type}`}
-                        name="types"
-                        value={type}
-                        checked={newWorkoutForm.types?.includes(type) || false}
-                        onChange={handleNewWorkoutChange}
-                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:checked:bg-indigo-500"
-                      />
-                      <label htmlFor={`type-${type}`} className="ml-2 text-sm text-gray-900 dark:text-gray-300">{type}</label>
-                    </div>
-                  ))}
+                <div>
+                  <label htmlFor="embedMapLink" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Embed Map Link (iframe src)</label>
+                  <textarea
+                    id="embedMapLink"
+                    name="embedMapLink"
+                    value={newLocationForm.embedMapLink || ''}
+                    onChange={handleNewLocationChange}
+                    rows={2}
+                    className={`${inputClasses} resize-y`}
+                    placeholder="Paste the full iframe src URL from Google Maps embed"
+                  />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    {`Find this in Google Maps: Share > Embed a map > Copy the "src" attribute from the iframe code.`}
+                  </p>
                 </div>
-              </div>
+                <div className="md:col-span-2">
+                  <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    value={newLocationForm.description || ''}
+                    onChange={handleNewLocationChange}
+                    rows={3}
+                    className={`${inputClasses} resize-y`}
+                    placeholder="Brief description of the AO, parking, etc."
+                  />
+                </div>
+                <div>
+                  <label htmlFor="q" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Q (Site Q for this AO)</label>
+                  <input
+                    type="text"
+                    id="q"
+                    name="q"
+                    value={newLocationForm.q || ''}
+                    onChange={handleNewLocationChange}
+                    className={inputClasses}
+                    placeholder="e.g., Dredd, Hardhat"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Image URL</label>
+                  <input
+                    type="url"
+                    id="imageUrl"
+                    name="imageUrl"
+                    value={newLocationForm.imageUrl || ''}
+                    onChange={handleNewLocationChange}
+                    className={inputClasses}
+                    placeholder="https://example.com/location-photo.jpg"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="paxImageUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Pax Image URL</label>
+                  <input
+                    type="url"
+                    id="paxImageUrl"
+                    name="paxImageUrl"
+                    value={newLocationForm.paxImageUrl || ''}
+                    onChange={handleNewLocationChange}
+                    className={inputClasses}
+                    placeholder="https://example.com/pax-photo.jpg (e.g., site Q pic)"
+                  />
+                </div>
 
-              {/* NEW FIELDS */}
-              <div>
-                <label htmlFor="frequencyPrefix" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Frequency Prefix</label>
-                <select
-                  id="frequencyPrefix"
-                  name="frequencyPrefix"
-                  value={newWorkoutForm.frequencyPrefix || ''}
-                  onChange={handleNewWorkoutChange}
-                  className={selectClasses}
-                >
-                  <option value="">None (e.g., Every)</option>
-                  {frequencyPrefixOptions.map(prefix => (
-                    <option key={prefix} value={prefix}>{prefix}</option>
-                  ))}
-                </select>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  e.g., {`"Every" Monday, "1st Saturday", "Monthly"`}
-                </p>
-              </div>
-              <div className="md:col-span-2">
-                <label htmlFor="comments" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Comments</label>
-                <textarea
-                  id="comments"
-                  name="comments"
-                  value={newWorkoutForm.comments || ''}
-                  onChange={handleNewWorkoutChange}
-                  rows={3}
-                  className={`${inputClasses} resize-y`}
-                  placeholder="Any specific notes for this workout (e.g., 'Bring coupons', 'Child friendly', 'Ruck optional')"
-                />
-              </div>
+                <div className="md:col-span-2 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-6"> {/* Responsive buttons */}
+                  <button
+                    type="button"
+                    onClick={handleCancelLocationEdit}
+                    className={buttonSecondaryClasses}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className={buttonPrimaryClasses}
+                    disabled={loading}
+                  >
+                    {loading ? 'Saving...' : (editLocationId ? 'Update Location' : 'Add Location')}
+                  </button>
+                </div>
+              </form>
+            )}
 
-              <div className="md:col-span-2 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-6"> {/* Responsive buttons */}
-                <button
-                  type="button"
-                  onClick={handleCancelWorkoutEdit}
-                  className={buttonSecondaryClasses}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className={buttonPrimaryClasses}
-                  disabled={loading}
-                >
-                  {loading ? 'Saving...' : (editWorkoutId ? 'Update Workout' : 'Add Workout')}
-                </button>
-              </div>
-            </form>
-          )}
-
-          {!showWorkoutAddEditForm && (
-            <>
-              {workouts.length === 0 && !loading && (
-                <p className="text-center py-4 text-gray-600 dark:text-gray-400">No workouts found. Add one above!</p>
-              )}
-              {workouts.length > 0 && (
-                <div className="overflow-x-auto rounded-lg shadow-md"> {/* Added overflow-x-auto here */}
-                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead className="bg-gray-50 dark:bg-gray-800">
-                      <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Location (AO)</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 whitespace-nowrap">Time</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden sm:table-cell">Days</th> {/* Hide on extra small screens */}
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden md:table-cell">Types</th> {/* Hide on small screens */}
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden lg:table-cell whitespace-nowrap">Frequency Prefix</th> {/* Hide on medium/small screens */}
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden xl:table-cell">Comments</th> {/* Hide on large/medium/small screens */}
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
-                      {workouts.map((workout) => (
-                        <tr key={workout._id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{getLocationName(workout.locationId)}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{workout.startTime}{workout.endTime ? ` - ${workout.endTime}` : ''}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">{workout.days.join(', ')}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 hidden md:table-cell">{workout.types.join(', ')}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 hidden lg:table-cell">{workout.frequencyPrefix || 'N/A'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 hidden xl:table-cell">{workout.comments || 'N/A'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button
-                              onClick={() => handleEditWorkout(workout)}
-                              className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-4"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteWorkout(workout._id || '')}
-                              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                            >
-                              Delete
-                            </button>
-                          </td>
+            {!showLocationAddEditForm && (
+              <>
+                {locations.length === 0 && !loading && (
+                  <p className="text-center py-4 text-gray-600 dark:text-gray-400">No locations found. Add one above!</p>
+                )}
+                {locations.length > 0 && (
+                  <div className="overflow-x-auto rounded-lg shadow-md"> {/* Added overflow-x-auto here */}
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                      <thead className="bg-gray-50 dark:bg-gray-800">
+                        <tr>
+                          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Name</th>
+                          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Address</th>
+                          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden sm:table-cell">Q</th> {/* Hide Q on extra small screens */}
+                          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
+                        {locations.map((location) => (
+                          <tr key={location._id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                            <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{location.name}</td>
+                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300">{location.address}</td>
+                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">{location.q}</td> {/* Hide Q on extra small screens */}
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                              <button
+                                onClick={() => handleEditLocation(location)}
+                                className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-4"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteLocation(location._id)}
+                                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
+            )}
+          </section>
+        )}
+
+        {/* --- Tab Content: Workouts --- */}
+        {activeTab === 'workouts' && (
+          <section className={sectionClasses}>
+            <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100 text-2xl sm:text-3xl">Workout Management</h2>
+
+            {!showWorkoutAddEditForm && (
+              <div className="flex justify-end mb-4">
+                <button
+                  onClick={handleAddWorkoutClick}
+                  className={buttonPrimaryClasses + " !w-auto px-6 py-2"}
+                >
+                  + Add New Workout
+                </button>
+              </div>
+            )}
+
+            {loading && <p className="text-center py-4 text-gray-600 dark:text-gray-400">Loading workouts...</p>}
+
+            {showWorkoutAddEditForm && (
+              <form onSubmit={handleSubmitWorkout} className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 p-6 border border-gray-200 rounded-lg dark:border-gray-700">
+                <h3 className="md:col-span-2 text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">
+                  {editWorkoutId ? 'Edit Workout' : 'Add New Workout'}
+                </h3>
+                <div>
+                  <label htmlFor="locationId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Associated Location (AO)</label>
+                  <select
+                    id="locationId"
+                    name="locationId"
+                    value={newWorkoutForm.locationId || ''}
+                    onChange={handleNewWorkoutChange}
+                    className={selectClasses}
+                    required
+                  >
+                    <option value="">Select a location</option>
+                    {locations.map(loc => (
+                      <option key={loc._id} value={loc._id}>{loc.name}</option>
+                    ))}
+                  </select>
                 </div>
-              )}
-            </>
-          )}
-        </section>
-      )}
-    </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Time</label>
+                    <input
+                      type="time"
+                      id="startTime"
+                      name="startTime"
+                      value={newWorkoutForm.startTime || ''}
+                      onChange={handleNewWorkoutChange}
+                      className={inputClasses}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 dark:text-gray-300">End Time (Optional)</label>
+                    <input
+                      type="time"
+                      id="endTime"
+                      name="endTime"
+                      value={newWorkoutForm.endTime || ''}
+                      onChange={handleNewWorkoutChange}
+                      className={inputClasses}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Days of the Week</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {allDays.map(day => (
+                      <div key={day} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id={`day-${day}`}
+                          name="days"
+                          value={day}
+                          checked={newWorkoutForm.days?.includes(day) || false}
+                          onChange={handleNewWorkoutChange}
+                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:checked:bg-indigo-500"
+                        />
+                        <label htmlFor={`day-${day}`} className="ml-2 text-sm text-gray-900 dark:text-gray-300">{day}</label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Workout Types</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {allWorkoutTypes.map(type => (
+                      <div key={type} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id={`type-${type}`}
+                          name="types"
+                          value={type}
+                          checked={newWorkoutForm.types?.includes(type) || false}
+                          onChange={handleNewWorkoutChange}
+                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:checked:bg-indigo-500"
+                        />
+                        <label htmlFor={`type-${type}`} className="ml-2 text-sm text-gray-900 dark:text-gray-300">{type}</label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* NEW FIELDS */}
+                <div>
+                  <label htmlFor="frequencyPrefix" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Frequency Prefix</label>
+                  <select
+                    id="frequencyPrefix"
+                    name="frequencyPrefix"
+                    value={newWorkoutForm.frequencyPrefix || ''}
+                    onChange={handleNewWorkoutChange}
+                    className={selectClasses}
+                  >
+                    <option value="">None (e.g., Every)</option>
+                    {frequencyPrefixOptions.map(prefix => (
+                      <option key={prefix} value={prefix}>{prefix}</option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    e.g., {`"Every" Monday, "1st Saturday", "Monthly"`}
+                  </p>
+                </div>
+                <div className="md:col-span-2">
+                  <label htmlFor="comments" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Comments</label>
+                  <textarea
+                    id="comments"
+                    name="comments"
+                    value={newWorkoutForm.comments || ''}
+                    onChange={handleNewWorkoutChange}
+                    rows={3}
+                    className={`${inputClasses} resize-y`}
+                    placeholder="Any specific notes for this workout (e.g., 'Bring coupons', 'Child friendly', 'Ruck optional')"
+                  />
+                </div>
+
+                <div className="md:col-span-2 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-6"> {/* Responsive buttons */}
+                  <button
+                    type="button"
+                    onClick={handleCancelWorkoutEdit}
+                    className={buttonSecondaryClasses}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className={buttonPrimaryClasses}
+                    disabled={loading}
+                  >
+                    {loading ? 'Saving...' : (editWorkoutId ? 'Update Workout' : 'Add Workout')}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {!showWorkoutAddEditForm && (
+              <>
+                {workouts.length === 0 && !loading && (
+                  <p className="text-center py-4 text-gray-600 dark:text-gray-400">No workouts found. Add one above!</p>
+                )}
+                {workouts.length > 0 && (
+                  <div className="overflow-x-auto rounded-lg shadow-md"> {/* Added overflow-x-auto here */}
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                      <thead className="bg-gray-50 dark:bg-gray-800">
+                        <tr>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Location (AO)</th>
+                          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 whitespace-nowrap">Time</th>
+                          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden sm:table-cell">Days</th> {/* Hide on extra small screens */}
+                          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden md:table-cell">Types</th> {/* Hide on small screens */}
+                          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden lg:table-cell whitespace-nowrap">Frequency Prefix</th> {/* Hide on medium/small screens */}
+                          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden xl:table-cell">Comments</th> {/* Hide on large/medium/small screens */}
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
+                        {workouts.map((workout) => (
+                          <tr key={workout._id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                            <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{getLocationName(workout.locationId)}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{workout.startTime}{workout.endTime ? ` - ${workout.endTime}` : ''}</td>
+                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">{workout.days.join(', ')}</td>
+                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 hidden md:table-cell">{workout.types.join(', ')}</td>
+                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 hidden lg:table-cell">{workout.frequencyPrefix || 'N/A'}</td>
+                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 hidden xl:table-cell">{workout.comments || 'N/A'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                              <button
+                                onClick={() => handleEditWorkout(workout)}
+                                className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-4"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteWorkout(workout._id || '')}
+                                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
+            )}
+          </section>
+        )}
+      </div>
+    </>
   );
 }
