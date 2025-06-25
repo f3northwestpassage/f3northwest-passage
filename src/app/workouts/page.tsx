@@ -53,19 +53,22 @@ export default async function Page() {
     lon: locales?.region_map_lon,
     zoom: locales?.region_map_zoom,
   };
+  // Note: The lon=-${mapDetails.lon} seems unusual. Please confirm if the negative sign is intentional.
   const mapUrl = `https://map.f3nation.com/?lat=${mapDetails.lat}&lon=-${mapDetails.lon}&zoom=${mapDetails.zoom}`;
   const embedMapUrl = locales?.region_map_embed_link;
 
   return (
     <>
       <Header href={href} />
-      <main>
+      <main className="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
         <Hero
           title="WORKOUTS"
           subtitle="FREE BEATDOWNS 6X/WEEK"
           imgUrl={f3HeroImg.src}
+          imgAlt="Group of men exercising outdoors at F3 workout" // Added descriptive alt text for accessibility
         />
-        <section className="bg-iron leading-tight py-12 px-4 text-white text-center">
+        {/* Section 1: Areas of Operation */}
+        <section className="bg-gray-800 dark:bg-gray-950 py-12 px-4 text-white text-center">
           <h2 className="text-4xl font-extrabold mb-4">AREAS OF OPERATION</h2>
           <p className="text-lg opacity-90 mb-3 max-w-2xl mx-auto">
             F3 workouts are held in any weather conditions, free of charge and
@@ -96,16 +99,17 @@ export default async function Page() {
           <Button href={mapUrl} text="VIEW FULL SCREEN" target="_blank" />
         </section>
 
-        <section className="bg-gloom leading-tight py-12 px-4">
+        {/* Section 2: Join Us / Workout Cards */}
+        <section className="bg-gray-100 dark:bg-gray-800 py-12 px-4">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-4xl font-extrabold text-white mb-10 text-center">JOIN US</h2>
+            <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-10 text-center">JOIN US</h2>
             <div className="space-y-6">
               {sortedLocations.length === 0 && rawWorkouts.length === 0 ? (
-                <div className="text-center bg-gray-700 p-8 rounded-lg shadow-lg">
-                  <p className="text-2xl font-semibold text-gray-300">
+                <div className="text-center bg-gray-700 dark:bg-gray-700 p-8 rounded-lg shadow-lg">
+                  <p className="text-2xl font-semibold text-gray-300 dark:text-gray-200">
                     No workout locations available at this time.
                   </p>
-                  <p className="text-gray-400 mt-2">
+                  <p className="text-gray-400 dark:text-gray-400 mt-2">
                     Please check back later or contact us for more information.
                   </p>
                 </div>
@@ -126,33 +130,38 @@ export default async function Page() {
                   console.log('------------------------------');
                   // --- END LOG 2 ---
 
+
                   return (
                     <Link href={`/workouts/${encodeURIComponent(location.name)}`} key={location._id} passHref>
                       {/* Outer Card Container */}
                       <div className="
-                      bg-white           /* White background for the card */
-                      rounded-xl         /* More rounded corners for a modern feel */
-                      shadow-lg          /* Subtle shadow for depth */
-                      p-6                /* Increased padding for more breathing room */
-                      text-gray-900      /* Default text color */
-                      cursor-pointer     /* Indicates it's clickable */
-                      hover:shadow-xl    /* Enhanced shadow on hover for interaction */
-                      hover:scale-[1.01] /* Slightly scale up on hover for a subtle effect */
-                      transition-all     /* Smooth transition for hover effects */
-                      duration-300
-                      flex               /* Use flexbox for overall card content layout */
-                      flex-col           /* Arrange content in a column */
-                    ">
-                        {/* Header Section: Location Name and Map Button */}
-                        <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200"> {/* Added border-b for separation */}
-                          {/* Location Name - Centered */}
-                          <h3 className="flex-grow text-3xl font-extrabold text-f3-blue text-center mr-4"> {/* Use a brand color if available, add margin-right to h3 */}
+                        bg-white
+                        dark:bg-gray-800
+                        rounded-xl
+                        shadow-lg
+                        dark:shadow-md
+                        p-6
+                        text-gray-900
+                        dark:text-gray-100
+                        cursor-pointer
+                        hover:shadow-xl
+                        dark:hover:shadow-lg
+                        hover:scale-[1.01]
+                        transition-all
+                        duration-300
+                        flex
+                        flex-col
+                      ">
+                        {/* Header Section: Location Name (centered) and Map Button (below, centered) */}
+                        <div className="mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
+                          {/* Location Name - This h3 will naturally take full width of its parent, so text-center works */}
+                          <h3 className="text-3xl font-extrabold text-f3-blue dark:text-f3-blue-light text-center mb-2">
                             {location.name}
                           </h3>
 
-                          {/* Map Buttons - Pushed to the right */}
+                          {/* Map Buttons - Centered below the name, if they exist */}
                           {(location.embedMapLink || location.mapLink) && (
-                            <div className="flex-shrink-0">
+                            <div className="flex justify-center"> {/* Use flex justify-center on the div holding the button(s) */}
                               {location.embedMapLink ? (
                                 <MapLinkButton href={location.embedMapLink} text="View Map" bare={false} />
                               ) : (
@@ -163,15 +172,15 @@ export default async function Page() {
                         </div>
 
                         {/* Location Details Section */}
-                        <div className="text-center text-gray-700 mb-4 space-y-2"> {/* Left align text, add space between paragraphs */}
+                        <div className="text-center text-gray-700 dark:text-gray-300 mb-4 space-y-2">
                           {location.address && (
-                            <p><span className="font-semibold text-gray-800">Address:</span> {location.address}</p>
+                            <p><span className="font-semibold text-gray-800 dark:text-gray-200">Address:</span> {location.address}</p>
                           )}
                           {location.q && (
-                            <p><span className="font-semibold text-gray-800">AOQ:</span> {location.q}</p>
+                            <p><span className="font-semibold text-gray-800 dark:text-gray-200">AOQ:</span> {location.q}</p>
                           )}
                           {location.description && (
-                            <p className="text-sm leading-relaxed text-gray-600 border-t border-gray-100 pt-2 mt-2">
+                            <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700 pt-2 mt-2">
                               {location.description}
                             </p>
                           )}
@@ -179,25 +188,25 @@ export default async function Page() {
 
                         {/* Image Section (Optional - placed more prominently) */}
                         {(location.imageUrl || location.paxImageUrl) && (
-                          <div className="mb-4 flex flex-wrap justify-center items-center gap-4"> {/* Use flex-wrap for multiple images */}
+                          <div className="mb-4 flex flex-wrap justify-center items-center gap-4">
                             {location.imageUrl && (
-                              <div className="relative w-36 h-36 flex justify-center items-center p-2 border border-gray-200 rounded-md bg-gray-50 shadow-sm">
+                              <div className="relative w-64 h-64 flex justify-center items-center p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-700 shadow-sm dark:shadow-none">
                                 <Image
                                   src={location.imageUrl}
                                   alt={`${location.name} AO Logo`}
-                                  width={120}
-                                  height={120}
+                                  width={240} // Increased for a more noticeable size
+                                  height={240} // Increased for a more noticeable size
                                   className="object-contain"
                                 />
                               </div>
                             )}
                             {location.paxImageUrl && (
-                              <div className="relative w-36 h-36 flex justify-center items-center p-2 border border-gray-200 rounded-md bg-gray-50 shadow-sm">
+                              <div className="relative w-64 h-64 flex justify-center items-center p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-700 shadow-sm dark:shadow-none">
                                 <Image
                                   src={location.paxImageUrl}
                                   alt={`PAX at ${location.name}`}
-                                  width={120}
-                                  height={120}
+                                  width={240} // Increased for a more noticeable size
+                                  height={240} // Increased for a more noticeable size
                                   className="object-contain"
                                 />
                               </div>
@@ -206,9 +215,13 @@ export default async function Page() {
                         )}
 
                         {/* Workout Schedule Section */}
-                        <div className="mt-4 pt-4 border-t border-gray-300">
-                          <h4 className="text-2xl font-bold text-gray-800 mb-4 text-center">Workout Schedule:</h4> {/* Increased mb */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"> {/* Responsive grid for WorkoutCards */}
+                        <div className="mt-4 pt-4 border-t border-gray-300 dark:border-gray-700">
+                          <h4 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4 text-center">Workout Schedule:</h4>
+                          <div className={
+                            workoutsAtThisLocation.length === 1
+                              ? "flex justify-center"
+                              : "grid grid-cols-1 sm:grid-cols-2 gap-4"
+                          }>
                             {workoutsAtThisLocation.length > 0 ? (
                               workoutsAtThisLocation.map((workout) => (
                                 <WorkoutCard
@@ -225,7 +238,7 @@ export default async function Page() {
                                 />
                               ))
                             ) : (
-                              <p className="text-gray-500 italic text-center col-span-full py-4 bg-gray-50 rounded-md">
+                              <p className="text-gray-500 dark:text-gray-400 italic text-center col-span-full py-4 bg-gray-50 dark:bg-gray-700 rounded-md">
                                 No workouts scheduled for this location yet.
                               </p>
                             )}
@@ -234,6 +247,7 @@ export default async function Page() {
                       </div>
                     </Link>
                   );
+
                 })
               )}
             </div>

@@ -120,13 +120,13 @@ export default async function LocationPage({ params }: { params: { name: string;
         <>
             <Header href={homeHref} />
             <main className="container mx-auto px-4 py-8">
-                <div className="bg-white rounded-lg shadow-xl p-6 text-gray-900 mb-8">
-                    <h1 className="text-4xl font-extrabold text-gray-800 text-center mb-4">
+                <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl p-6 text-gray-900 dark:text-gray-100 mb-8">
+                    <h1 className="text-4xl font-extrabold text-gray-800 dark:text-gray-200 text-center mb-4">
                         {location.name}
                     </h1>
                     <div className="flex flex-col md:flex-row justify-center items-center gap-6 mb-6">
                         {location.imageUrl && (
-                            <div className="relative w-full md:w-1/3 h-48 flex justify-center items-center overflow-hidden rounded-lg shadow-md">
+                            <div className="relative w-full md:w-1/3 h-48 flex justify-center items-center overflow-hidden rounded-lg shadow-md dark:shadow-lg">
                                 <Image
                                     src={location.imageUrl}
                                     alt={`${location.name} AO Logo`}
@@ -138,7 +138,7 @@ export default async function LocationPage({ params }: { params: { name: string;
                             </div>
                         )}
                         {location.paxImageUrl && (
-                            <div className="relative w-full md:w-1/3 h-48 flex justify-center items-center overflow-hidden rounded-lg shadow-md">
+                            <div className="relative w-full md:w-1/3 h-48 flex justify-center items-center overflow-hidden rounded-lg shadow-md dark:shadow-lg">
                                 <Image
                                     src={location.paxImageUrl}
                                     alt={`PAX at ${location.name}`}
@@ -151,20 +151,20 @@ export default async function LocationPage({ params }: { params: { name: string;
                         )}
                     </div>
                     <div className="mb-4 text-center">
-                        {location.address && <p className="text-gray-700 mb-2"><span className="font-semibold">Address:</span> {location.address}</p>}
+                        {location.address && <p className="text-gray-700 dark:text-gray-300 mb-2"><span className="font-semibold text-gray-800 dark:text-gray-200">Address:</span> {location.address}</p>}
                         {location.q && (
-                            <p className="text-gray-700 mb-2">
-                                <span className="font-semibold">AOQ:</span> {location.q}
+                            <p className="text-gray-700 dark:text-gray-300 mb-2">
+                                <span className="font-semibold text-gray-800 dark:text-gray-200">AOQ:</span> {location.q}
                             </p>
                         )}
-                        {location.description && <p className="text-gray-700 mb-4 text-md leading-relaxed">{location.description}</p>}
+                        {location.description && <p className="text-gray-700 dark:text-gray-300 mb-4 text-md leading-relaxed">{location.description}</p>}
                         <div className="flex justify-center gap-4">
                             {location.embedMapLink && (
                                 <Link
                                     href={location.embedMapLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                                    className="inline-flex items-center px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors duration-200"
                                 >
                                     <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                     View Embedded Map
@@ -175,38 +175,40 @@ export default async function LocationPage({ params }: { params: { name: string;
                                     href={location.mapLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                                    className="inline-flex items-center px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors duration-200"
                                 >
-                                    <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                    Open in Google Maps
+                                    <svg className="w-5 h-5 mr-1 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                    <p className='text-white'>Open in Google Maps</p>
                                 </Link>
                             )}
                         </div>
                     </div>
-                    <div className="mt-6 pt-4 border-t border-gray-300">
-                        <h2 className="text-3xl font-bold text-gray-800 mb-4 text-center">Workout Schedule:</h2>
-                        <div className="grid gap-4 justify-center">
-                            {workoutsAtThisLocation.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-                                    {workoutsAtThisLocation.map((workout) => (
-                                        <WorkoutCard
-                                            key={workout._id || `${location._id}-${workout.startTime}-${workout.days?.[0]}`}
-                                            _id={workout._id || ''}
-                                            locationId={location._id || ''}
-                                            locationName={location.name || ''}
-                                            startTime={workout.startTime || ''}
-                                            endTime={workout.endTime || ''}
-                                            days={workout.days || []}
-                                            types={workout.types || []}
-                                            comments={workout.comments}
-                                            frequencyPrefix={workout.frequencyPrefix}
-                                        />
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-gray-500 italic text-center col-span-full py-4 bg-gray-50 rounded-md">No workouts scheduled for this location yet.</p>
-                            )}
-                        </div>
+                    <div className="mt-6 pt-4 border-t border-gray-300 dark:border-gray-700">
+                        <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-4 text-center">Workout Schedule:</h2>
+                        {workoutsAtThisLocation.length > 0 ? (
+                            <div className={
+                                workoutsAtThisLocation.length === 1
+                                    ? "flex justify-center" // Center the single card
+                                    : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" // Use grid for multiple cards
+                            }>
+                                {workoutsAtThisLocation.map((workout) => (
+                                    <WorkoutCard
+                                        key={workout._id || `${location._id}-${workout.startTime}-${workout.days?.[0]}`}
+                                        _id={workout._id || ''}
+                                        locationId={location._id || ''}
+                                        locationName={location.name || ''}
+                                        startTime={workout.startTime || ''}
+                                        endTime={workout.endTime || ''}
+                                        days={workout.days || []}
+                                        types={workout.types || []}
+                                        comments={workout.comments}
+                                        frequencyPrefix={workout.frequencyPrefix}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-gray-500 dark:text-gray-400 italic text-center col-span-full py-4 bg-gray-50 dark:bg-gray-700 rounded-md">No workouts scheduled for this location yet.</p>
+                        )}
                     </div>
                     <div className="mt-8 text-center">
                         <Button href="/workouts" text="BACK TO ALL WORKOUTS" />
