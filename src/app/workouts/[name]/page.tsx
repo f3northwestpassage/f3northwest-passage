@@ -24,76 +24,62 @@ import { fetchWorkoutsData } from '@/utils/fetchWorkoutsData'; // Import fetchWo
 import type { WorkoutClean } from '@/utils/fetchWorkoutsData'; // Import WorkoutClean type from where it's defined
 
 
-// Define props for the dynamic page component
-interface LocationPageProps {
-    params: {
-        name: string; // The encoded location name from the URL (e.g., "The-Boneyard")
-    };
-    // searchParams?: { [key: string]: string | string[] | undefined }; // Uncomment if you use search params
-}
+// --- COMMENT OUT OR DELETE THIS INTERFACE DEFINITION ---
+// interface LocationPageProps {
+//     params: {
+//         name: string; // The encoded location name from the URL (e.g., "The-Boneyard")
+//     };
+//     // searchParams?: { [key: string]: string | string[] | undefined }; // Uncomment if you use search params
+// }
 
 // --- generateStaticParams (Optional but Recommended for SEO & Performance) ---
-// This function tells Next.js which dynamic routes to pre-render at build time.
 export async function generateStaticParams() {
-    // If SKIP_DB is true (e.g., for local development without DB access),
-    // skip pre-rendering and rely solely on force-dynamic at request time.
     if (process.env.SKIP_DB === 'true') {
         console.log("SKIP_DB is true. Skipping generateStaticParams for workouts.");
         return [];
     }
-
     try {
         const locations = await fetchLocationsData();
-        // Filter out locations with invalid names to prevent issues with encodeURIComponent
         const validParams = locations
             .filter(location => typeof location.name === 'string' && location.name.trim() !== '')
             .map((location) => ({
-                name: encodeURIComponent(location.name), // Encode for URL safety
+                name: encodeURIComponent(location.name),
             }));
         console.log(`Generated ${validParams.length} static params for workouts.`);
         return validParams;
     } catch (error) {
         console.error("Error fetching locations for generateStaticParams in workouts/[name]/page.tsx:", error);
-        // Return an empty array if data fetching fails at build time,
-        // allowing Next.js to gracefully handle these routes at request time.
         return [];
     }
 }
 
 // --- generateMetadata (Dynamic SEO Titles & Descriptions) ---
-// Generates SEO metadata (title, description) for each location page.
-export async function generateMetadata({ params }: LocationPageProps): Promise<Metadata> {
-    // If SKIP_DB is true, provide generic metadata.
+// *** CHANGE THIS LINE ***
+export async function generateMetadata({ params }: { params: { name: string; } }): Promise<Metadata> {
     if (process.env.SKIP_DB === 'true') {
         return {
             title: 'F3 Location Details',
             description: 'F3 workout location details.',
         };
     }
-
     const decodedName = decodeURIComponent(params.name);
     let location: LocationClean | undefined;
-
     try {
         const locations = await fetchLocationsData();
         location = locations.find(loc => loc.name === decodedName);
     } catch (error) {
         console.error(`Error fetching location for metadata of ${decodedName}:`, error);
-        // Fallback metadata if data fetch fails
         return {
             title: `F3 Location: ${decodedName}`,
             description: `Details for F3 location ${decodedName}.`,
         };
     }
-
     if (!location) {
-        // If location not found, provide a distinct metadata
         return {
             title: 'Workout Location Not Found',
             description: 'The requested F3 workout location could not be found.',
         };
     }
-
     return {
         title: `${location.name} - F3 Workouts`,
         description: location.description || `Workout details for F3 ${location.name}. Join us at ${location.address}.`,
@@ -101,15 +87,13 @@ export async function generateMetadata({ params }: LocationPageProps): Promise<M
 }
 
 // --- Main Location Page Component ---
-export default async function LocationPage({ params }: LocationPageProps) {
-    const decodedName = decodeURIComponent(params.name); // Decode the URL name
-
+// *** CHANGE THIS LINE ***
+export default async function LocationPage({ params }: { params: { name: string; } }) {
+    const decodedName = decodeURIComponent(params.name);
     let allLocations: LocationClean[] = [];
     let allWorkouts: WorkoutClean[] = [];
-    let locales = null; // Initialize locales to null or a default empty object
-
+    let locales = null;
     try {
-        // Fetch all necessary data concurrently for efficiency
         [allLocations, allWorkouts, locales] = await Promise.all([
             fetchLocationsData(),
             fetchWorkoutsData(),
@@ -117,27 +101,15 @@ export default async function LocationPage({ params }: LocationPageProps) {
         ]);
     } catch (error) {
         console.error("Error fetching data for LocationPage:", error);
-        // If critical data cannot be fetched, consider showing an error message or triggering notFound.
-        // For now, `location` being undefined will trigger notFound.
     }
-
-    // Find the specific location based on the decoded name
     const location: LocationClean | undefined = allLocations.find(loc => loc.name === decodedName);
-
-    // If the location isn't found in the data, trigger Next.js's 404 page
     if (!location) {
         notFound();
     }
-
-    // Filter workouts to show only workouts at this specific location
-    // Ensure location._id is defined as it's critical for filtering workouts
     const workoutsAtThisLocation: WorkoutClean[] = location._id
         ? allWorkouts.filter((workout) => workout.locationId === location._id)
-        : []; // If location._id is missing, return an empty array
-
-    const homeHref = '/'; // Default href for the Header component's logo/home link
-
-    // Defensive checks for locale data (for the Footer component)
+        : [];
+    const homeHref = '/';
     const regionName = locales?.region_name ?? "";
     const regionFacebook = locales?.region_facebook ?? "";
     const regionInstagram = locales?.region_instagram ?? "";
@@ -152,22 +124,19 @@ export default async function LocationPage({ params }: LocationPageProps) {
                     <h1 className="text-4xl font-extrabold text-gray-800 text-center mb-4">
                         {location.name}
                     </h1>
-
                     <div className="flex flex-col md:flex-row justify-center items-center gap-6 mb-6">
-                        {/* Display AO Logo if available */}
                         {location.imageUrl && (
                             <div className="relative w-full md:w-1/3 h-48 flex justify-center items-center overflow-hidden rounded-lg shadow-md">
                                 <Image
                                     src={location.imageUrl}
                                     alt={`${location.name} AO Logo`}
-                                    fill // Use 'fill' prop for responsive images
-                                    style={{ objectFit: 'contain' }} // Use style prop for objectFit
-                                    className="p-2" // Add padding to the image itself, if needed
-                                    sizes="(max-width: 768px) 100vw, 33vw" // Optimize image loading
+                                    fill
+                                    style={{ objectFit: 'contain' }}
+                                    className="p-2"
+                                    sizes="(max-width: 768px) 100vw, 33vw"
                                 />
                             </div>
                         )}
-                        {/* Display PAX image if available */}
                         {location.paxImageUrl && (
                             <div className="relative w-full md:w-1/3 h-48 flex justify-center items-center overflow-hidden rounded-lg shadow-md">
                                 <Image
@@ -181,24 +150,18 @@ export default async function LocationPage({ params }: LocationPageProps) {
                             </div>
                         )}
                     </div>
-
                     <div className="mb-4 text-center">
-                        {/* Display Address */}
                         {location.address && <p className="text-gray-700 mb-2"><span className="font-semibold">Address:</span> {location.address}</p>}
-                        {/* Display AOQ (Area of Operations Q) */}
                         {location.q && (
                             <p className="text-gray-700 mb-2">
                                 <span className="font-semibold">AOQ:</span> {location.q}
                             </p>
                         )}
-                        {/* Display Description */}
                         {location.description && <p className="text-gray-700 mb-4 text-md leading-relaxed">{location.description}</p>}
-
-                        {/* Map Links */}
                         <div className="flex justify-center gap-4">
                             {location.embedMapLink && (
                                 <Link
-                                    href={location.embedMapLink} // No need for 'as string' if type is already string or undefined handled by '&&'
+                                    href={location.embedMapLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
@@ -207,10 +170,9 @@ export default async function LocationPage({ params }: LocationPageProps) {
                                     View Embedded Map
                                 </Link>
                             )}
-                            {/* Only show "Open in Google Maps" if embedMapLink is NOT present */}
                             {!location.embedMapLink && location.mapLink && (
                                 <Link
-                                    href={location.mapLink} // No need for 'as string'
+                                    href={location.mapLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
@@ -221,16 +183,14 @@ export default async function LocationPage({ params }: LocationPageProps) {
                             )}
                         </div>
                     </div>
-
                     <div className="mt-6 pt-4 border-t border-gray-300">
                         <h2 className="text-3xl font-bold text-gray-800 mb-4 text-center">Workout Schedule:</h2>
-                        <div className="grid gap-4 d-flex justify-center"> {/* d-flex is not a Tailwind class; consider grid or flex utilities */}
+                        <div className="grid gap-4 justify-center">
                             {workoutsAtThisLocation.length > 0 ? (
-                                // Use a responsive grid for WorkoutCard components
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
                                     {workoutsAtThisLocation.map((workout) => (
                                         <WorkoutCard
-                                            key={workout._id || `${location._id}-${workout.startTime}-${workout.days?.[0]}`} // Fallback key
+                                            key={workout._id || `${location._id}-${workout.startTime}-${workout.days?.[0]}`}
                                             _id={workout._id || ''}
                                             locationId={location._id || ''}
                                             locationName={location.name || ''}
@@ -238,8 +198,8 @@ export default async function LocationPage({ params }: LocationPageProps) {
                                             endTime={workout.endTime || ''}
                                             days={workout.days || []}
                                             types={workout.types || []}
-                                            comments={workout.comments} // comments can be undefined
-                                            frequencyPrefix={workout.frequencyPrefix} // frequencyPrefix can be undefined
+                                            comments={workout.comments}
+                                            frequencyPrefix={workout.frequencyPrefix}
                                         />
                                     ))}
                                 </div>
@@ -248,8 +208,6 @@ export default async function LocationPage({ params }: LocationPageProps) {
                             )}
                         </div>
                     </div>
-
-                    {/* "Back to Workouts" Button */}
                     <div className="mt-8 text-center">
                         <Button href="/workouts" text="BACK TO ALL WORKOUTS" />
                     </div>
