@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -65,8 +66,8 @@ type RegionFormState = { // Re-defining here for self-containment of the example
   region_city: string;
   region_state: string;
   region_facebook: string;
-  region_map_lat: number;
-  region_map_lon: number;
+  region_map_lat: string;
+  region_map_lon: string;
   region_map_zoom: number;
   region_map_embed_link: string;
 };
@@ -100,8 +101,8 @@ const initialRegionFormState: RegionFormState = {
   region_city: '',
   region_state: '',
   region_facebook: '',
-  region_map_lat: 0,
-  region_map_lon: 0,
+  region_map_lat: '',
+  region_map_lon: '',
   region_map_zoom: 12, // Default zoom level
   region_map_embed_link: '',
 };
@@ -246,8 +247,8 @@ export default function AdminPage() {
         region_city: data.region_city || '',
         region_state: data.region_state || '',
         region_facebook: data.region_facebook || '',
-        region_map_lat: data.region_map_lat || 0,
-        region_map_lon: data.region_map_lon || 0,
+        region_map_lat: data.region_map_lat || '',
+        region_map_lon: data.region_map_lon || '',
         region_map_zoom: data.region_map_zoom || 12,
         region_map_embed_link: data.region_map_embed_link || '',
       });
@@ -654,7 +655,8 @@ export default function AdminPage() {
 
   // Base styling for common components to adapt to dark mode
   const baseClasses = "bg-white text-gray-900 dark:bg-gray-800 dark:text-white";
-  const sectionClasses = "mb-8 p-6 bg-white rounded-lg shadow-xl dark:bg-gray-900 dark:shadow-2xl";
+  // Adjusted sectionClasses to reduce padding on small screens for better use of space
+  const sectionClasses = "mb-8 p-4 sm:p-6 bg-white rounded-lg shadow-xl dark:bg-gray-900 dark:shadow-2xl";
   const inputClasses = "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-white text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400";
   const selectClasses = "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-white text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white";
   const buttonPrimaryClasses = "w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 dark:bg-indigo-700 dark:hover:bg-indigo-800 dark:focus:ring-indigo-400";
@@ -700,9 +702,9 @@ export default function AdminPage() {
 
 
   return (
-    <div className={`min-h-screen ${baseClasses} container mx-auto p-4 sm:p-6 lg:p-8`}>
+    <div className={`min-h-screen ${baseClasses} container mx-auto p-4 sm:p-6 lg:p-8`}> {/* Adjusted page padding */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white">Admin Dashboard</h1>
+        <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white text-2xl sm:text-3xl lg:text-4xl">Admin Dashboard</h1> {/* Responsive heading */}
         <button
           onClick={toggleDarkMode}
           className="p-2 rounded-full text-gray-600 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors duration-200"
@@ -729,34 +731,34 @@ export default function AdminPage() {
 
 
       {/* --- Tab Navigation --- */}
-      <div className="mb-6 border-b border-gray-200 dark:border-gray-700">
-        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+      <div className="mb-6 border-b border-gray-200 dark:border-gray-700 overflow-x-auto"> {/* Added overflow-x-auto here for very small screens */}
+        <nav className="-mb-px flex space-x-4 sm:space-x-8" aria-label="Tabs"> {/* Adjusted space-x for tabs */}
           <button
             onClick={() => setActiveTab('region')}
             className={`${activeTab === 'region'
               ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-300'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg focus:outline-none transition-colors duration-200`}
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base sm:text-lg focus:outline-none transition-colors duration-200`}
           >
-            Region Configuration
+            Region Config
           </button>
           <button
             onClick={() => setActiveTab('locations')}
             className={`${activeTab === 'locations'
               ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-300'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg focus:outline-none transition-colors duration-200`}
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base sm:text-lg focus:outline-none transition-colors duration-200`}
           >
-            Location Management
+            Locations
           </button>
-          <button // NEW TAB
+          <button
             onClick={() => setActiveTab('workouts')}
             className={`${activeTab === 'workouts'
               ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-300'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg focus:outline-none transition-colors duration-200`}
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base sm:text-lg focus:outline-none transition-colors duration-200`}
           >
-            Workout Management
+            Workouts
           </button>
         </nav>
       </div>
@@ -764,7 +766,7 @@ export default function AdminPage() {
       {/* --- Tab Content: Region --- */}
       {activeTab === 'region' && (
         <section className={sectionClasses}>
-          <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">Region Configuration</h2>
+          <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100 text-2xl sm:text-3xl">Region Configuration</h2> {/* Responsive heading */}
 
           {regionLoading && <p className="text-center py-4 text-gray-600 dark:text-gray-400">Loading region data...</p>}
 
@@ -954,7 +956,7 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <div className="md:col-span-2 flex justify-end space-x-4 mt-6">
+              <div className="md:col-span-2 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-6"> {/* Responsive buttons */}
                 <button
                   type="button"
                   onClick={handleCancelRegionEdit}
@@ -978,7 +980,7 @@ export default function AdminPage() {
       {/* --- Tab Content: Locations --- */}
       {activeTab === 'locations' && (
         <section className={sectionClasses}>
-          <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">Location Management (AOs)</h2>
+          <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100 text-2xl sm:text-3xl">Location Management (AOs)</h2>
 
           {!showLocationAddEditForm && (
             <div className="flex justify-end mb-4">
@@ -1100,7 +1102,7 @@ export default function AdminPage() {
                 />
               </div>
 
-              <div className="md:col-span-2 flex justify-end space-x-4 mt-6">
+              <div className="md:col-span-2 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-6"> {/* Responsive buttons */}
                 <button
                   type="button"
                   onClick={handleCancelLocationEdit}
@@ -1125,13 +1127,13 @@ export default function AdminPage() {
                 <p className="text-center py-4 text-gray-600 dark:text-gray-400">No locations found. Add one above!</p>
               )}
               {locations.length > 0 && (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto rounded-lg shadow-md"> {/* Added overflow-x-auto here */}
                   <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead className="bg-gray-50 dark:bg-gray-800">
                       <tr>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Name</th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Address</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Q</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden sm:table-cell">Q</th> {/* Hide Q on extra small screens */}
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Actions</th>
                       </tr>
                     </thead>
@@ -1140,7 +1142,7 @@ export default function AdminPage() {
                         <tr key={location._id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{location.name}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{location.address}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{location.q}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">{location.q}</td> {/* Hide Q on extra small screens */}
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <button
                               onClick={() => handleEditLocation(location)}
@@ -1169,7 +1171,7 @@ export default function AdminPage() {
       {/* --- Tab Content: Workouts --- */}
       {activeTab === 'workouts' && (
         <section className={sectionClasses}>
-          <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">Workout Management</h2>
+          <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100 text-2xl sm:text-3xl">Workout Management</h2>
 
           {!showWorkoutAddEditForm && (
             <div className="flex justify-end mb-4">
@@ -1302,7 +1304,7 @@ export default function AdminPage() {
                 />
               </div>
 
-              <div className="md:col-span-2 flex justify-end space-x-4 mt-6">
+              <div className="md:col-span-2 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-6"> {/* Responsive buttons */}
                 <button
                   type="button"
                   onClick={handleCancelWorkoutEdit}
@@ -1327,16 +1329,16 @@ export default function AdminPage() {
                 <p className="text-center py-4 text-gray-600 dark:text-gray-400">No workouts found. Add one above!</p>
               )}
               {workouts.length > 0 && (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto rounded-lg shadow-md"> {/* Added overflow-x-auto here */}
                   <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead className="bg-gray-50 dark:bg-gray-800">
                       <tr>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Location (AO)</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Time</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Days</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Types</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Frequency Prefix</th> {/* NEW */}
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Comments</th> {/* NEW */}
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 whitespace-nowrap">Time</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden sm:table-cell">Days</th> {/* Hide on extra small screens */}
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden md:table-cell">Types</th> {/* Hide on small screens */}
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden lg:table-cell whitespace-nowrap">Frequency Prefix</th> {/* Hide on medium/small screens */}
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden xl:table-cell">Comments</th> {/* Hide on large/medium/small screens */}
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Actions</th>
                       </tr>
                     </thead>
@@ -1344,11 +1346,11 @@ export default function AdminPage() {
                       {workouts.map((workout) => (
                         <tr key={workout._id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{getLocationName(workout.locationId)}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{workout.startTime} - {workout.endTime}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{workout.days.join(', ')}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{workout.types.join(', ')}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{workout.frequencyPrefix || 'N/A'}</td> {/* Display NEW */}
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{workout.comments || 'N/A'}</td> {/* Display NEW */}
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{workout.startTime}{workout.endTime ? ` - ${workout.endTime}` : ''}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">{workout.days.join(', ')}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 hidden md:table-cell">{workout.types.join(', ')}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 hidden lg:table-cell">{workout.frequencyPrefix || 'N/A'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 hidden xl:table-cell">{workout.comments || 'N/A'}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <button
                               onClick={() => handleEditWorkout(workout)}

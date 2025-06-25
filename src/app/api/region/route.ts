@@ -56,8 +56,8 @@ export async function GET(request: NextRequest) {
                 region_instagram: '',
                 region_linkedin: '',
                 region_x_twitter: '',
-                region_map_lat: 30.0,
-                region_map_lon: -90.0,
+                region_map_lat: '30.0',
+                region_map_lon: '-90.0',
                 region_map_zoom: 10,
                 region_map_embed_link: '',
             });
