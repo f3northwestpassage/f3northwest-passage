@@ -8,8 +8,9 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const enableAnalytics = false;
 
+  const googleAnalyticsId = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
+  const enableAnalytics = typeof googleAnalyticsId === 'string' && googleAnalyticsId.length > 0
   const [darkMode, setDarkMode] = useState(true);
 
   useEffect(() => {
@@ -30,7 +31,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {enableAnalytics && (
           <>
             <Script
-              src="https://www.googletagmanager.com/gtag/js?id=G-H3KTP1DXZF"
+              src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
               strategy="afterInteractive"
             />
             <Script id="google-analytics" strategy="afterInteractive">
@@ -38,7 +39,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}
                 gtag('js', new Date());
-                gtag('config', 'G-H3KTP1DXZF');
+                gtag('config', '${googleAnalyticsId}', {
+                  page_path: window.location.pathname,
+                });
               `}
             </Script>
           </>
