@@ -60,6 +60,8 @@ export async function GET(request: NextRequest) {
                 region_map_lon: '-90.0',
                 region_map_zoom: 10,
                 region_map_embed_link: '',
+                region_google_form_url: '',
+                region_fng_form_url: '',
             });
         }
 

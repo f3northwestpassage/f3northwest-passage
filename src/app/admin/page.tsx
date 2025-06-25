@@ -21,6 +21,8 @@ type RegionFormState = { // Re-defining here for self-containment of the example
   region_map_lon: string;
   region_map_zoom: number;
   region_map_embed_link: string;
+  region_google_form_url: string,
+  region_fng_form_url: string,
 };
 
 type LocaleData = {
@@ -38,6 +40,8 @@ type LocaleData = {
   region_map_lon?: string;
   region_map_zoom?: number;
   region_map_embed_link?: string;
+  region_google_form_url?: string,
+  region_fng_form_url?: string,
 };
 
 
@@ -55,6 +59,8 @@ const initialRegionFormState: RegionFormState = {
   region_map_lon: '',
   region_map_zoom: 12, // Default zoom level
   region_map_embed_link: '',
+  region_google_form_url: '',
+  region_fng_form_url: '',
 };
 
 const initialNewLocationFormState: Partial<LocationClean> = {
@@ -201,6 +207,8 @@ export default function AdminPage() {
         region_map_lon: data.region_map_lon || '',
         region_map_zoom: data.region_map_zoom || 12,
         region_map_embed_link: data.region_map_embed_link || '',
+        region_google_form_url: data.region_google_form_url || '',
+        region_fng_form_url: data.region_fng_form_url || '',
       });
       setRegionConfigExists(true);
       setShowRegionConfigForm(false);
@@ -908,7 +916,36 @@ export default function AdminPage() {
                     </p>
                   </div>
                 </div>
-
+                <div className="md:col-span-2"> {/* This div likely spans two columns on medium screens */}
+                  <label htmlFor="region_google_form_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Google FNG Form URL</label>
+                  <input
+                    type="url"
+                    id="region_fng_form_url"
+                    name="region_fng_form_url"
+                    value={regionForm.region_fng_form_url || ''}
+                    onChange={handleRegionFormChange}
+                    className={inputClasses} // Use your defined inputClasses
+                    placeholder="https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform"
+                  />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    This is the public URL of your Google Form, not the embed code.
+                  </p>
+                </div>
+                <div className="md:col-span-2"> {/* This div likely spans two columns on medium screens */}
+                  <label htmlFor="region_google_form_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Google Contact Form URL</label>
+                  <input
+                    type="url"
+                    id="region_google_form_url"
+                    name="region_google_form_url"
+                    value={regionForm.region_google_form_url || ''}
+                    onChange={handleRegionFormChange}
+                    className={inputClasses} // Use your defined inputClasses
+                    placeholder="https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform"
+                  />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    This is the public URL of your Google Form, not the embed code.
+                  </p>
+                </div>
                 <div className="md:col-span-2 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-6"> {/* Responsive buttons */}
                   <button
                     type="button"

@@ -1,12 +1,11 @@
-// @/utils/fetchLocaleData.ts
-import dbConnect from '@/lib/dbConnect';
-import RegionModel from '@/models/F3Region';
-import { LocaleData } from '../../types/locale'; // Ensure this path is correct and LocaleData matches the schema
+// src/utils/fetchLocaleData.ts
 
-type RegionLean = LocaleData & { _id?: string };
+// IMPORTANT: This utility function will now fetch data via your API route,
+// which is the correct pattern for client-side components to get server data.
+import { LocaleData } from '../../types/locale'; // Ensure this path is correct
 
 const mockRegion: LocaleData = {
-  region_name: "Mock F3 Region (Fallback)", // IMPORTANT: Changed this to make it distinct
+  region_name: "Mock F3 Region (Fallback)",
   meta_description: "This is a mock meta description for F3 Region.",
   hero_title: "Welcome to Mock F3 Region",
   hero_subtitle: "The gloom of the morning will be mocked!",
@@ -16,56 +15,65 @@ const mockRegion: LocaleData = {
   region_instagram: "",
   region_linkedin: "",
   region_x_twitter: "",
-  region_map_lat: "30.123",
-  region_map_lon: "-90.123",
+  region_map_lat: "30.123", // Matches LocaleData type as string
+  region_map_lon: "-90.123", // Matches LocaleData type as string
   region_map_zoom: 12,
   region_map_embed_link: "",
   region_logo_url: "/f3-muletown-white.png",
   region_hero_img_url: "/fod.png",
+  region_google_form_url: "",
+  region_fng_form_url: "",
 };
 
 export async function fetchLocaleData(): Promise<LocaleData> {
+  // Determine the base URL for API calls.
+  // In development, this is typically localhost. In production, Netlify will provide the domain.
+  // NEXT_PUBLIC_SITE_URL should be set in .env.local and Netlify environment variables.
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  const apiUrl = `${baseUrl}/api/region`;
+
   try {
-    await dbConnect(); // Connect to MongoDB
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      // Force no caching at the fetch level. This is redundant if the calling
+      // component (like contact/page.tsx) uses `export const dynamic = 'force-dynamic'`,
+      // but it's good practice for this data fetching utility.
+      cache: 'no-store', // Ensures a fresh request is made every time
+    });
 
-    let region = await RegionModel.findOne({}).lean<RegionLean>().exec();
-
-    if (!region) {
-      console.warn('No region config found in DB. Inserting mock region...');
-      try {
-        await RegionModel.create(mockRegion);
-        region = await RegionModel.findOne({}).lean<RegionLean>().exec(); // Try fetching again after insert
-        if (!region) {
-          console.error('Failed to fetch mock region after insertion. Returning hardcoded mock.');
-          return mockRegion; // Fallback if re-fetch also fails
-        }
-      } catch (insertError) {
-        console.error('Error inserting mock region:', insertError);
-        return mockRegion; // Return mock if insert itself fails
-      }
+    if (!response.ok) {
+      console.error(`Error fetching locale data from API: ${response.status} ${response.statusText}`);
+      // Fallback to mock data if the API call fails
+      return mockRegion;
     }
 
-    // Ensure all properties exist, using mockRegion as fallback for any missing ones
+    const data: LocaleData = await response.json();
+
+    // Ensure all properties exist, using mockRegion as fallback for any missing ones from DB.
+    // This is important because the API might return a partial document if fields are new.
     return {
-      region_name: region.region_name ?? mockRegion.region_name,
-      meta_description: region.meta_description ?? mockRegion.meta_description,
-      hero_title: region.hero_title ?? mockRegion.hero_title,
-      hero_subtitle: region.hero_subtitle ?? mockRegion.hero_subtitle,
-      region_city: region.region_city ?? mockRegion.region_city,
-      region_state: region.region_state ?? mockRegion.region_state,
-      region_facebook: region.region_facebook ?? mockRegion.region_facebook,
-      region_instagram: region.region_instagram ?? mockRegion.region_instagram,
-      region_linkedin: region.region_linkedin ?? mockRegion.region_linkedin,
-      region_x_twitter: region.region_x_twitter ?? mockRegion.region_x_twitter,
-      region_map_lat: region.region_map_lat ?? mockRegion.region_map_lat,
-      region_map_lon: region.region_map_lon ?? mockRegion.region_map_lon,
-      region_map_zoom: region.region_map_zoom ?? mockRegion.region_map_zoom,
-      region_map_embed_link: region.region_map_embed_link ?? mockRegion.region_map_embed_link,
-      region_logo_url: region.region_logo_url ?? mockRegion.region_logo_url,
-      region_hero_img_url: region.region_hero_img_url ?? mockRegion.region_hero_img_url,
+      region_name: data.region_name ?? mockRegion.region_name,
+      meta_description: data.meta_description ?? mockRegion.meta_description,
+      hero_title: data.hero_title ?? mockRegion.hero_title,
+      hero_subtitle: data.hero_subtitle ?? mockRegion.hero_subtitle,
+      region_city: data.region_city ?? mockRegion.region_city,
+      region_state: data.region_state ?? mockRegion.region_state,
+      region_facebook: data.region_facebook ?? mockRegion.region_facebook,
+      region_instagram: data.region_instagram ?? mockRegion.region_instagram,
+      region_linkedin: data.region_linkedin ?? mockRegion.region_linkedin,
+      region_x_twitter: data.region_x_twitter ?? mockRegion.region_x_twitter,
+      region_map_lat: data.region_map_lat ?? mockRegion.region_map_lat,
+      region_map_lon: data.region_map_lon ?? mockRegion.region_map_lon,
+      region_map_zoom: data.region_map_zoom ?? mockRegion.region_map_zoom,
+      region_map_embed_link: data.region_map_embed_link ?? mockRegion.region_map_embed_link,
+      region_logo_url: data.region_logo_url ?? mockRegion.region_logo_url,
+      region_hero_img_url: data.region_hero_img_url ?? mockRegion.region_hero_img_url,
+      region_google_form_url: data.region_google_form_url ?? mockRegion.region_google_form_url,
+      region_fng_form_url: data.region_fng_form_url ?? mockRegion.region_fng_form_url
     };
   } catch (error) {
-    console.error('FETCH_LOCALE_DATA_ERROR (catch block):', error);
-    return mockRegion; // Always return mockRegion on any error
+    console.error('FETCH_LOCALE_DATA_ERROR (HTTP fetch error - returning mock):', error);
+    // Return mockRegion if there's any network or parsing error during the fetch
+    return mockRegion;
   }
 }

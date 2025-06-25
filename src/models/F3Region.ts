@@ -15,8 +15,10 @@ export interface IF3Region extends Document {
     region_map_lon?: string;
     region_map_zoom?: number;
     region_map_embed_link?: string;
-    region_logo_url?: string; // ✅ new optional field
-    region_hero_img_url?: string; // ✅ new optional field
+    region_logo_url?: string;
+    region_hero_img_url?: string;
+    region_google_form_url?: string,
+    region_fng_form_url?: string,
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -37,7 +39,9 @@ const F3RegionSchema = new Schema<IF3Region>({
     region_map_zoom: Number,
     region_map_embed_link: String,
     region_logo_url: String,
-    region_hero_img_url: String // ✅ added to schema
+    region_hero_img_url: String,
+    region_google_form_url: String,
+    region_fng_form_url: String,
 }, { timestamps: true });
 
 const RegionModel: Model<IF3Region> =

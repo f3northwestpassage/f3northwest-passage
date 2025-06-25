@@ -20,6 +20,8 @@ export interface LocaleData {
 
     region_logo_url?: string;
     region_hero_img_url?: string;
+    region_google_form_url?: string,
+    region_fng_form_url?: string,
 }
 
 // Optional: If you want a type for the form state specifically

@@ -1,7 +1,6 @@
-// app/fng/page.tsx
-// This page displays information for "Friendly New Guys" (FNG).
-export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store'; // Ensures data is always fresh, not cached at build time
+'use client'; // This page is a Client Component
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 import Header from '../_components/Header';
@@ -12,18 +11,73 @@ import Hero from '../_components/Hero';
 import f3HeroImg from '../../../public/fod.png'; // Make sure this path is correct and the image exists.
 
 import { fetchLocaleData } from '@/utils/fetchLocaleData';
+import type { LocaleData } from '../../../types/locale'; // Ensure this path is correct
 
-export default async function Page() {
-  const locales = await fetchLocaleData();
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store'; // Ensures data is always fresh, not cached at build time
 
-  // Provide default empty strings for locale data if it's null/undefined
-  const regionName = locales?.region_name ?? "";
-  const regionFacebook = locales?.region_facebook ?? "";
-  const regionInstagram = locales?.region_instagram ?? "";
-  const regionLinkedin = locales?.region_linkedin ?? "";
-  const regionXTwitter = locales?.region_x_twitter ?? "";
+export default function Page() {
+  const [localeData, setLocaleData] = useState<LocaleData | null>(null);
+  const [localeLoading, setLocaleLoading] = useState(true);
+  const [localeError, setLocaleError] = useState<string | null>(null);
+
+  // --- NEW: Initialize showFngForm from localStorage ---
+  const [showFngForm, setShowFngForm] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const savedState = localStorage.getItem('showFngForm');
+      return savedState === 'true'; // Convert 'true' string back to boolean
+    }
+    return false; // Default to false if not in browser environment
+  });
+  // --- END NEW ---
+
+  const [fngFormEmbedUrl, setFngFormEmbedUrl] = useState<string | null>(null);
+  // fngFormLoading state is implicitly handled by localeLoading now
+  const [fngFormError, setFngFormError] = useState<string | null>(null);
+
+  // Fetch locale data
+  useEffect(() => {
+    const getLocale = async () => {
+      try {
+        const data = await fetchLocaleData();
+        setLocaleData(data);
+        // Assuming region_fng_form_url is available in LocaleData
+        if (data?.region_fng_form_url) {
+          setFngFormEmbedUrl(data.region_fng_form_url.replace(/\/viewform$/, '/embed'));
+        } else {
+          setFngFormError("FNG Form URL is not configured in locale data.");
+        }
+      } catch (err) {
+        console.error('Failed to fetch locale data for FNG page:', err);
+        setLocaleError('Failed to load page content.');
+      } finally {
+        setLocaleLoading(false);
+      }
+    };
+    getLocale();
+  }, []); // Empty dependency array means this runs once on mount
+
+  // --- NEW: Persist showFngForm state to localStorage whenever it changes ---
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('showFngForm', String(showFngForm));
+    }
+  }, [showFngForm]);
+  // --- END NEW ---
+
+
+  const handleToggleFngForm = () => {
+    setShowFngForm(prev => !prev);
+    // When showing, ensure no previous errors are displayed initially
+    if (!showFngForm && !fngFormEmbedUrl) {
+      setFngFormError(localeData?.region_fng_form_url ? null : "FNG Form URL is not configured.");
+    }
+  };
 
   const href = '/fng'; // This seems to be the current page's link
+
+  const overallLoading = localeLoading;
+  const overallError = localeError;
 
   return (
     <>
@@ -35,7 +89,44 @@ export default async function Page() {
           imgUrl={f3HeroImg.src}
           imgAlt="A group of F3 men exercising outdoors" // Added a descriptive alt text
         />
+        {/* Section 2: FNG Form Button */}
+        <section className="bg-gray-200 dark:bg-gray-900 py-16 px-4 leading-tight text-center">
+          <button
+            onClick={handleToggleFngForm}
+            disabled={overallLoading || !localeData} // Disable if locale data is still loading
+            className="inline-flex items-center justify-center px-8 py-3 border border-transparent bg-blue-800 text-base font-medium rounded-md text-white bg-f3-blue hover:bg-blue-700 dark:bg-f3-blue-light dark:hover:bg-blue-800 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {showFngForm ? 'Hide FNG Form' : 'Show FNG Form'}
+          </button>
 
+          {showFngForm && (
+            <div className="mt-8 max-w-2xl mx-auto">
+              {overallLoading ? (
+                <div className="text-center py-8 text-gray-600 dark:text-gray-400">Loading FNG form...</div>
+              ) : fngFormError ? (
+                <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded dark:bg-red-800 dark:border-red-600 dark:text-red-100" role="alert">
+                  <p className="font-bold">Form Error:</p>
+                  <p className="text-sm">{fngFormError}</p>
+                </div>
+              ) : !fngFormEmbedUrl ? (
+                <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded dark:bg-yellow-800 dark:border-yellow-600 dark:text-yellow-100" role="alert">
+                  <p className="font-bold">Form Unavailable:</p>
+                  <p className="text-sm">The FNG form URL is not configured by the admin or is invalid.</p>
+                </div>
+              ) : (
+                <iframe
+                  src={fngFormEmbedUrl}
+                  frameBorder="0"
+                  className="w-full min-h-[600px] md:min-h-[700px] lg:min-h-[800px] rounded-lg shadow-md"
+                  title="FNG Google Form"
+                  allowFullScreen
+                >
+                  Loading FNG Google Form...
+                </iframe>
+              )}
+            </div>
+          )}
+        </section>
         {/* Section 1: F.N.G. Information */}
         <section className="bg-gray-100 dark:bg-gray-800 py-16 px-4 leading-tight text-center">
           <h2 className="text-5xl font-extrabold text-f3-blue dark:text-f3-blue-light mb-6">
@@ -44,7 +135,7 @@ export default async function Page() {
           <p className="text-gray-700 dark:text-gray-300 pt-5 max-w-4xl mx-auto">
             We appreciate you joining us and there is a lot of information to
             tell you but to avoid overwhelming you here are a few ways to keep
-            in touch and know what&apos;s going on in {regionName}. If you still
+            in touch and know what&apos;s going on in {localeData?.region_name ?? "your region"}. If you still
             have questions just ask any of the guys and they&apos;ll help or
             point you in the right direction!
           </p>
@@ -80,7 +171,9 @@ export default async function Page() {
           </p>
         </section>
 
-        {/* Section 2: Tips for Your First Workout */}
+
+
+        {/* Section 3: Tips for Your First Workout */}
         <section className="bg-gray-200 dark:bg-gray-900 py-16 px-4 leading-tight text-center">
           <h2 className="text-4xl font-extrabold text-gray-800 dark:text-gray-100 mb-8">
             TIPS FOR YOUR FIRST WORKOUT
@@ -150,11 +243,11 @@ export default async function Page() {
         </section>
       </main>
       <Footer
-        regionName={regionName}
-        regionFacebook={regionFacebook}
-        regionInstagram={regionInstagram}
-        regionLinkedin={regionLinkedin}
-        regionXTwitter={regionXTwitter}
+        regionName={localeData?.region_name ?? ""}
+        regionFacebook={localeData?.region_facebook ?? ""}
+        regionInstagram={localeData?.region_instagram ?? ""}
+        regionLinkedin={localeData?.region_linkedin ?? ""}
+        regionXTwitter={localeData?.region_x_twitter ?? ""}
       />
     </>
   );
