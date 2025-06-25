@@ -7,7 +7,7 @@ import mongoose from 'mongoose';
 
 // IMPORTANT: Use a regular environment variable for server-side secrets, NOT NEXT_PUBLIC_
 // Ensure ADMIN_PASSWORD is set in your .env.local file (e.g., ADMIN_PASSWORD=your_secure_password)
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
 
 // --- PUT: Update or Insert Region Config (Protected) ---
 export async function PUT(request: Request) {
