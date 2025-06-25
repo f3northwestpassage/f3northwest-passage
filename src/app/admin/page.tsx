@@ -3,57 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import type { LocationClean, WorkoutClean } from '../../../types/workout'; // Assuming this path is correct
-// IMPORTANT: You need to manually update your types/workout.ts file:
-// - Remove 'pax_count: number;' from both LocaleData and RegionFormState interfaces.
-// - ADD 'region_logo_url?: string;' and 'region_hero_img_url?: string;' to both LocaleData and RegionFormState interfaces.
-// Make sure WorkoutClean in types/workout.ts matches your WorkoutModel.
-// Example `types/workout.ts` structure for reference:
-/*
-export type LocationClean = {
-  _id: string;
-  name: string;
-  mapLink: string;
-  address: string;
-  description: string;
-  q: string;
-  embedMapLink: string;
-  imageUrl: string;
-  paxImageUrl: string;
-};
-
-export type WorkoutClean = {
-  _id?: string; // Optional for new workouts
-  locationId: string; // ID of the associated location
-  ao?: string; // Populated from Location.name on fetch, not directly stored
-  startTime: string;
-  endTime: string;
-  days: string[];
-  types: string[];
-  avgAttendance?: number;
-  // NEW: Add these two fields
-  frequencyPrefix?: string; // e.g., "Every", "1st Saturday", "2nd and 4th Tuesday"
-  comments?: string; // e.g., "Bring coupons", "Child friendly"
-};
-
-export type LocaleData = {
-  _id?: string;
-  region_name?: string;
-  meta_description?: string;
-  hero_title?: string;
-  hero_subtitle?: string;
-  region_logo_url?: string;
-  region_hero_img_url?: string;
-  region_city?: string;
-  region_state?: string;
-  region_facebook?: string;
-  region_map_lat?: number;
-  region_map_lon?: number;
-  region_map_zoom?: number;
-  region_map_embed_link?: string;
-};
-
-*/
+import type { LocationClean, WorkoutClean } from '../../../types/workout'; // Assuming 
 
 
 type RegionFormState = { // Re-defining here for self-containment of the example
@@ -72,7 +22,7 @@ type RegionFormState = { // Re-defining here for self-containment of the example
   region_map_embed_link: string;
 };
 
-type LocaleData = { // Re-defining here for self-containment of the example
+type LocaleData = {
   _id?: string;
   region_name?: string;
   meta_description?: string;
@@ -83,14 +33,13 @@ type LocaleData = { // Re-defining here for self-containment of the example
   region_city?: string;
   region_state?: string;
   region_facebook?: string;
-  region_map_lat?: number;
-  region_map_lon?: number;
+  region_map_lat?: string;
+  region_map_lon?: string;
   region_map_zoom?: number;
   region_map_embed_link?: string;
 };
 
 
-// Define the initial state for the region form (pax_count removed, new URLs added)
 const initialRegionFormState: RegionFormState = {
   region_name: '',
   meta_description: '',
