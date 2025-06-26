@@ -1,8 +1,6 @@
 // src/utils/fetchLocaleData.ts
 
-// IMPORTANT: This utility function will now fetch data via your API route,
-// which is the correct pattern for client-side components to get server data.
-import type { LocaleData } from '../../types/workout'; // Ensure this path is correct
+import type { LocaleData } from '../../types/workout'; // Adjust path if necessary
 
 const mockRegion: LocaleData = {
   region_name: "Mock F3 Region (Fallback)",
@@ -26,14 +24,12 @@ const mockRegion: LocaleData = {
 };
 
 export async function fetchLocaleData(): Promise<LocaleData> {
-  // Determine the base URL for API calls.
-  // In development, this is typically localhost. In production, VERCEL_URL is provided,
-  // or NEXT_PUBLIC_BASE_URL should be manually set.
-  // CRITICAL: Ensure NEXT_PUBLIC_BASE_URL is set EXACTLY to your canonical production domain (e.g., https://www.f3northwestpassage.com)
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL || 'http://localhost:3000';
-  const apiUrl = `${baseUrl}/api/region`;
+  // --- IMPORTANT CHANGE HERE ---
+  // When using rewrites in next.config.js for API routes that live within the same Next.js app,
+  // the client-side fetch should use a relative path. The Next.js server will then proxy it.
+  const apiUrl = '/api/region'; // Use a relative path to leverage next.config.js rewrites
 
-  console.log(`[fetchLocaleData] Attempting to fetch region config from: ${apiUrl}`); // <-- CRUCIAL DEBUG LOG
+  console.log(`[fetchLocaleData] Attempting to fetch region config from: ${apiUrl} (using relative path)`); // Updated debug log
 
   try {
     const response = await fetch(apiUrl, {
@@ -60,7 +56,7 @@ export async function fetchLocaleData(): Promise<LocaleData> {
       region_state: data.region_state ?? mockRegion.region_state,
       region_facebook: data.region_facebook ?? mockRegion.region_facebook,
       region_instagram: data.region_instagram ?? mockRegion.region_instagram,
-      region_linkedin: data.region_linkedin ?? mockRegion.region_linkedin,
+      region_linkedin: data.region_linkedin ?? mockRegion.region_linkedin, // Corrected from data.linkedin to data.region_linkedin if model field is region_linkedin
       region_x_twitter: data.region_x_twitter ?? mockRegion.region_x_twitter,
       // Convert map_lat/lon to numbers if they come as strings, ensure fallback is number
       region_map_lat: (typeof data.region_map_lat === 'string' ? parseFloat(data.region_map_lat) : data.region_map_lat) ?? mockRegion.region_map_lat,
