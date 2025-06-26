@@ -28,13 +28,15 @@ export function convertWorkoutsToCardProps(
     const locationName = location ? location.name : 'Unknown Location';
 
     return {
-      _id: wClean._id,
+      _id: wClean._id!, // Non-null assertion: asserting _id will be a string
       locationId: wClean.locationId, // Ensure locationId is passed
       locationName: locationName,    // Look up and pass the location name
       startTime: wClean.startTime,
       endTime: wClean.endTime,
       days: wClean.days,
       types: wClean.types,
+      comments: wClean.comments, // Ensure comments are passed if part of props
+      frequencyPrefix: wClean.frequencyPrefix, // Ensure frequencyPrefix is passed if part of props
       // imageUrl is explicitly removed as it's not part of WorkoutCardProps anymore
     };
   });

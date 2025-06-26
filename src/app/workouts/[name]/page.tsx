@@ -18,11 +18,19 @@ import Button from '../../_components/Button'; // Assuming this is a generic but
 
 // Data Fetching Utility Imports (ensure these paths are correct)
 import { fetchLocationsData } from '@/utils/fetchLocationsData'; // Import fetch function
-import type { LocationClean } from '@/utils/fetchLocationsData'; // Import LocationClean type from where it's defined
+// import type { LocationClean } from '@/utils/fetchLocationsData'; // Import LocationClean type from where it's defined
 import { fetchLocaleData } from '@/utils/fetchLocaleData'; // Import fetchLocaleData
 import { fetchWorkoutsData } from '@/utils/fetchWorkoutsData'; // Import fetchWorkoutsData function
-import type { WorkoutClean } from '@/utils/fetchWorkoutsData'; // Import WorkoutClean type from where it's defined
+import type { WorkoutClean, LocationClean, LocaleData } from '../../../../types/workout';// Import WorkoutClean type from where it's defined
 
+
+// --- COMMENT OUT OR DELETE THIS INTERFACE DEFINITION ---
+// interface LocationPageProps {
+//     params: {
+//         name: string; // The encoded location name from the URL (e.g., "The-Boneyard")
+//     };
+//     // searchParams?: { [key: string]: string | string[] | undefined }; // Uncomment if you use search params
+// }
 
 // --- generateStaticParams (Optional but Recommended for SEO & Performance) ---
 export async function generateStaticParams() {
@@ -46,6 +54,7 @@ export async function generateStaticParams() {
 }
 
 // --- generateMetadata (Dynamic SEO Titles & Descriptions) ---
+// *** CHANGE THIS LINE ***
 export async function generateMetadata({ params }: { params: { name: string; } }): Promise<Metadata> {
     if (process.env.SKIP_DB === 'true') {
         return {
@@ -78,6 +87,7 @@ export async function generateMetadata({ params }: { params: { name: string; } }
 }
 
 // --- Main Location Page Component ---
+// *** CHANGE THIS LINE ***
 export default async function LocationPage({ params }: { params: { name: string; } }) {
     const decodedName = decodeURIComponent(params.name);
     let allLocations: LocationClean[] = [];
@@ -148,32 +158,26 @@ export default async function LocationPage({ params }: { params: { name: string;
                             </p>
                         )}
                         {location.description && <p className="text-gray-700 dark:text-gray-300 mb-4 text-md leading-relaxed">{location.description}</p>}
-
-                        {/* Google Maps Integration: Display iframe if embedMapLink exists, otherwise a link */}
-                        <div className="flex flex-col items-center gap-4 mt-6">
+                        <div className="flex justify-center gap-4">
                             {location.embedMapLink && (
-                                <div className="w-full h-80 bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden shadow-md">
-                                    <iframe
-                                        src={location.embedMapLink}
-                                        width="100%"
-                                        height="100%"
-                                        style={{ border: 0 }}
-                                        allowFullScreen={true}
-                                        loading="lazy"
-                                        referrerPolicy="no-referrer-when-downgrade"
-                                        title={`Google Map of ${location.name}`}
-                                    ></iframe>
-                                </div>
-                            )}
-
-                            {(location.mapLink || location.embedMapLink) && ( // Show "Open in Maps" button if either link type exists
                                 <Link
-                                    href={location.mapLink || location.embedMapLink || '#'} // Fallback to embed link if only that exists
+                                    href={location.embedMapLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors duration-200"
                                 >
-                                    <svg className="w-5 h-5 mr-1 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                    <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                    View Embedded Map
+                                </Link>
+                            )}
+                            {!location.embedMapLink && location.mapLink && (
+                                <Link
+                                    href={location.mapLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors duration-200"
+                                >
+                                    <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                     <p className='text-white'>Open in Google Maps</p>
                                 </Link>
                             )}
@@ -184,8 +188,8 @@ export default async function LocationPage({ params }: { params: { name: string;
                         {workoutsAtThisLocation.length > 0 ? (
                             <div className={
                                 workoutsAtThisLocation.length === 1
-                                    ? "flex justify-center"
-                                    : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 place-items-center" // Added place-items-center
+                                    ? "flex justify-center" // Center the single card
+                                    : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" // Use grid for multiple cards
                             }>
                                 {workoutsAtThisLocation.map((workout) => (
                                     <WorkoutCard

@@ -222,8 +222,8 @@ export default async function Page() {
                             {workoutsAtThisLocation.length > 0 ? (
                               workoutsAtThisLocation.map((workout) => (
                                 <WorkoutCard
-                                  key={workout._id}
-                                  _id={workout._id}
+                                  key={workout._id!}
+                                  _id={workout._id!}
                                   locationId={location._id}
                                   locationName={location.name}
                                   startTime={workout.startTime}

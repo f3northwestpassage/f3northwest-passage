@@ -302,7 +302,7 @@ export default function AdminPage() {
       });
 
       // --- FIX: Read response text once, then try parsing as JSON ---
-      const responseText = await response.text(); // Read the body stream ONCE as text
+      const responseText = await response.text(); // Read the body stream ONCE as text 
       let data;
       try {
         data = JSON.parse(responseText); // Attempt to parse the text as JSON
