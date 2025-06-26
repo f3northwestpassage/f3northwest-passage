@@ -24,14 +24,20 @@ const mockRegion: LocaleData = {
 };
 
 export async function fetchLocaleData(): Promise<LocaleData> {
-  // --- IMPORTANT CHANGE HERE ---
-  // For server-side fetches (like in Server Components or generateMetadata),
-  // a full absolute URL is required.
-  // We use NEXT_PUBLIC_BASE_URL (or VERCEL_URL in Vercel environment) for this.
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL || 'http://localhost:3000';
-  const apiUrl = `${baseUrl}/api/region`; // Construct an absolute URL
+  let apiUrl: string;
 
-  console.log(`[fetchLocaleData] Attempting to fetch region config from: ${apiUrl} (using absolute path for server-side)`); // Updated debug log
+  // Determine if running on client (browser) or server (Node.js)
+  if (typeof window !== 'undefined') {
+    // Client-side: Use a relative path to leverage next.config.js rewrites
+    apiUrl = '/api/region';
+    console.log(`[fetchLocaleData] Client-side fetch: ${apiUrl} (will use rewrites)`);
+  } else {
+    // Server-side: Use an absolute URL for direct Node.js fetch
+    // NEXT_PUBLIC_BASE_URL should be set in your .env.local and production env
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL || 'http://localhost:3000';
+    apiUrl = `${baseUrl}/api/region`;
+    console.log(`[fetchLocaleData] Server-side fetch: ${apiUrl} (absolute path)`);
+  }
 
   try {
     const response = await fetch(apiUrl, {
@@ -40,7 +46,7 @@ export async function fetchLocaleData(): Promise<LocaleData> {
     });
 
     if (!response.ok) {
-      console.error(`[fetchLocaleData] API fetch error: Status ${response.status} - ${response.statusText}`);
+      console.error(`[fetchLocaleData] API fetch error: Status ${response.status} - ${response.statusText} for ${apiUrl}`);
       // Fallback to mock data if the API call fails
       return mockRegion;
     }
@@ -71,7 +77,7 @@ export async function fetchLocaleData(): Promise<LocaleData> {
       region_fng_form_url: data.region_fng_form_url ?? mockRegion.region_fng_form_url,
     };
   } catch (error) {
-    console.error('[fetchLocaleData] FETCH_LOCALE_DATA_ERROR (HTTP fetch error - returning mock):', error);
+    console.error(`[fetchLocaleData] FETCH_LOCALE_DATA_ERROR for ${apiUrl} (returning mock):`, error);
     // Return mockRegion if there's any network or parsing error during the fetch
     return mockRegion;
   }
