@@ -7,7 +7,26 @@ import mongoose from 'mongoose';
 
 // IMPORTANT: Use a regular environment variable for server-side secrets, NOT NEXT_PUBLIC_
 // Ensure ADMIN_PASSWORD is set in your .env.local file (e.g., ADMIN_PASSWORD=your_secure_password)
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+// Helper to set CORS headers for all responses
+const setCorsHeaders = (response: NextResponse): NextResponse => {
+    // In production, consider being more restrictive by setting specific origins
+    // For general purpose or same-domain API, allowing * is often used.
+    // If you need to restrict, replace '*' with your specific production domain(s)
+    // e.g., 'https://www.f3northwestpassage.com'
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    return response;
+};
+
+// Handle OPTIONS requests for CORS preflight
+export async function OPTIONS() {
+    const response = new NextResponse(null, { status: 204 }); // 204 No Content for preflight success
+    return setCorsHeaders(response);
+}
+
 
 // --- PUT: Update or Insert Region Config (Protected) ---
 export async function PUT(request: Request) {
@@ -18,8 +37,8 @@ export async function PUT(request: Request) {
         // Basic password validation for admin access
         if (!password || password !== ADMIN_PASSWORD) {
             console.warn('Unauthorized PUT /api/region attempt - Invalid or missing password');
-            // Ensure this returns a JSON response
-            return NextResponse.json({ message: 'Unauthorized: Invalid or missing password.' }, { status: 401 });
+            const response = NextResponse.json({ message: 'Unauthorized: Invalid or missing password.' }, { status: 401 });
+            return setCorsHeaders(response);
         }
 
         await dbConnect(); // Ensure database connection is established
@@ -30,22 +49,24 @@ export async function PUT(request: Request) {
         // Find the existing region configuration. Assuming there's only one.
         const existing = await F3RegionModel.findOne().exec();
 
+        let response;
         if (existing) {
             // If config exists, update it
             await F3RegionModel.updateOne({ _id: existing._id }, { $set: body });
             console.log('Existing region configuration updated.');
-            return NextResponse.json({ message: 'Region configuration updated successfully.' }, { status: 200 });
+            response = NextResponse.json({ message: 'Region configuration updated successfully.' }, { status: 200 });
         } else {
             // If no config exists, create a new one
             const created = await F3RegionModel.create(body);
             console.log('New region configuration created.');
             // Ensure _id is converted to string for consistent API response
-            return NextResponse.json({ message: 'Region configuration created successfully.', id: (created._id as mongoose.Types.ObjectId).toString() }, { status: 201 });
+            response = NextResponse.json({ message: 'Region configuration created successfully.', id: (created._id as mongoose.Types.ObjectId).toString() }, { status: 201 });
         }
+        return setCorsHeaders(response);
     } catch (error: any) {
         console.error('Error in PUT /api/region:', error);
-        // Ensure all error paths return a JSON response
-        return NextResponse.json({ message: error.message || 'Internal Server Error during region update.' }, { status: 500 });
+        const response = NextResponse.json({ message: error.message || 'Internal Server Error during region update.' }, { status: 500 });
+        return setCorsHeaders(response);
     }
 }
 
@@ -56,10 +77,11 @@ export async function GET(request: NextRequest) {
 
         const region = await F3RegionModel.findOne().lean().exec();
 
+        let response;
         if (!region) {
             console.warn('No region found in DB, returning mock region data.');
             // Return a comprehensive mock object, including new fields
-            return NextResponse.json({
+            response = NextResponse.json({
                 _id: 'mock-id',
                 region_name: 'Mock Region',
                 meta_description: 'This is a mock region configuration for demonstration or when no actual config exists.',
@@ -69,8 +91,8 @@ export async function GET(request: NextRequest) {
                 region_hero_img_url: '',
                 region_city: 'Mockville',
                 region_state: 'MS',
-                region_facebook: 'https://www.facebook.com/mockf3',
-                region_instagram: 'https://www.instagram.com/mockf3',
+                region_facebook: 'https://www.facebook.com/mockf3region',
+                region_instagram: '',
                 region_linkedin: '',
                 region_x_twitter: '',
                 region_map_lat: 30.0,
@@ -80,12 +102,13 @@ export async function GET(request: NextRequest) {
                 region_google_form_url: 'https://docs.google.com/forms/d/e/1FAIpQLScqiwlrlx4n8WhK8VokVF-XGWXBbDhmLkgpZSeunbHy52dFHQ/viewform', // Example form URL
                 region_fng_form_url: 'https://docs.google.com/forms/d/e/1FAIpQLScqiwlrlx4n8WhK8VokVF-XGWXBbDhmLkgpZSeunbHy52dFHQ/viewform', // Example FNG form URL
             }, { status: 404 }); // Indicate that resource was not found, but providing a default
+        } else {
+            response = NextResponse.json(region, { status: 200 });
         }
-
-        return NextResponse.json(region, { status: 200 });
+        return setCorsHeaders(response);
     } catch (error: any) {
         console.error('Error in GET /api/region:', error);
-        // Ensure all error paths return a JSON response
-        return NextResponse.json({ message: error.message || 'Internal Server Error during region fetch.' }, { status: 500 });
+        const response = NextResponse.json({ message: error.message || 'Internal Server Error during region fetch.' }, { status: 500 });
+        return setCorsHeaders(response);
     }
 }
