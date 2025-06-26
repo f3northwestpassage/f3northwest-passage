@@ -160,7 +160,7 @@ export default function Page() {
           <button
             onClick={handleToggleFngForm}
             disabled={overallLoading || !localeData} // Disable if locale data is still loading
-            className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-900 bg-f3-blue hover:bg-blue-700 dark:bg-f3-blue-light dark:hover:bg-blue-800 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-white text-base font-medium rounded-md text-white bg-blue-900 bg-f3-blue hover:bg-blue-700 dark:bg-f3-blue-light dark:hover:bg-blue-800 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {showFngForm ? 'Hide FNG Form' : '👉 Fill out FNG Form 👈'}
           </button>
