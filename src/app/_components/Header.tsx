@@ -8,7 +8,7 @@ export default function Header({ href }: { href: string }) {
   const pages = [
     { href: '/fng', text: 'NEW TO F3 [FNG]' },
     { href: '/workouts', text: 'WORKOUTS [AO]' },
-    { href: '/workouts', text: 'Contact Us' },
+    { href: '/contact', text: 'Contact Us' },
   ];
 
   const [isDark, setIsDark] = useState(false);

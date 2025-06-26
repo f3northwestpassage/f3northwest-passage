@@ -42,10 +42,10 @@ export default function ContactPage() {
 
     const overallLoading = localeLoading;
     const overallError = loadError;
-
+    const href = "/contact"
     return (
         <>
-            <Header href="/contact" />
+            <Header href={href} />
             <main className="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
                 <Hero
                     title="CONTACT US"

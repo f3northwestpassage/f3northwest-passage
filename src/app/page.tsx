@@ -45,19 +45,30 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // --- Main Page Component (Server-Side) ---
 export default async function Page() {
+  console.log('[HomePage Server Component] Page rendering started.'); // Added log
   let localeData = null;
   let workouts = null;
   let fetchError: string | null = null;
 
+  // Persistence of issue: Home page still shows mock data in production.
+  // This indicates server-side fetch for localeData is likely failing.
+  // The most common cause remains SSL/domain configuration for the API endpoint.
+
   try {
     // Fetch data concurrently
+    console.log('[HomePage Server Component] Attempting to fetch locale and workout data...'); // Added log
     [localeData, workouts] = await Promise.all([
       fetchLocaleData(),
       fetchWorkoutsData(),
     ]);
+    console.log('[HomePage Server Component] Data fetched successfully.'); // Added log
+    console.log('  Fetched localeData:', localeData ? { region_name: localeData.region_name, hero_title: localeData.hero_title, _id: localeData._id } : 'null'); // Added detailed log for localeData
+    console.log('  Fetched workouts count:', workouts ? workouts.length : 'null'); // Added detailed log for workouts
   } catch (error: any) {
     console.error("Error fetching initial data for home page:", error);
-    fetchError = `Failed to load essential data: ${error.message || 'Unknown error'}`;
+    // Capture the error message for display
+    fetchError = `Failed to load essential data: ${error.message || 'Unknown network error. Check server logs.'}`;
+    console.log('[HomePage Server Component] fetchError set:', fetchError); // Added log for fetchError
     // If fetch fails, localeData and workouts will remain null, handled below
   }
 
@@ -66,6 +77,7 @@ export default async function Page() {
 
   // Determine if content can be displayed or if an error message is needed
   const showContent = localeData && workouts && !fetchError;
+  console.log('[HomePage Server Component] showContent status:', showContent); // Added log
 
   return (
     <>
@@ -85,13 +97,12 @@ export default async function Page() {
             <p className="font-bold">Error Loading Page Content:</p>
             <p className="text-sm">{fetchError}</p>
             <p className="text-xs mt-2">
-              Please ensure your API and database are accessible and correctly configured.
-              If this is a production environment, verify your SSL certificate setup.
+              **Troubleshooting Tip:** For Server Components, this error usually means the Next.js server itself could not connect to the API.
+              Please check your **hosting provider's runtime logs** for detailed fetch errors.
+              Also, verify your domain's **SSL certificate configuration** for `{`process.env.NEXT_PUBLIC_BASE_URL || 'your domain'`}` is correct and covers all subdomains (e.g., `www`).
             </p>
           </section>
         ) : !showContent ? (
-          // This block theoretically shouldn't be hit if fetchError is handled,
-          // but good for completeness if data is somehow null without an explicit error.
           <section className="text-center py-8 text-gray-600 dark:text-gray-400">
             Loading essential region data...
           </section>
@@ -101,15 +112,15 @@ export default async function Page() {
               <div className="shadow-xl">
                 <h2 className="leading-none">
                   <span className="opacity-70">THIS IS</span>
-                  <span className="block text-5xl py-5">{localeData?.region_name ?? ''}</span> {/* Added optional chaining */}
+                  <span className="block text-5xl py-5">{localeData?.region_name ?? ''}</span>
                 </h2>
                 <p className="subtitle text-xl pb-10 opacity-70">
-                  {localeData?.meta_description ?? ''} {/* Added optional chaining */}
+                  {localeData?.meta_description ?? ''}
                 </p>
               </div>
 
               {localeData?.region_logo_url && (
-                < Image
+                <Image
                   src={localeData.region_logo_url}
                   alt={`${localeData.region_name ?? 'F3 Region'} Logo`}
                   width={200}
@@ -124,10 +135,10 @@ export default async function Page() {
                 <h3 className="pb-6 text-2xl font-semibold">WE ARE</h3>
                 <p className="pb-6">
                   {`${100}+ guys that meet up in small groups `}to workout in parks and
-                  public spaces around {localeData?.region_city}, {localeData?.region_state}. {/* Added optional chaining */}
+                  public spaces around {localeData?.region_city}, {localeData?.region_state}.
                 </p>
                 <p className="pb-10 font-bold">
-                  We hold free workouts in {localeData?.region_city} each week. Weekday workouts are {/* Added optional chaining */}
+                  We hold free workouts in {localeData?.region_city} each week. Weekday workouts are
                   generally 45 MIN & 60 MIN on Saturday.
                 </p>
               </div>
@@ -210,7 +221,6 @@ export default async function Page() {
       </main>
 
       <Footer
-        // Use fallbacks in case localeData is null due to error
         regionName={localeData?.region_name ?? ''}
         regionFacebook={localeData?.region_facebook ?? ''}
         regionInstagram={localeData?.region_instagram ?? ''}
