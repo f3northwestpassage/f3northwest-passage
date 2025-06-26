@@ -96,11 +96,7 @@ export default async function Page() {
           <section className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded dark:bg-red-800 dark:border-red-600 dark:text-red-100 my-8 max-w-4xl mx-auto" role="alert">
             <p className="font-bold">Error Loading Page Content:</p>
             <p className="text-sm">{fetchError}</p>
-            <p className="text-xs mt-2">
-              **Troubleshooting Tip:** For Server Components, this error usually means the Next.js server itself could not connect to the API.
-              Please check your **hosting provider's runtime logs** for detailed fetch errors.
-              Also, verify your domain's **SSL certificate configuration** for `{`process.env.NEXT_PUBLIC_BASE_URL || 'your domain'`}` is correct and covers all subdomains (e.g., `www`).
-            </p>
+
           </section>
         ) : !showContent ? (
           <section className="text-center py-8 text-gray-600 dark:text-gray-400">
