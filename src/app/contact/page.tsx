@@ -5,10 +5,11 @@ import Header from '../_components/Header';
 import Footer from '../_components/Footer';
 import Hero from '../_components/Hero';
 import { fetchLocaleData } from '@/utils/fetchLocaleData';
-import type { LocaleData } from '../../../types/locale'; // Ensure this path is correct
+// CORRECTED: Ensure this path correctly points to your canonical types/workout.ts file
+import type { LocaleData } from '../../../types/workout';
 
 // Adjust the path to an appropriate image in your public folder or consider a placeholder
-// import contactHeroImg from '../../../public/f3-darkhorse-20250612_111636.jpg'; // Using a more generic image name here
+import contactHeroImg from '../../../public/f3-darkhorse-2023-11-04.jpg'; // Reusing an existing one for now
 
 export const dynamic = 'force-dynamic'; // Ensure fresh data on every request
 
@@ -46,12 +47,12 @@ export default function ContactPage() {
         <>
             <Header href="/contact" />
             <main className="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
-                {/* <Hero
+                <Hero
                     title="CONTACT US"
                     subtitle="We'd love to hear from you."
                     imgUrl={contactHeroImg.src}
                     imgAlt="People shaking hands"
-                /> */}
+                />
 
                 <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-2xl mx-auto">
                     <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-6 text-center">Send us a message</h2>
@@ -74,23 +75,15 @@ export default function ContactPage() {
                             </p>
                         </div>
                     ) : (
-                        // --- NEW: Embedding Google Form via iframe with responsive height ---
-                        // Removed the `relative` parent div and its aspect ratio styling
-                        // The iframe will now attempt to size itself based on content,
-                        // with a minimum height to ensure it's visible.
                         <iframe
                             src={googleFormEmbedUrl}
-                            // Removed width/height attributes to allow for responsive sizing
                             frameBorder="0"
-                            // marginHeight and marginWidth are deprecated and removed
                             className="w-full min-h-[600px] md:min-h-[700px] lg:min-h-[800px] rounded-lg shadow-md"
                             title="Google Contact Form"
-                            // Allow fullscreen for potential Google Form features (though unlikely for a contact form)
                             allowFullScreen
                         >
                             Loading Google Form...
                         </iframe>
-                        // --- END NEW IFRAME EMBED ---
                     )}
                 </section>
             </main>
