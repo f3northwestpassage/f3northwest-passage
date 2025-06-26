@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Script from 'next/script'; // Import Script for Google Analytics
 
 import Header from '../_components/Header';
 import Footer from '../_components/Footer';
@@ -11,7 +12,8 @@ import Hero from '../_components/Hero';
 import f3HeroImg from '../../../public/fod.png'; // Make sure this path is correct and the image exists.
 
 import { fetchLocaleData } from '@/utils/fetchLocaleData';
-import type { LocaleData } from '../../../types/locale'; // Ensure this path is correct
+// CORRECTED: Ensure this path correctly points to your canonical types/workout.ts file
+import type { LocaleData } from '../../../types/workout'; // <-- THIS LINE IS CORRECTED
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store'; // Ensures data is always fresh, not cached at build time
@@ -21,7 +23,7 @@ export default function Page() {
   const [localeLoading, setLocaleLoading] = useState(true);
   const [localeError, setLocaleError] = useState<string | null>(null);
 
-  // --- NEW: Initialize showFngForm from localStorage ---
+  // Initialize showFngForm from localStorage
   const [showFngForm, setShowFngForm] = useState(() => {
     if (typeof window !== 'undefined') {
       const savedState = localStorage.getItem('showFngForm');
@@ -29,11 +31,13 @@ export default function Page() {
     }
     return false; // Default to false if not in browser environment
   });
-  // --- END NEW ---
 
   const [fngFormEmbedUrl, setFngFormEmbedUrl] = useState<string | null>(null);
-  // fngFormLoading state is implicitly handled by localeLoading now
   const [fngFormError, setFngFormError] = useState<string | null>(null);
+
+  // Get Google Analytics ID from environment variables
+  const googleAnalyticsId = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
+  const enableAnalytics = typeof googleAnalyticsId === 'string' && googleAnalyticsId.length > 0;
 
   // Fetch locale data
   useEffect(() => {
@@ -57,13 +61,12 @@ export default function Page() {
     getLocale();
   }, []); // Empty dependency array means this runs once on mount
 
-  // --- NEW: Persist showFngForm state to localStorage whenever it changes ---
+  // Persist showFngForm state to localStorage whenever it changes
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('showFngForm', String(showFngForm));
     }
   }, [showFngForm]);
-  // --- END NEW ---
 
 
   const handleToggleFngForm = () => {
@@ -82,6 +85,24 @@ export default function Page() {
   return (
     <>
       <Header href={href} />
+      {enableAnalytics && (
+        <>
+          <Script
+            src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
+            strategy="afterInteractive"
+          />
+          <Script id="google-analytics" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${googleAnalyticsId}', {
+                page_path: window.location.pathname,
+              });
+            `}
+          </Script>
+        </>
+      )}
       <main className="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
         <Hero
           title="NEW TO F3"
@@ -89,44 +110,7 @@ export default function Page() {
           imgUrl={f3HeroImg.src}
           imgAlt="A group of F3 men exercising outdoors" // Added a descriptive alt text
         />
-        {/* Section 2: FNG Form Button */}
-        <section className="bg-gray-200 dark:bg-gray-900 py-16 px-4 leading-tight text-center">
-          <button
-            onClick={handleToggleFngForm}
-            disabled={overallLoading || !localeData} // Disable if locale data is still loading
-            className="inline-flex items-center justify-center px-8 py-3 border border-transparent bg-blue-800 text-base font-medium rounded-md text-white bg-f3-blue hover:bg-blue-700 dark:bg-f3-blue-light dark:hover:bg-blue-800 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {showFngForm ? 'Hide FNG Form' : 'Show FNG Form'}
-          </button>
 
-          {showFngForm && (
-            <div className="mt-8 max-w-2xl mx-auto">
-              {overallLoading ? (
-                <div className="text-center py-8 text-gray-600 dark:text-gray-400">Loading FNG form...</div>
-              ) : fngFormError ? (
-                <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded dark:bg-red-800 dark:border-red-600 dark:text-red-100" role="alert">
-                  <p className="font-bold">Form Error:</p>
-                  <p className="text-sm">{fngFormError}</p>
-                </div>
-              ) : !fngFormEmbedUrl ? (
-                <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded dark:bg-yellow-800 dark:border-yellow-600 dark:text-yellow-100" role="alert">
-                  <p className="font-bold">Form Unavailable:</p>
-                  <p className="text-sm">The FNG form URL is not configured by the admin or is invalid.</p>
-                </div>
-              ) : (
-                <iframe
-                  src={fngFormEmbedUrl}
-                  frameBorder="0"
-                  className="w-full min-h-[600px] md:min-h-[700px] lg:min-h-[800px] rounded-lg shadow-md"
-                  title="FNG Google Form"
-                  allowFullScreen
-                >
-                  Loading FNG Google Form...
-                </iframe>
-              )}
-            </div>
-          )}
-        </section>
         {/* Section 1: F.N.G. Information */}
         <section className="bg-gray-100 dark:bg-gray-800 py-16 px-4 leading-tight text-center">
           <h2 className="text-5xl font-extrabold text-f3-blue dark:text-f3-blue-light mb-6">
@@ -171,14 +155,51 @@ export default function Page() {
           </p>
         </section>
 
+        {/* Section 2: FNG Form Button */}
+        <section className="bg-gray-200 dark:bg-gray-900 py-16 px-4 leading-tight text-center">
+          <button
+            onClick={handleToggleFngForm}
+            disabled={overallLoading || !localeData} // Disable if locale data is still loading
+            className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-f3-blue hover:bg-blue-700 dark:bg-f3-blue-light dark:hover:bg-blue-800 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {showFngForm ? 'Hide FNG Form' : 'Show FNG Form'}
+          </button>
 
+          {showFngForm && (
+            <div className="mt-8 max-w-2xl mx-auto">
+              {overallLoading ? (
+                <div className="text-center py-8 text-gray-600 dark:text-gray-400">Loading FNG form...</div>
+              ) : fngFormError ? (
+                <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded dark:bg-red-800 dark:border-red-600 dark:text-red-100" role="alert">
+                  <p className="font-bold">Form Error:</p>
+                  <p className="text-sm">{fngFormError}</p>
+                </div>
+              ) : !fngFormEmbedUrl ? (
+                <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded dark:bg-yellow-800 dark:border-yellow-600 dark:text-yellow-100" role="alert">
+                  <p className="font-bold">Form Unavailable:</p>
+                  <p className="text-sm">The FNG form URL is not configured by the admin or is invalid.</p>
+                </div>
+              ) : (
+                <iframe
+                  src={fngFormEmbedUrl}
+                  frameBorder="0"
+                  className="w-full min-h-[600px] md:min-h-[700px] lg:min-h-[800px] rounded-lg shadow-md"
+                  title="FNG Google Form"
+                  allowFullScreen
+                >
+                  Loading FNG Google Form...
+                </iframe>
+              )}
+            </div>
+          )}
+        </section>
 
         {/* Section 3: Tips for Your First Workout */}
         <section className="bg-gray-200 dark:bg-gray-900 py-16 px-4 leading-tight text-center">
           <h2 className="text-4xl font-extrabold text-gray-800 dark:text-gray-100 mb-8">
             TIPS FOR YOUR FIRST WORKOUT
           </h2>
-          <ul className="w-10/12 my-0 mx-auto text-gray-700 dark:text-gray-300 space-y-5">
+          <ul className="w-10/10 my-0 mx-auto text-gray-700 dark:text-gray-300 space-y-5">
             <li>
               <hr className="my-5 border-gray-300 dark:border-gray-700" />
               When you are first starting, it is important to remember to MODIFY
