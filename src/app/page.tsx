@@ -133,7 +133,7 @@ export default async function Page() {
               )}
             </section>
 
-            <section className={`bg-iron dark:bg-gray-800 text-white ${commonSliceClassNames}`}>
+            <section className={`bg-iron dark:text-white dark:bg-gray-800 text-black ${commonSliceClassNames}`}>
               <div>
                 <h3 className="pb-6 text-2xl font-semibold">WE ARE</h3>
                 <p className="pb-6">
