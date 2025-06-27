@@ -31,7 +31,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, [darkMode]);
 
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         <link rel="shortcut icon" href="/favicon.ico" />
         <meta name="robots" content="noindex,nofollow" />
