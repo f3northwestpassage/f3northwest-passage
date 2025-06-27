@@ -84,7 +84,7 @@ export default function Page() {
 
   return (
     <>
-      <Header href={href} />
+      <Header href={href} regionName={localeData?.region_name} />
       {enableAnalytics && (
         <>
           <Script
@@ -103,7 +103,7 @@ export default function Page() {
           </Script>
         </>
       )}
-      <main className="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+      <main className="bg-white dark:bg-black dark:bg-gray-950 text-gray-900 dark:text-gray-100">
         <Hero
           title="NEW TO F3"
           subtitle="WELCOME [FNG]"

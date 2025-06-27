@@ -8,6 +8,8 @@ import Footer from './_components/Footer';
 import Button from './_components/Button';
 import Hero from './_components/Hero';
 import CorePrinciple from './_components/CorePrinciple';
+import { BackgroundBoxesDemo } from './_components/BackgroundBoxesDemo';
+import { HeroHighlight, Highlight } from "@/components/ui/hero-highlight"; // adjust path if needed
 
 // Assuming these utility functions handle fetching data from your API
 import { fetchLocaleData } from '../utils/fetchLocaleData';
@@ -81,15 +83,20 @@ export default async function Page() {
 
   return (
     <>
-      <Header href={href} />
+      <Header href={href} regionName={localeData?.region_name} />
       <main className="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen">
         {/* Hero Section - Uses dynamic data or fallbacks */}
-        <Hero
-          title={localeData?.hero_title || "Welcome to F3"}
-          subtitle={localeData?.hero_subtitle || "Fitness, Fellowship, Faith"}
-          imgUrl={localeData?.region_hero_img_url || homeHeroDefaultImg.src} // Use fetched URL or default
-          imgAlt={`${localeData?.region_name || "F3 Region"} Hero Image`}
-        />
+        <HeroHighlight>
+          <div className="text-center px-4">
+            <h1 className="text-4xl md:text-6xl font-extrabold mb-4">
+              Welcome to{" "}
+              <Highlight>{localeData?.region_name || "F3 Region"}</Highlight>
+            </h1>
+            <p className="text-lg md:text-xl text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
+              {localeData?.hero_subtitle || "Fitness, Fellowship, Faith"}
+            </p>
+          </div>
+        </HeroHighlight>
 
         {/* Conditional Rendering based on fetch status */}
         {fetchError ? (
@@ -196,7 +203,7 @@ export default async function Page() {
               <p className="font-blackops mb-10">all you gotta do is SHOW UP</p>
               <Button href="/workouts" text="FIND A WORKOUT" />
             </section>
-
+            <BackgroundBoxesDemo />
             <section className="bg-gloom dark:bg-gray-900 text-black dark:text-gray-200 leading-tight pt-20 px-4 pb-24">
               <h2 className="text-5xl">[F.N.G.]</h2>
               <p className="text-cmu pt-5">

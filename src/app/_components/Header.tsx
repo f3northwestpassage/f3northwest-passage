@@ -1,82 +1,99 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 
-export default function Header({ href }: { href: string }) {
+export default function Header({
+  href,
+  regionName,
+}: {
+  href: string;
+  regionName?: string;
+}) {
   const pages = [
-    { href: '/fng', text: 'NEW TO F3 [FNG]' },
-    { href: '/workouts', text: 'WORKOUTS [AO]' },
-    { href: '/contact', text: 'Contact Us' },
+    { href: "/fng", text: "NEW TO F3 [FNG]" },
+    { href: "/workouts", text: "WORKOUTS [AO]" },
+    { href: "/contact", text: "Contact Us" },
   ];
 
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    const storedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const shouldUseDark = storedTheme === 'dark' || (!storedTheme && prefersDark);
+    const storedTheme = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const defaultDark = storedTheme === "dark" || (!storedTheme && prefersDark);
 
-    if (shouldUseDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-
-    setIsDark(shouldUseDark);
+    document.documentElement.classList.toggle("dark", defaultDark);
+    setIsDark(defaultDark);
   }, []);
 
   const toggleDark = () => {
-    const newTheme = isDark ? 'light' : 'dark';
-    localStorage.setItem('theme', newTheme);
-
-    if (newTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-
+    const newTheme = isDark ? "light" : "dark";
+    localStorage.setItem("theme", newTheme);
+    document.documentElement.classList.toggle("dark", newTheme === "dark");
     setIsDark(!isDark);
   };
 
   return (
-    <header className="p-5 text-center bg-gloom dark:bg-gray-900 text-black dark:text-gray-200">
-      <div className="flex justify-between items-center max-w-5xl mx-auto">
-        <Link href="/">
-          <Image
-            src="/f3-white.png"
-            alt="F3 White"
-            width={60}
-            height={60}
-            className="my-0"
-          />
-        </Link>
+    <header className="w-full bg-gloom dark:bg-gray-900 text-black dark:text-gray-200 shadow-md">
+      <div className="flex justify-between items-center max-w-7xl mx-auto px-4 py-4">
+        {/* LEFT: Logo + Region Name */}
+        <div className="flex items-center space-x-3">
+          <Link href="/" className="flex items-center space-x-2">
+            <Image
+              src="/f3-white.png"
+              alt="F3 Logo"
+              width={48}
+              height={48}
+              className="rounded"
+            />
+            {regionName && (
+              <span className="text-lg font-bold tracking-tight dark:text-gray-100 text-black">
+                {regionName}
+              </span>
+            )}
+          </Link>
+        </div>
 
-        {/* <button
+        {/* CENTER: Navigation */}
+        <nav className="hidden md:flex space-x-6 uppercase font-medium">
+          {pages.map((p, i) => (
+            <Link
+              key={i}
+              href={p.href}
+              title={p.text}
+              className={`${href === p.href ? "text-drp" : "text-black dark:text-gray-200 hover:text-drp transition-colors"
+                }`}
+            >
+              {p.text}
+            </Link>
+          ))}
+        </nav>
+
+        {/* RIGHT: Theme toggle */}
+        <button
           onClick={toggleDark}
           className="p-2 rounded border border-black dark:border-gray-400"
           aria-label="Toggle Dark Mode"
         >
-          {isDark ? '🌙 Dark' : '☀️ Light'}
-        </button> */}
+          {isDark ? "🌙" : "☀️"}
+        </button>
       </div>
 
-      <nav className="uppercase pt-4">
-        <ul className="flex justify-center space-x-6">
-          {pages.map((p, i) => (
-            <li key={i}>
-              <Link
-                href={p.href}
-                title={p.text}
-                className={`font-medium ${href === p.href ? 'text-drp' : 'text-black dark:text-gray-200'
-                  }`}
-              >
-                {p.text}
-              </Link>
-            </li>
-          ))}
-        </ul>
+      {/* Mobile Nav */}
+      <nav className="flex md:hidden justify-center pb-4 uppercase font-medium">
+        {pages.map((p, i) => (
+          <Link
+            key={i}
+            href={p.href}
+            title={p.text}
+            className={`mx-3 ${href === p.href ? "text-drp" : "text-black dark:text-gray-200 hover:text-drp transition-colors"
+              }`}
+          >
+            {p.text}
+          </Link>
+        ))}
       </nav>
     </header>
   );

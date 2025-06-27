@@ -45,7 +45,7 @@ export default function ContactPage() {
     const href = "/contact"
     return (
         <>
-            <Header href={href} />
+            <Header href={href} regionName={localeData?.region_name} />
             <main className="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
                 <Hero
                     title="CONTACT US"
