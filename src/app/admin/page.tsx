@@ -407,7 +407,14 @@ export default function AdminPage() {
         body: JSON.stringify(body),
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        console.error("Non-JSON response received while submitting location:", text);
+        throw new Error(`Server returned non-JSON response with status ${response.status}`);
+      }
 
       if (!response.ok) {
         throw new Error(data.message || `Failed to ${editLocationId ? 'update' : 'add'} location.`);
