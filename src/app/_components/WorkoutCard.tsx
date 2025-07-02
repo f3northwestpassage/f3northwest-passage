@@ -29,12 +29,12 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
 
   let tagBg = "bg-indigo-600";
   if (types.includes("Bootcamp")) tagBg = "bg-f3-orange";
-  else if (types.includes("Strength")) tagBg = "bg-green-600";
-  else if (types.includes("Hybrid")) tagBg = "bg-purple-600";
-  else if (types.includes("Sandbag")) tagBg = "bg-yellow-600";
-  else if (types.includes("Discussion")) tagBg = "bg-cyan-600";
-  else if (types.includes("Ruck")) tagBg = "bg-amber-600";
-  else if (types.includes("Run")) tagBg = "bg-red-600";
+  else if (types.includes("Strength")) tagBg = "bg-green-600 text-white dark:text-black";
+  else if (types.includes("Hybrid")) tagBg = "bg-purple-600 text-white dark:text-black";
+  else if (types.includes("Sandbags")) tagBg = "bg-yellow-600 text-white";
+  else if (types.includes("Discussion")) tagBg = "bg-cyan-600 dark:text-black";
+  else if (types.includes("Ruck")) tagBg = "bg-amber-600 dark:text-black";
+  else if (types.includes("Run")) tagBg = "bg-red-600 dark:text-black";
 
   return (
     <div className="max-w-xs w-full">
@@ -45,7 +45,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
           "transition-all duration-500"
         )}
       >
-        <div className="z-50 relative text-center text-gray-50 px-2">
+        <div className="z-50 relative text-center text-black dark:text-white px-2">
           {/* Day/Time/Frequency */}
           <p className="text-base font-semibold">
             {frequencyPrefix && (
@@ -56,7 +56,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
           {/* Workout Type */}
           <div className="my-2">
             <span
-              className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${tagBg} text-white shadow`}
+              className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${tagBg} dark:text-white shadow`}
             >
               {displayTypes}
             </span>
