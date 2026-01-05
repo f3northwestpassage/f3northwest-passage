@@ -10,6 +10,7 @@ import Hero from './_components/Hero';
 import CorePrinciple from './_components/CorePrinciple';
 import { BackgroundBoxesDemo } from './_components/BackgroundBoxesDemo';
 import { HeroHighlight, Highlight } from "@/components/ui/hero-highlight"; // adjust path if needed
+import StructuredData from './_components/StructuredData';
 
 // Assuming these utility functions handle fetching data from your API
 import { fetchLocaleData } from '../utils/fetchLocaleData';
@@ -83,6 +84,7 @@ export default async function Page() {
 
   return (
     <>
+      <StructuredData localeData={localeData || undefined} />
       <Header href={href} regionName={localeData?.region_name} />
       <main className="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen">
         {/* Hero Section - Uses dynamic data or fallbacks */}
