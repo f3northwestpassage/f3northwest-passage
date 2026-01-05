@@ -59,12 +59,25 @@ export default function StructuredData({ localeData }: StructuredDataProps) {
     isAccessibleForFree: true,
   } : null;
 
-  // Event Schema for workouts
+  // Event Series Schema for recurring workouts
+  // Using a generic upcoming Monday as start date since workouts are recurring
+  const getNextMonday = () => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
+    const nextMonday = new Date(today);
+    nextMonday.setDate(today.getDate() + daysUntilMonday);
+    nextMonday.setHours(5, 30, 0, 0);
+    return nextMonday.toISOString();
+  };
+
   const eventSchema = {
     '@context': 'https://schema.org',
-    '@type': 'Event',
+    '@type': 'EventSeries',
     name: `${regionName} Workouts`,
-    description: 'Free, peer-led outdoor fitness workouts for men',
+    description: 'Free, peer-led outdoor fitness workouts for men. Workouts are held Monday through Saturday mornings.',
+    image: `${baseUrl}/logo.png`,
+    startDate: getNextMonday(),
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
     eventStatus: 'https://schema.org/EventScheduled',
     location: city && state ? {
@@ -82,13 +95,23 @@ export default function StructuredData({ localeData }: StructuredDataProps) {
       name: regionName,
       url: baseUrl,
     },
+    performer: {
+      '@type': 'Organization',
+      name: regionName,
+    },
     isAccessibleForFree: true,
+    eventSchedule: {
+      '@type': 'Schedule',
+      repeatFrequency: 'P1D',
+      byDay: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+    },
     offers: {
       '@type': 'Offer',
       price: '0',
       priceCurrency: 'USD',
       availability: 'https://schema.org/InStock',
       url: `${baseUrl}/workouts`,
+      validFrom: new Date().toISOString(),
     },
   };
 
