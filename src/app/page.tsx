@@ -36,12 +36,17 @@ export async function generateMetadata(): Promise<Metadata> {
     console.error("Error fetching locale data for metadata on home page:", error);
     // Return fallback metadata if fetch fails
     return {
-      title: 'F3 Northwest Passage | Free Men\'s Workouts in Cypress & Houston, TX',
-      description: 'Free outdoor workouts for men in Cypress, Houston, and Northwest Houston, TX. Join F3 Northwest Passage for peer-led fitness, fellowship, and faith. No membership fees.',
+      title: 'F3 Northwest Passage | Free Men\'s Workouts in Cypress, Jersey Village & Houston, TX',
+      description: 'Free outdoor workouts for men in Cypress, Jersey Village, Bridgeland, and Northwest Houston, TX. Join F3 Northwest Passage for peer-led fitness, fellowship, and faith. No membership fees.',
       keywords: [
         'Cypress workouts',
         'Houston workouts',
+        'Jersey Village workouts',
+        'Bridgeland workouts',
         'Northwest Houston fitness',
+        'Cypress fitness',
+        'Jersey Village fitness',
+        'Bridgeland fitness',
         'free workouts Cypress TX',
         'men\'s workouts Houston',
         'outdoor fitness Cypress',
@@ -49,6 +54,8 @@ export async function generateMetadata(): Promise<Metadata> {
         'men\'s fitness group Houston',
         'F3 Cypress',
         'F3 Houston',
+        'F3 Jersey Village',
+        'F3 Bridgeland',
       ],
     };
   }
@@ -64,23 +71,37 @@ export async function generateMetadata(): Promise<Metadata> {
       `${city} workouts`,
       'Houston workouts',
       'Cypress workouts',
+      'Jersey Village workouts',
+      'Bridgeland workouts',
       'Northwest Houston fitness',
       'Cypress fitness',
       'Houston fitness',
+      'Jersey Village fitness',
+      'Bridgeland fitness',
       'Cypress run club',
       'Houston run club',
+      'Jersey Village run club',
+      'Bridgeland run club',
       'Northwest Houston run club',
       'F3 Northwest',
       'F3 Northwest Passage',
       'F3 Houston',
       'F3 Cypress',
+      'F3 Jersey Village',
+      'F3 Bridgeland',
       'Cypress boot camp',
       'Houston boot camp',
+      'Jersey Village boot camp',
+      'Bridgeland boot camp',
       'Northwest Houston boot camp',
       'Cypress exercise group',
       'Houston exercise group',
+      'Jersey Village exercise group',
+      'Bridgeland exercise group',
       'Cypress outdoor fitness',
       'Houston outdoor fitness',
+      'Jersey Village outdoor fitness',
+      'Bridgeland outdoor fitness',
       `free workouts ${city}`,
       `men's workouts ${city}`,
       `outdoor fitness ${city}`,
@@ -88,8 +109,12 @@ export async function generateMetadata(): Promise<Metadata> {
       `men's fitness group ${city}`,
       'Cypress men\'s fitness',
       'Houston men\'s fitness',
+      'Jersey Village men\'s fitness',
+      'Bridgeland men\'s fitness',
       'Cypress morning workouts',
       'Houston morning workouts',
+      'Jersey Village morning workouts',
+      'Bridgeland morning workouts',
     ],
     openGraph: {
       title: `${regionName} | Free Men's Workouts in ${city}, ${state}`,
@@ -192,20 +217,20 @@ export default async function Page() {
 
             <section className={`bg-iron dark:text-white dark:bg-gray-800 text-black ${commonSliceClassNames}`}>
               <div>
-                <h3 className="pb-6 text-2xl font-semibold">FREE MEN&apos;S FITNESS IN CYPRESS & HOUSTON</h3>
+                <h3 className="pb-6 text-2xl font-semibold">FREE MEN&apos;S FITNESS IN CYPRESS, JERSEY VILLAGE & HOUSTON</h3>
                 <p className="pb-6">
                   {`${100}+ men who meet for free outdoor workouts `}in parks and
-                  public spaces around {localeData?.region_city || 'Cypress, Houston, and Northwest Houston'}, {localeData?.region_state || 'TX'}.
+                  public spaces around {localeData?.region_city || 'Cypress, Jersey Village, Bridgeland, and Northwest Houston'}, {localeData?.region_state || 'TX'}.
                 </p>
                 <p className="pb-10 font-bold">
-                  We hold free outdoor workouts in {localeData?.region_city || 'Cypress and Houston'} each week. Weekday workouts are
+                  We hold free outdoor workouts in {localeData?.region_city || 'Cypress, Jersey Village, Bridgeland, and Houston'} each week. Weekday workouts are
                   generally 45 minutes and 60 minutes on Saturday mornings.
                 </p>
               </div>
               <div>
-                <h3 className="pb-6 text-2xl font-semibold">YOUR CYPRESS & HOUSTON RUN CLUB ALTERNATIVE</h3>
+                <h3 className="pb-6 text-2xl font-semibold">YOUR CYPRESS, JERSEY VILLAGE & HOUSTON RUN CLUB ALTERNATIVE</h3>
                 <p className="pb-6">
-                  More than just a run club - we&apos;re a complete fitness community. Our Cypress and Houston boot camp style workouts
+                  More than just a run club - we&apos;re a complete fitness community. Our Cypress, Jersey Village, Bridgeland, and Houston boot camp style workouts
                   include running, strength training, and functional fitness. Part of F3 Nation, a network of 5,404 free, peer-led workouts for men in
                   450 regions with a mission to:
                 </p>
