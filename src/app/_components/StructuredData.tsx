@@ -25,6 +25,12 @@ export default function StructuredData({ localeData }: StructuredDataProps) {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: regionName,
+    alternateName: [
+      'F3 Northwest',
+      'F3 Northwest Passage',
+      'F3 Cypress',
+      'F3 Houston',
+    ],
     url: baseUrl,
     logo: `${baseUrl}/logo.png`,
     description: description,
@@ -46,7 +52,8 @@ export default function StructuredData({ localeData }: StructuredDataProps) {
     '@context': 'https://schema.org',
     '@type': 'SportsActivityLocation',
     name: regionName,
-    description: description,
+    alternateName: 'F3 Northwest Passage - Cypress & Houston Fitness',
+    description: `${description} Free boot camp and run club serving Cypress, Houston, and Northwest Houston, TX.`,
     address: {
       '@type': 'PostalAddress',
       addressLocality: city,

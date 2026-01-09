@@ -1,5 +1,6 @@
 // src/app/workouts/page.tsx
 
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import Header from '../_components/Header';
@@ -17,6 +18,58 @@ import MapLinkButton from '../_components/MapLinkButton';
 import f3HeroImg from '../../../public/f3-darkhorse-2023-11-04.jpg';
 
 export const dynamic = 'force-dynamic';
+
+// Generate metadata for SEO
+export async function generateMetadata(): Promise<Metadata> {
+  let localeData;
+  try {
+    localeData = await fetchLocaleData();
+  } catch (error) {
+    console.error("Error fetching locale data for workouts page metadata:", error);
+  }
+
+  const city = localeData?.region_city || 'Cypress and Houston';
+  const state = localeData?.region_state || 'TX';
+  const regionName = localeData?.region_name || 'F3 Northwest Passage';
+
+  return {
+    title: `Free Workout Locations in ${city}, ${state} | ${regionName}`,
+    description: `Find free outdoor workout locations in ${city}, ${state}. Join our men's fitness group for bootcamp-style training, running, and strength workouts. All fitness levels welcome.`,
+    keywords: [
+      `${city} workout locations`,
+      `free workouts ${city}`,
+      `outdoor fitness ${city}`,
+      `men's workouts ${city}`,
+      'Cypress fitness',
+      'Houston fitness',
+      'Northwest Houston fitness',
+      'Cypress run club',
+      'Houston run club',
+      'F3 Northwest',
+      'F3 Northwest Passage',
+      'F3 Cypress',
+      'F3 Houston',
+      'Cypress boot camp',
+      'Houston boot camp',
+      'bootcamp workouts Cypress',
+      'bootcamp workouts Houston',
+      'outdoor training Houston',
+      'outdoor training Cypress',
+      'free fitness groups',
+      'Cypress exercise groups',
+      'Houston exercise groups',
+      'Cypress morning workouts',
+      'Houston morning workouts',
+      'early morning workouts Cypress',
+      'early morning workouts Houston',
+    ],
+    openGraph: {
+      title: `Free Workout Locations in ${city}, ${state}`,
+      description: `Find free outdoor workout locations in ${city}. All fitness levels welcome.`,
+      type: 'website',
+    },
+  };
+}
 
 interface GroupedWorkoutsByLocation {
   [locationId: string]: WorkoutClean[];
@@ -66,10 +119,10 @@ export default async function Page() {
         />
         {/* Section 1: Areas of Operation */}
         <section className="bg-gray-800 dark:bg-gray-950 py-12 px-4 text-white text-center">
-          <h2 className="text-4xl font-extrabold mb-4">AREAS OF OPERATION</h2>
+          <h2 className="text-4xl font-extrabold mb-4">FREE OUTDOOR WORKOUT LOCATIONS IN {locales?.region_city?.toUpperCase() || 'CYPRESS & HOUSTON'}</h2>
           <p className="text-lg opacity-90 mb-3 max-w-2xl mx-auto">
-            F3 workouts are held in any weather conditions, free of charge and
-            open to men of all ages.
+            Free outdoor workouts held rain or shine, no membership fees required.
+            Open to men of all ages and fitness levels.
           </p>
           <p className="text-lg opacity-90 mb-8 max-w-2xl mx-auto">
             Find a workout location [AO] below.
@@ -99,7 +152,7 @@ export default async function Page() {
         {/* Section 2: Join Us / Workout Cards */}
         <section className="bg-gray-100 dark:bg-gray-800 py-12 px-4">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-10 text-center">JOIN US</h2>
+            <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-10 text-center">JOIN OUR FREE WORKOUTS</h2>
             <div className="space-y-6">
               {sortedLocations.length === 0 && rawWorkouts.length === 0 ? (
                 <div className="text-center bg-gray-700 dark:bg-gray-700 p-8 rounded-lg shadow-lg">

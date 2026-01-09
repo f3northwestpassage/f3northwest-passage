@@ -11,6 +11,7 @@ import CorePrinciple from './_components/CorePrinciple';
 import { BackgroundBoxesDemo } from './_components/BackgroundBoxesDemo';
 import { HeroHighlight, Highlight } from "@/components/ui/hero-highlight"; // adjust path if needed
 import StructuredData from './_components/StructuredData';
+import FAQ from './_components/FAQ';
 
 // Assuming these utility functions handle fetching data from your API
 import { fetchLocaleData } from '../utils/fetchLocaleData';
@@ -35,14 +36,68 @@ export async function generateMetadata(): Promise<Metadata> {
     console.error("Error fetching locale data for metadata on home page:", error);
     // Return fallback metadata if fetch fails
     return {
-      title: 'F3 Region',
-      description: 'F3 workout region for men.',
+      title: 'F3 Northwest Passage | Free Men\'s Workouts in Cypress & Houston, TX',
+      description: 'Free outdoor workouts for men in Cypress, Houston, and Northwest Houston, TX. Join F3 Northwest Passage for peer-led fitness, fellowship, and faith. No membership fees.',
+      keywords: [
+        'Cypress workouts',
+        'Houston workouts',
+        'Northwest Houston fitness',
+        'free workouts Cypress TX',
+        'men\'s workouts Houston',
+        'outdoor fitness Cypress',
+        'free outdoor workouts',
+        'men\'s fitness group Houston',
+        'F3 Cypress',
+        'F3 Houston',
+      ],
     };
   }
 
+  const city = localeData?.region_city || 'Northwest Houston';
+  const state = localeData?.region_state || 'TX';
+  const regionName = localeData?.region_name || 'F3 Northwest Passage';
+
   return {
-    title: localeData?.region_name ?? 'F3 Region',
-    description: localeData?.meta_description ?? 'F3 workout region for men.',
+    title: `${regionName} | Free Men's Workouts in ${city}, ${state}`,
+    description: `Free outdoor workouts for men in ${city}, ${state}. Join ${regionName} for peer-led fitness, fellowship, and faith. No membership fees. All fitness levels welcome.`,
+    keywords: [
+      `${city} workouts`,
+      'Houston workouts',
+      'Cypress workouts',
+      'Northwest Houston fitness',
+      'Cypress fitness',
+      'Houston fitness',
+      'Cypress run club',
+      'Houston run club',
+      'Northwest Houston run club',
+      'F3 Northwest',
+      'F3 Northwest Passage',
+      'F3 Houston',
+      'F3 Cypress',
+      'Cypress boot camp',
+      'Houston boot camp',
+      'Northwest Houston boot camp',
+      'Cypress exercise group',
+      'Houston exercise group',
+      'Cypress outdoor fitness',
+      'Houston outdoor fitness',
+      `free workouts ${city}`,
+      `men's workouts ${city}`,
+      `outdoor fitness ${city}`,
+      'free outdoor workouts',
+      `men's fitness group ${city}`,
+      'Cypress men\'s fitness',
+      'Houston men\'s fitness',
+      'Cypress morning workouts',
+      'Houston morning workouts',
+    ],
+    openGraph: {
+      title: `${regionName} | Free Men's Workouts in ${city}, ${state}`,
+      description: `Free outdoor workouts for men in ${city}, ${state}. Join us for peer-led fitness, fellowship, and faith.`,
+      type: 'website',
+      locale: 'en_US',
+      siteName: regionName,
+    },
   };
 }
 
@@ -116,11 +171,11 @@ export default async function Page() {
             <section className={`bg-gloom dark:bg-gray-900 text-black dark:text-gray-200 ${commonSliceClassNames}`}>
               <div className="shadow-xl">
                 <h2 className="leading-none">
-                  <span className="opacity-70">THIS IS</span>
+                  <span className="opacity-70">FREE OUTDOOR WORKOUTS IN {localeData?.region_city?.toUpperCase() || 'HOUSTON'}</span>
                   <span className="block text-5xl py-5">{localeData?.region_name ?? ''}</span>
                 </h2>
                 <p className="subtitle text-xl pb-10 opacity-70">
-                  {localeData?.meta_description ?? ''}
+                  {localeData?.meta_description ?? 'Free outdoor fitness workouts for men in Cypress, Houston, and Northwest Houston, TX. No membership fees required.'}
                 </p>
               </div>
 
@@ -137,20 +192,21 @@ export default async function Page() {
 
             <section className={`bg-iron dark:text-white dark:bg-gray-800 text-black ${commonSliceClassNames}`}>
               <div>
-                <h3 className="pb-6 text-2xl font-semibold">WE ARE</h3>
+                <h3 className="pb-6 text-2xl font-semibold">FREE MEN&apos;S FITNESS IN CYPRESS & HOUSTON</h3>
                 <p className="pb-6">
-                  {`${100}+ guys that meet up in small groups `}to workout in parks and
-                  public spaces around {localeData?.region_city}, {localeData?.region_state}.
+                  {`${100}+ men who meet for free outdoor workouts `}in parks and
+                  public spaces around {localeData?.region_city || 'Cypress, Houston, and Northwest Houston'}, {localeData?.region_state || 'TX'}.
                 </p>
                 <p className="pb-10 font-bold">
-                  We hold free workouts in {localeData?.region_city} each week. Weekday workouts are
-                  generally 45 MIN & 60 MIN on Saturday.
+                  We hold free outdoor workouts in {localeData?.region_city || 'Cypress and Houston'} each week. Weekday workouts are
+                  generally 45 minutes and 60 minutes on Saturday mornings.
                 </p>
               </div>
               <div>
-                <h3 className="pb-6 text-2xl font-semibold">A PART OF</h3>
+                <h3 className="pb-6 text-2xl font-semibold">YOUR CYPRESS & HOUSTON RUN CLUB ALTERNATIVE</h3>
                 <p className="pb-6">
-                  F3 Nation, a network of 5,404 free, peer-led workouts for men in
+                  More than just a run club - we&apos;re a complete fitness community. Our Cypress and Houston boot camp style workouts
+                  include running, strength training, and functional fitness. Part of F3 Nation, a network of 5,404 free, peer-led workouts for men in
                   450 regions with a mission to:
                 </p>
                 <p className="font-bold pb-6">
@@ -221,6 +277,7 @@ export default async function Page() {
               </p>
               <Button href="/fng" text="WHAT TO EXPECT" />
             </section>
+            <FAQ city={localeData?.region_city} regionName={localeData?.region_name} />
           </>
         )}
       </main>
