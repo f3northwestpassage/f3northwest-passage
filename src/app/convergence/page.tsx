@@ -1,9 +1,28 @@
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
+import type { Metadata } from 'next';
 import Header from '../_components/Header';
 import Footer from '../_components/Footer';
 import Hero from '../_components/Hero';
+
+export const metadata: Metadata = {
+  title: 'F3 HIM Convergence Event | F3 Northwest Passage',
+  description: 'Join F3 Northwest Passage for our HIM Convergence event. Calling men to virtuous leadership through fitness, fellowship, and faith in Houston, TX.',
+  keywords: [
+    'F3 convergence',
+    'F3 event',
+    'F3 Northwest event',
+    'men\'s leadership event',
+    'Houston men\'s event',
+    'F3 gathering',
+  ],
+  openGraph: {
+    title: 'F3 HIM Convergence Event',
+    description: 'Join us for a gathering of men focused on virtuous leadership, fitness, and faith.',
+    type: 'website',
+  },
+};
 
 import f3HeroImg from '../../../public/f3-darkhorse-2023-11-04.jpg';
 import Button from '../_components/Button';
