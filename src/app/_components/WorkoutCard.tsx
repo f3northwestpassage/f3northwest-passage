@@ -1,6 +1,7 @@
-"use client";
-import React from "react";
-import { cn } from "@/lib/utils";
+'use client';
+import React from 'react';
+import { cn } from '@/lib/utils';
+import { WORKOUT_TYPE_COLORS } from '@/lib/constants';
 
 export interface WorkoutCardProps {
   _id: string;
@@ -23,26 +24,25 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
   comments,
   frequencyPrefix,
 }) => {
-  const displayDays = days.join(", ");
+  const displayDays = days.join(', ');
   const displayTime = `${startTime} – ${endTime}`;
-  const displayTypes = types.length > 0 ? types.join(", ") : "Workout";
+  const displayTypes = types.length > 0 ? types.join(', ') : 'Workout';
 
-  let tagBg = "bg-indigo-600";
-  if (types.includes("Bootcamp")) tagBg = "bg-f3-orange";
-  else if (types.includes("Strength")) tagBg = "bg-green-600 text-white dark:text-black";
-  else if (types.includes("Hybrid")) tagBg = "bg-purple-600 text-white dark:text-black";
-  else if (types.includes("Sandbags")) tagBg = "bg-yellow-600 text-white";
-  else if (types.includes("Discussion")) tagBg = "bg-cyan-600 dark:text-black";
-  else if (types.includes("Ruck")) tagBg = "bg-amber-600 dark:text-black";
-  else if (types.includes("Run")) tagBg = "bg-red-600 dark:text-black";
+  let tagBg = 'bg-indigo-600';
+  for (const type of types) {
+    if (WORKOUT_TYPE_COLORS[type]) {
+      tagBg = WORKOUT_TYPE_COLORS[type];
+      break;
+    }
+  }
 
   return (
     <div className="max-w-xs w-full">
       <div
         className={cn(
-          "group w-full cursor-pointer overflow-hidden relative h-36 rounded-md shadow-xl mx-auto flex justify-center items-center border border-transparent dark:border-neutral-800",
+          'group w-full cursor-pointer overflow-hidden relative h-36 rounded-md shadow-xl mx-auto flex justify-center items-center border border-transparent dark:border-neutral-800',
           "hover:after:content-[''] hover:after:absolute hover:after:inset-0 hover:after:bg-black hover:after:opacity-50",
-          "transition-all duration-500"
+          'transition-all duration-500'
         )}
       >
         <div className="z-50 relative text-center text-black dark:text-white px-2">

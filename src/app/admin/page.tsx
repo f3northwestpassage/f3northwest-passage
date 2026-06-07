@@ -1,49 +1,19 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import type { LocationClean, WorkoutClean } from '../../../types/workout'; // Assuming 
+import type {
+  LocationClean,
+  WorkoutClean,
+  RegionFormState,
+  LocaleData,
+} from '../../../types/workout';
 import Header from '../_components/Header';
-
-
-type RegionFormState = { // Re-defining here for self-containment of the example
-  region_name: string;
-  meta_description: string;
-  hero_title: string;
-  hero_subtitle: string;
-  region_logo_url?: string;
-  region_hero_img_url?: string;
-  region_city: string;
-  region_state: string;
-  region_facebook: string;
-  region_map_lat: string;
-  region_map_lon: string;
-  region_map_zoom: number;
-  region_map_embed_link: string;
-  region_google_form_url: string,
-  region_fng_form_url: string,
-};
-
-type LocaleData = {
-  _id?: string;
-  region_name?: string;
-  meta_description?: string;
-  hero_title?: string;
-  hero_subtitle?: string;
-  region_logo_url?: string;
-  region_hero_img_url?: string;
-  region_city?: string;
-  region_state?: string;
-  region_facebook?: string;
-  region_map_lat?: string;
-  region_map_lon?: string;
-  region_map_zoom?: number;
-  region_map_embed_link?: string;
-  region_google_form_url?: string,
-  region_fng_form_url?: string,
-};
-
+import {
+  DAYS_OF_WEEK,
+  WORKOUT_TYPES,
+  FREQUENCY_PREFIX_OPTIONS,
+} from '@/lib/constants';
 
 const initialRegionFormState: RegionFormState = {
   region_name: '',
@@ -55,9 +25,9 @@ const initialRegionFormState: RegionFormState = {
   region_city: '',
   region_state: '',
   region_facebook: '',
-  region_map_lat: '',
-  region_map_lon: '',
-  region_map_zoom: 12, // Default zoom level
+  region_map_lat: 0,
+  region_map_lon: 0,
+  region_map_zoom: 12,
   region_map_embed_link: '',
   region_google_form_url: '',
   region_fng_form_url: '',
@@ -81,9 +51,8 @@ const initialNewWorkoutFormState: Partial<WorkoutClean> = {
   days: [],
   types: [],
   frequencyPrefix: '', // NEW
-  comments: '' // NEW
+  comments: '', // NEW
 };
-
 
 // Toast Component for better feedback
 interface ToastProps {
@@ -93,11 +62,12 @@ interface ToastProps {
 }
 
 const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
-  const bgColor = type === 'success'
-    ? 'bg-green-100 border-green-400 text-green-700 dark:bg-green-800 dark:border-green-600 dark:text-green-100'
-    : type === 'error'
-      ? 'bg-red-100 border-red-400 text-red-700 dark:bg-red-800 dark:border-red-600 dark:text-red-100'
-      : 'bg-blue-100 border-blue-400 text-blue-700 dark:bg-blue-800 dark:border-blue-600 dark:text-blue-100';
+  const bgColor =
+    type === 'success'
+      ? 'bg-green-100 border-green-400 text-green-700 dark:bg-green-800 dark:border-green-600 dark:text-green-100'
+      : type === 'error'
+        ? 'bg-red-100 border-red-400 text-red-700 dark:bg-red-800 dark:border-red-600 dark:text-red-100'
+        : 'bg-blue-100 border-blue-400 text-blue-700 dark:bg-blue-800 dark:border-blue-600 dark:text-blue-100';
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -107,7 +77,9 @@ const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
   }, [onClose]);
 
   return (
-    <div className={`fixed bottom-4 right-4 p-4 rounded-lg shadow-lg border-l-4 ${bgColor} flex items-center justify-between z-50`}>
+    <div
+      className={`fixed bottom-4 right-4 p-4 rounded-lg shadow-lg border-l-4 ${bgColor} flex items-center justify-between z-50`}
+    >
       <p className="text-sm font-medium">{message}</p>
       <button onClick={onClose} className="ml-4 text-lg font-bold">
         ×
@@ -115,7 +87,6 @@ const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
     </div>
   );
 };
-
 
 export default function AdminPage() {
   const router = useRouter();
@@ -129,18 +100,24 @@ export default function AdminPage() {
 
   // State for Locations
   const [locations, setLocations] = useState<LocationClean[]>([]);
-  const [newLocationForm, setNewLocationForm] = useState<Partial<LocationClean>>(initialNewLocationFormState);
+  const [newLocationForm, setNewLocationForm] = useState<
+    Partial<LocationClean>
+  >(initialNewLocationFormState);
   const [editLocationId, setEditLocationId] = useState<string | null>(null);
   const [showLocationAddEditForm, setShowLocationAddEditForm] = useState(false);
 
   // State for Workouts (NEW)
   const [workouts, setWorkouts] = useState<WorkoutClean[]>([]);
-  const [newWorkoutForm, setNewWorkoutForm] = useState<Partial<WorkoutClean>>(initialNewWorkoutFormState);
+  const [newWorkoutForm, setNewWorkoutForm] = useState<Partial<WorkoutClean>>(
+    initialNewWorkoutFormState
+  );
   const [editWorkoutId, setEditWorkoutId] = useState<string | null>(null);
   const [showWorkoutAddEditForm, setShowWorkoutAddEditForm] = useState(false);
 
   // State for Region Config
-  const [regionForm, setRegionForm] = useState<RegionFormState>(initialRegionFormState);
+  const [regionForm, setRegionForm] = useState<RegionFormState>(
+    initialRegionFormState
+  );
   const [regionLoading, setRegionLoading] = useState(false);
   const [regionError, setRegionError] = useState<string | null>(null);
   const [regionSuccess, setRegionSuccess] = useState<string | null>(null);
@@ -148,7 +125,9 @@ export default function AdminPage() {
   const [regionConfigExists, setRegionConfigExists] = useState(false);
 
   // State for tab navigation
-  const [activeTab, setActiveTab] = useState<'region' | 'locations' | 'workouts'>('region');
+  const [activeTab, setActiveTab] = useState<
+    'region' | 'locations' | 'workouts'
+  >('region');
 
   // State for Dark Mode
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -170,9 +149,8 @@ export default function AdminPage() {
   }, [isDarkMode]);
 
   const toggleDarkMode = () => {
-    setIsDarkMode(prevMode => !prevMode);
+    setIsDarkMode((prevMode) => !prevMode);
   };
-
 
   // --- Fetch Region Data ---
   const fetchRegionData = useCallback(async () => {
@@ -183,9 +161,13 @@ export default function AdminPage() {
       const response = await fetch('/api/region');
       if (!response.ok) {
         if (response.status === 404) {
-          console.warn('Region configuration not found, initializing empty form.');
+          console.warn(
+            'Region configuration not found, initializing empty form.'
+          );
           setRegionForm(initialRegionFormState);
-          setRegionSuccess('Region configuration is not set up. Please create it below.');
+          setRegionSuccess(
+            'Region configuration is not set up. Please create it below.'
+          );
           setRegionConfigExists(false);
           setShowRegionConfigForm(true);
           return;
@@ -203,8 +185,8 @@ export default function AdminPage() {
         region_city: data.region_city || '',
         region_state: data.region_state || '',
         region_facebook: data.region_facebook || '',
-        region_map_lat: data.region_map_lat || '',
-        region_map_lon: data.region_map_lon || '',
+        region_map_lat: data.region_map_lat || 0,
+        region_map_lon: data.region_map_lon || 0,
         region_map_zoom: data.region_map_zoom || 12,
         region_map_embed_link: data.region_map_embed_link || '',
         region_google_form_url: data.region_google_form_url || '',
@@ -214,7 +196,7 @@ export default function AdminPage() {
       setShowRegionConfigForm(false);
     } catch (e: any) {
       setRegionError(`Failed to fetch region data: ${e.message}`);
-      console.error("Failed to fetch region data:", e);
+      console.error('Failed to fetch region data:', e);
       setRegionConfigExists(false);
     } finally {
       setRegionLoading(false);
@@ -235,7 +217,7 @@ export default function AdminPage() {
       setLocations(data);
     } catch (e: any) {
       setError(`Failed to fetch locations: ${e.message}`);
-      console.error("Failed to fetch locations:", e);
+      console.error('Failed to fetch locations:', e);
     } finally {
       setLoading(false);
     }
@@ -255,7 +237,7 @@ export default function AdminPage() {
       setWorkouts(data);
     } catch (e: any) {
       setError(`Failed to fetch workouts: ${e.message}`);
-      console.error("Failed to fetch workouts:", e);
+      console.error('Failed to fetch workouts:', e);
     } finally {
       setLoading(false);
     }
@@ -264,7 +246,9 @@ export default function AdminPage() {
   // Initial data fetch on component mount
   useEffect(() => {
     if (!password) {
-      setError('Admin password is required to access this page. Please append ?pw=YOUR_PASSWORD to the URL.');
+      setError(
+        'Admin password is required to access this page. Please append ?pw=YOUR_PASSWORD to the URL.'
+      );
       return;
     }
     fetchRegionData();
@@ -272,13 +256,19 @@ export default function AdminPage() {
     fetchWorkouts(); // Fetch workouts on initial load
   }, [password, fetchRegionData, fetchLocations, fetchWorkouts]);
 
-
   // --- Handlers for Region Form ---
-  const handleRegionFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleRegionFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setRegionForm((prev: any) => ({
       ...prev,
-      [name]: (name.startsWith('region_map_lat') || name.startsWith('region_map_lon') || name.startsWith('region_map_zoom')) ? parseFloat(value) || 0 : value,
+      [name]:
+        name.startsWith('region_map_lat') ||
+        name.startsWith('region_map_lon') ||
+        name.startsWith('region_map_zoom')
+          ? parseFloat(value) || 0
+          : value,
     }));
   };
 
@@ -302,28 +292,35 @@ export default function AdminPage() {
       });
 
       // --- FIX: Read response text once, then try parsing as JSON ---
-      const responseText = await response.text(); // Read the body stream ONCE as text 
+      const responseText = await response.text(); // Read the body stream ONCE as text
       let data;
       try {
         data = JSON.parse(responseText); // Attempt to parse the text as JSON
       } catch (jsonError) {
         // If parsing fails, it means the response was not valid JSON (e.g., HTML error page)
-        console.error("Non-JSON response received:", responseText);
-        throw new Error(`Server returned non-JSON response. Status: ${response.status}. Response: ${responseText.substring(0, 200)}...`);
+        console.error('Non-JSON response received:', responseText);
+        throw new Error(
+          `Server returned non-JSON response. Status: ${response.status}. Response: ${responseText.substring(0, 200)}...`
+        );
       }
 
       if (!response.ok) {
         // If data parsing was successful but response.ok is false,
         // use the message from the parsed JSON data.
-        throw new Error(data.message || 'Failed to update region configuration (unknown server error).');
+        throw new Error(
+          data.message ||
+            'Failed to update region configuration (unknown server error).'
+        );
       }
 
-      setRegionSuccess(data.message || 'Region configuration updated successfully!');
+      setRegionSuccess(
+        data.message || 'Region configuration updated successfully!'
+      );
       setRegionConfigExists(true);
       setShowRegionConfigForm(false);
     } catch (e: any) {
       setRegionError(`Error updating region: ${e.message}`);
-      console.error("Error updating region:", e);
+      console.error('Error updating region:', e);
     } finally {
       setRegionLoading(false);
     }
@@ -337,15 +334,18 @@ export default function AdminPage() {
       fetchRegionData(); // Re-fetch to revert unsaved changes if config exists
     } else {
       setRegionForm(initialRegionFormState); // Reset to initial empty state if no config existed
-      setRegionSuccess('Region configuration is not set up. Please create it below.');
+      setRegionSuccess(
+        'Region configuration is not set up. Please create it below.'
+      );
     }
   };
 
-
   // --- Location related Handlers ---
-  const handleNewLocationChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleNewLocationChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setNewLocationForm(prev => ({
+    setNewLocationForm((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -412,20 +412,31 @@ export default function AdminPage() {
       try {
         data = JSON.parse(text);
       } catch {
-        console.error("Non-JSON response received while submitting location:", text);
-        throw new Error(`Server returned non-JSON response with status ${response.status}`);
+        console.error(
+          'Non-JSON response received while submitting location:',
+          text
+        );
+        throw new Error(
+          `Server returned non-JSON response with status ${response.status}`
+        );
       }
 
       if (!response.ok) {
-        throw new Error(data.message || `Failed to ${editLocationId ? 'update' : 'add'} location.`);
+        throw new Error(
+          data.message ||
+            `Failed to ${editLocationId ? 'update' : 'add'} location.`
+        );
       }
 
-      setSuccess(data.message || `Location ${editLocationId ? 'updated' : 'added'} successfully!`);
+      setSuccess(
+        data.message ||
+          `Location ${editLocationId ? 'updated' : 'added'} successfully!`
+      );
       fetchLocations();
       handleCancelLocationEdit();
     } catch (e: any) {
       setError(`Error: ${e.message}`);
-      console.error("Error submitting location:", e);
+      console.error('Error submitting location:', e);
     } finally {
       setLoading(false);
     }
@@ -436,7 +447,11 @@ export default function AdminPage() {
       setError('Password is required to delete locations.');
       return;
     }
-    if (!confirm('Are you sure you want to delete this location and all its associated workouts? This action cannot be undone.')) {
+    if (
+      !confirm(
+        'Are you sure you want to delete this location and all its associated workouts? This action cannot be undone.'
+      )
+    ) {
       return;
     }
 
@@ -460,19 +475,24 @@ export default function AdminPage() {
       fetchWorkouts(); // Also refresh workouts, as locations might be linked
     } catch (e: any) {
       setError(`Error: ${e.message}`);
-      console.error("Error deleting location:", e);
+      console.error('Error deleting location:', e);
     } finally {
       setLoading(false);
     }
   };
 
   // --- Workout related Handlers (NEW) ---
-  const handleNewWorkoutChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleNewWorkoutChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
     const { name, value, type, checked } = e.target as HTMLInputElement; // Cast to HTMLInputElement for 'checked'
 
     if (name === 'days' || name === 'types') {
-      setNewWorkoutForm(prev => {
-        const currentArray = (prev[name as keyof Partial<WorkoutClean>] as string[] || []);
+      setNewWorkoutForm((prev) => {
+        const currentArray =
+          (prev[name as keyof Partial<WorkoutClean>] as string[]) || [];
         if (checked) {
           // Add the value if checked and not already in the array
           return {
@@ -483,12 +503,12 @@ export default function AdminPage() {
           // Remove the value if unchecked
           return {
             ...prev,
-            [name]: currentArray.filter(item => item !== value),
+            [name]: currentArray.filter((item) => item !== value),
           };
         }
       });
     } else {
-      setNewWorkoutForm(prev => ({
+      setNewWorkoutForm((prev) => ({
         ...prev,
         [name]: value,
       }));
@@ -543,13 +563,18 @@ export default function AdminPage() {
         throw new Error('Please select a location for the workout.');
       }
       // Ensure days and types are arrays
-      if (!Array.isArray(newWorkoutForm.days) || newWorkoutForm.days.length === 0) {
+      if (
+        !Array.isArray(newWorkoutForm.days) ||
+        newWorkoutForm.days.length === 0
+      ) {
         throw new Error('Please select at least one day for the workout.');
       }
-      if (!Array.isArray(newWorkoutForm.types) || newWorkoutForm.types.length === 0) {
+      if (
+        !Array.isArray(newWorkoutForm.types) ||
+        newWorkoutForm.types.length === 0
+      ) {
         throw new Error('Please select at least one workout type.');
       }
-
 
       const body = {
         ...newWorkoutForm,
@@ -567,15 +592,21 @@ export default function AdminPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || `Failed to ${editWorkoutId ? 'update' : 'add'} workout.`);
+        throw new Error(
+          data.message ||
+            `Failed to ${editWorkoutId ? 'update' : 'add'} workout.`
+        );
       }
 
-      setSuccess(data.message || `Workout ${editWorkoutId ? 'updated' : 'added'} successfully!`);
+      setSuccess(
+        data.message ||
+          `Workout ${editWorkoutId ? 'updated' : 'added'} successfully!`
+      );
       fetchWorkouts();
       handleCancelWorkoutEdit();
     } catch (e: any) {
       setError(`Error: ${e.message}`);
-      console.error("Error submitting workout:", e);
+      console.error('Error submitting workout:', e);
     } finally {
       setLoading(false);
     }
@@ -609,39 +640,54 @@ export default function AdminPage() {
       fetchWorkouts(); // Refresh workouts
     } catch (e: any) {
       setError(`Error: ${e.message}`);
-      console.error("Error deleting workout:", e);
+      console.error('Error deleting workout:', e);
     } finally {
       setLoading(false);
     }
   };
 
-
   // Base styling for common components to adapt to dark mode
-  const baseClasses = "bg-white text-gray-900 dark:bg-gray-800 dark:text-white";
+  const baseClasses = 'bg-white text-gray-900 dark:bg-gray-800 dark:text-white';
   // Adjusted sectionClasses to reduce padding on small screens for better use of space
-  const sectionClasses = "mb-8 p-4 sm:p-6 bg-white rounded-lg shadow-xl dark:bg-gray-900 dark:shadow-2xl";
-  const inputClasses = "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-white text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400";
-  const selectClasses = "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-white text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white";
-  const buttonPrimaryClasses = "w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 dark:bg-indigo-700 dark:hover:bg-indigo-800 dark:focus:ring-indigo-400";
-  const buttonSecondaryClasses = "py-2 px-5 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-indigo-400";
-
+  const sectionClasses =
+    'mb-8 p-4 sm:p-6 bg-white rounded-lg shadow-xl dark:bg-gray-900 dark:shadow-2xl';
+  const inputClasses =
+    'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-white text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400';
+  const selectClasses =
+    'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-white text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white';
+  const buttonPrimaryClasses =
+    'w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 dark:bg-indigo-700 dark:hover:bg-indigo-800 dark:focus:ring-indigo-400';
+  const buttonSecondaryClasses =
+    'py-2 px-5 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-indigo-400';
 
   if (!password) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${baseClasses}`}>
+      <div
+        className={`min-h-screen flex items-center justify-center ${baseClasses}`}
+      >
         <div className="container mx-auto p-8 bg-white rounded-lg shadow-xl max-w-md text-center dark:bg-gray-900 dark:text-white">
-          <h1 className="text-3xl font-extrabold mb-6 text-gray-800 dark:text-gray-100">Admin Access Required</h1>
+          <h1 className="text-3xl font-extrabold mb-6 text-gray-800 dark:text-gray-100">
+            Admin Access Required
+          </h1>
           <p className="text-red-600 mb-4 font-semibold">
             Please provide the admin password in the URL.
           </p>
           <p className="text-gray-700 mb-6 dark:text-gray-300">
-            Example: <code className="bg-gray-200 p-1 rounded dark:bg-gray-700 dark:text-gray-200">/admin?pw=yourpassword</code>
+            Example:{' '}
+            <code className="bg-gray-200 p-1 rounded dark:bg-gray-700 dark:text-gray-200">
+              /admin?pw=yourpassword
+            </code>
           </p>
-          <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 dark:bg-yellow-800 dark:border-yellow-600 dark:text-yellow-100" role="alert">
+          <div
+            className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 dark:bg-yellow-800 dark:border-yellow-600 dark:text-yellow-100"
+            role="alert"
+          >
             <p className="font-bold">Security Warning:</p>
             <p className="text-sm">
-              This method of password protection is **highly insecure** for production environments.
-              For a real application, consider implementing a robust authentication system (e.g., NextAuth.js, Auth0, Clerk).
+              This method of password protection is **highly insecure** for
+              production environments. For a real application, consider
+              implementing a robust authentication system (e.g., NextAuth.js,
+              Auth0, Clerk).
             </p>
           </div>
         </div>
@@ -649,80 +695,126 @@ export default function AdminPage() {
     );
   }
 
-  const allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  const allWorkoutTypes = ['Bootcamp', 'Ruck', 'Run', 'CrossFit', 'Strength', 'Yoga', 'Cycling', 'Hybrid', 'Sandbags', 'Discussion']; // Example types
-  const frequencyPrefixOptions = [
-    'Every', '1st', '2nd', '3rd', '4th', '5th',
-    '1st and 3rd', '2nd and 4th', '1st, 3rd, and 5th', 'Monthly'
-  ];
-
+  const allDays = [...DAYS_OF_WEEK];
+  const allWorkoutTypes = [...WORKOUT_TYPES];
+  const frequencyPrefixOptions = [...FREQUENCY_PREFIX_OPTIONS];
 
   // Helper to map locationId to AO name
   const getLocationName = (locationId: string | undefined) => {
-    const location = locations.find(loc => loc._id === locationId);
+    const location = locations.find((loc) => loc._id === locationId);
     return location ? location.name : 'Unknown Location';
   };
 
-  const href = "/admin"
+  const href = '/admin';
   return (
     <>
-      <Header href={href} />{/* Adjusted page padding */}
+      <Header href={href} />
+      {/* Adjusted page padding */}
       <div className={`min-h-screen ${baseClasses} mx-auto p-4 sm:p-6 lg:p-8`}>
-
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white text-2xl sm:text-3xl lg:text-4xl">Admin Dashboard</h1> {/* Responsive heading */}
+          <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white text-2xl sm:text-3xl lg:text-4xl">
+            Admin Dashboard
+          </h1>{' '}
+          {/* Responsive heading */}
           <button
             onClick={toggleDarkMode}
             className="p-2 rounded-full text-gray-600 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors duration-200"
             aria-label="Toggle dark mode"
           >
             {isDarkMode ? (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h1M4 12H3m15.364 6.364l-.707.707M6.343 6.343l-.707-.707m12.728 0l-.707-.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 3v1m0 16v1m9-9h1M4 12H3m15.364 6.364l-.707.707M6.343 6.343l-.707-.707m12.728 0l-.707-.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                />
               </svg>
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                />
               </svg>
             )}
           </button>
         </div>
 
-
         {/* Global Toast Notifications */}
-        {error && <Toast message={error} type="error" onClose={() => setError(null)} />}
-        {success && <Toast message={success} type="success" onClose={() => setSuccess(null)} />}
-        {regionError && <Toast message={regionError} type="error" onClose={() => setRegionError(null)} />}
-        {regionSuccess && <Toast message={regionSuccess} type="success" onClose={() => setRegionSuccess(null)} />}
-
+        {error && (
+          <Toast message={error} type="error" onClose={() => setError(null)} />
+        )}
+        {success && (
+          <Toast
+            message={success}
+            type="success"
+            onClose={() => setSuccess(null)}
+          />
+        )}
+        {regionError && (
+          <Toast
+            message={regionError}
+            type="error"
+            onClose={() => setRegionError(null)}
+          />
+        )}
+        {regionSuccess && (
+          <Toast
+            message={regionSuccess}
+            type="success"
+            onClose={() => setRegionSuccess(null)}
+          />
+        )}
 
         {/* --- Tab Navigation --- */}
-        <div className="mb-6 border-b border-gray-200 dark:border-gray-700 overflow-x-auto"> {/* Added overflow-x-auto here for very small screens */}
-          <nav className="-mb-px flex space-x-4 sm:space-x-8" aria-label="Tabs"> {/* Adjusted space-x for tabs */}
+        <div className="mb-6 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+          {' '}
+          {/* Added overflow-x-auto here for very small screens */}
+          <nav className="-mb-px flex space-x-4 sm:space-x-8" aria-label="Tabs">
+            {' '}
+            {/* Adjusted space-x for tabs */}
             <button
               onClick={() => setActiveTab('region')}
-              className={`${activeTab === 'region'
-                ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-300'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base sm:text-lg focus:outline-none transition-colors duration-200`}
+              className={`${
+                activeTab === 'region'
+                  ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-300'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base sm:text-lg focus:outline-none transition-colors duration-200`}
             >
               Region Config
             </button>
             <button
               onClick={() => setActiveTab('locations')}
-              className={`${activeTab === 'locations'
-                ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-300'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base sm:text-lg focus:outline-none transition-colors duration-200`}
+              className={`${
+                activeTab === 'locations'
+                  ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-300'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base sm:text-lg focus:outline-none transition-colors duration-200`}
             >
               Locations
             </button>
             <button
               onClick={() => setActiveTab('workouts')}
-              className={`${activeTab === 'workouts'
-                ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-300'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base sm:text-lg focus:outline-none transition-colors duration-200`}
+              className={`${
+                activeTab === 'workouts'
+                  ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-300'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base sm:text-lg focus:outline-none transition-colors duration-200`}
             >
               Workouts
             </button>
@@ -732,31 +824,44 @@ export default function AdminPage() {
         {/* --- Tab Content: Region --- */}
         {activeTab === 'region' && (
           <section className={sectionClasses}>
-            <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100 text-2xl sm:text-3xl">Region Configuration</h2> {/* Responsive heading */}
-
-            {regionLoading && <p className="text-center py-4 text-gray-600 dark:text-gray-400">Loading region data...</p>}
-
+            <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100 text-2xl sm:text-3xl">
+              Region Configuration
+            </h2>{' '}
+            {/* Responsive heading */}
+            {regionLoading && (
+              <p className="text-center py-4 text-gray-600 dark:text-gray-400">
+                Loading region data...
+              </p>
+            )}
             {!regionLoading && !showRegionConfigForm && (
               <div className="text-center">
                 <p className="text-gray-700 mb-4 dark:text-gray-300">
                   {regionConfigExists
-                    ? "Manage the overall settings and information for your F3 region."
-                    : "It looks like your region configuration hasn't been set up yet. Click below to create it!"
-                  }
+                    ? 'Manage the overall settings and information for your F3 region.'
+                    : "It looks like your region configuration hasn't been set up yet. Click below to create it!"}
                 </p>
                 <button
                   onClick={() => setShowRegionConfigForm(true)}
                   className={buttonPrimaryClasses}
                 >
-                  {regionConfigExists ? 'Edit Region Configuration' : 'Create Region Configuration'}
+                  {regionConfigExists
+                    ? 'Edit Region Configuration'
+                    : 'Create Region Configuration'}
                 </button>
               </div>
             )}
-
             {!regionLoading && showRegionConfigForm && (
-              <form onSubmit={handleRegionSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <form
+                onSubmit={handleRegionSubmit}
+                className="grid grid-cols-1 md:grid-cols-2 gap-6"
+              >
                 <div>
-                  <label htmlFor="region_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Region Name</label>
+                  <label
+                    htmlFor="region_name"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Region Name
+                  </label>
                   <input
                     type="text"
                     id="region_name"
@@ -768,7 +873,12 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="meta_description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Meta Description</label>
+                  <label
+                    htmlFor="meta_description"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Meta Description
+                  </label>
                   <input
                     type="text"
                     id="meta_description"
@@ -780,7 +890,12 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="hero_title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Hero Title</label>
+                  <label
+                    htmlFor="hero_title"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Hero Title
+                  </label>
                   <input
                     type="text"
                     id="hero_title"
@@ -792,7 +907,12 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="hero_subtitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Hero Subtitle</label>
+                  <label
+                    htmlFor="hero_subtitle"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Hero Subtitle
+                  </label>
                   <input
                     type="text"
                     id="hero_subtitle"
@@ -805,7 +925,12 @@ export default function AdminPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="region_logo_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Region Logo URL</label>
+                  <label
+                    htmlFor="region_logo_url"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Region Logo URL
+                  </label>
                   <input
                     type="url"
                     id="region_logo_url"
@@ -817,7 +942,12 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="region_hero_img_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Region Hero Image URL</label>
+                  <label
+                    htmlFor="region_hero_img_url"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Region Hero Image URL
+                  </label>
                   <input
                     type="url"
                     id="region_hero_img_url"
@@ -830,7 +960,12 @@ export default function AdminPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="region_city" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Region City</label>
+                  <label
+                    htmlFor="region_city"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Region City
+                  </label>
                   <input
                     type="text"
                     id="region_city"
@@ -842,7 +977,12 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="region_state" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Region State</label>
+                  <label
+                    htmlFor="region_state"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Region State
+                  </label>
                   <input
                     type="text"
                     id="region_state"
@@ -854,7 +994,12 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="region_facebook" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Facebook Group URL</label>
+                  <label
+                    htmlFor="region_facebook"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Facebook Group URL
+                  </label>
                   <input
                     type="url"
                     id="region_facebook"
@@ -866,10 +1011,17 @@ export default function AdminPage() {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Map Configuration</h3>
+                  <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+                    Map Configuration
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                      <label htmlFor="region_map_lat" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Map Latitude</label>
+                      <label
+                        htmlFor="region_map_lat"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        Map Latitude
+                      </label>
                       <input
                         type="text"
                         id="region_map_lat"
@@ -881,7 +1033,12 @@ export default function AdminPage() {
                       />
                     </div>
                     <div>
-                      <label htmlFor="region_map_lon" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Map Longitude</label>
+                      <label
+                        htmlFor="region_map_lon"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        Map Longitude
+                      </label>
                       <input
                         type="text"
                         id="region_map_lon"
@@ -893,7 +1050,12 @@ export default function AdminPage() {
                       />
                     </div>
                     <div>
-                      <label htmlFor="region_map_zoom" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Map Zoom Level</label>
+                      <label
+                        htmlFor="region_map_zoom"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        Map Zoom Level
+                      </label>
                       <input
                         type="number"
                         id="region_map_zoom"
@@ -901,12 +1063,16 @@ export default function AdminPage() {
                         value={regionForm.region_map_zoom || 12}
                         onChange={handleRegionFormChange}
                         className={inputClasses}
-
                       />
                     </div>
                   </div>
                   <div className="mt-4">
-                    <label htmlFor="region_map_embed_link" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Map Embed Link (iframe src)</label>
+                    <label
+                      htmlFor="region_map_embed_link"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Map Embed Link (iframe src)
+                    </label>
                     <textarea
                       id="region_map_embed_link"
                       name="region_map_embed_link"
@@ -917,12 +1083,21 @@ export default function AdminPage() {
                       placeholder="Paste the full iframe src URL for your region's custom map (e.g., from Google My Maps embed)"
                     />
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      Find this in Google My Maps: {`"Share" >`}  {`"Embed on my site" > `} Copy the {`"src"`} attribute from the iframe code.
+                      Find this in Google My Maps: {`"Share" >`}{' '}
+                      {`"Embed on my site" > `} Copy the {`"src"`} attribute
+                      from the iframe code.
                     </p>
                   </div>
                 </div>
-                <div className="md:col-span-2"> {/* This div likely spans two columns on medium screens */}
-                  <label htmlFor="region_google_form_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Google FNG Form URL</label>
+                <div className="md:col-span-2">
+                  {' '}
+                  {/* This div likely spans two columns on medium screens */}
+                  <label
+                    htmlFor="region_google_form_url"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Google FNG Form URL
+                  </label>
                   <input
                     type="url"
                     id="region_fng_form_url"
@@ -933,11 +1108,19 @@ export default function AdminPage() {
                     placeholder="https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform"
                   />
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    This is the public URL of your Google Form, not the embed code.
+                    This is the public URL of your Google Form, not the embed
+                    code.
                   </p>
                 </div>
-                <div className="md:col-span-2"> {/* This div likely spans two columns on medium screens */}
-                  <label htmlFor="region_google_form_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Google Contact Form URL</label>
+                <div className="md:col-span-2">
+                  {' '}
+                  {/* This div likely spans two columns on medium screens */}
+                  <label
+                    htmlFor="region_google_form_url"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Google Contact Form URL
+                  </label>
                   <input
                     type="url"
                     id="region_google_form_url"
@@ -948,10 +1131,13 @@ export default function AdminPage() {
                     placeholder="https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform"
                   />
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    This is the public URL of your Google Form, not the embed code.
+                    This is the public URL of your Google Form, not the embed
+                    code.
                   </p>
                 </div>
-                <div className="md:col-span-2 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-6"> {/* Responsive buttons */}
+                <div className="md:col-span-2 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-6">
+                  {' '}
+                  {/* Responsive buttons */}
                   <button
                     type="button"
                     onClick={handleCancelRegionEdit}
@@ -964,7 +1150,11 @@ export default function AdminPage() {
                     className={buttonPrimaryClasses}
                     disabled={regionLoading}
                   >
-                    {regionLoading ? 'Saving...' : (regionConfigExists ? 'Update Configuration' : 'Create Configuration')}
+                    {regionLoading
+                      ? 'Saving...'
+                      : regionConfigExists
+                        ? 'Update Configuration'
+                        : 'Create Configuration'}
                   </button>
                 </div>
               </form>
@@ -975,28 +1165,42 @@ export default function AdminPage() {
         {/* --- Tab Content: Locations --- */}
         {activeTab === 'locations' && (
           <section className={sectionClasses}>
-            <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100 text-2xl sm:text-3xl">Location Management (AOs)</h2>
+            <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100 text-2xl sm:text-3xl">
+              Location Management (AOs)
+            </h2>
 
             {!showLocationAddEditForm && (
               <div className="flex justify-end mb-4">
                 <button
                   onClick={handleAddLocationClick}
-                  className={buttonPrimaryClasses + " !w-auto px-6 py-2"}
+                  className={buttonPrimaryClasses + ' !w-auto px-6 py-2'}
                 >
                   + Add New Location
                 </button>
               </div>
             )}
 
-            {loading && <p className="text-center py-4 text-gray-600 dark:text-gray-400">Loading locations...</p>}
+            {loading && (
+              <p className="text-center py-4 text-gray-600 dark:text-gray-400">
+                Loading locations...
+              </p>
+            )}
 
             {showLocationAddEditForm && (
-              <form onSubmit={handleSubmitLocation} className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 p-6 border border-gray-200 rounded-lg dark:border-gray-700">
+              <form
+                onSubmit={handleSubmitLocation}
+                className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 p-6 border border-gray-200 rounded-lg dark:border-gray-700"
+              >
                 <h3 className="md:col-span-2 text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">
                   {editLocationId ? 'Edit Location' : 'Add New Location'}
                 </h3>
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Location Name (AO)</label>
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Location Name (AO)
+                  </label>
                   <input
                     type="text"
                     id="name"
@@ -1009,7 +1213,12 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
+                  <label
+                    htmlFor="address"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Address
+                  </label>
                   <input
                     type="text"
                     id="address"
@@ -1022,7 +1231,12 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="mapLink" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Google Maps Link</label>
+                  <label
+                    htmlFor="mapLink"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Google Maps Link
+                  </label>
                   <input
                     type="url"
                     id="mapLink"
@@ -1034,7 +1248,12 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="embedMapLink" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Embed Map Link (iframe src)</label>
+                  <label
+                    htmlFor="embedMapLink"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Embed Map Link (iframe src)
+                  </label>
                   <textarea
                     id="embedMapLink"
                     name="embedMapLink"
@@ -1049,7 +1268,12 @@ export default function AdminPage() {
                   </p>
                 </div>
                 <div className="md:col-span-2">
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                  <label
+                    htmlFor="description"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Description
+                  </label>
                   <textarea
                     id="description"
                     name="description"
@@ -1061,7 +1285,12 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="q" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Q (Site Q for this AO)</label>
+                  <label
+                    htmlFor="q"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Q (Site Q for this AO)
+                  </label>
                   <input
                     type="text"
                     id="q"
@@ -1073,7 +1302,12 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Image URL</label>
+                  <label
+                    htmlFor="imageUrl"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Image URL
+                  </label>
                   <input
                     type="url"
                     id="imageUrl"
@@ -1085,7 +1319,12 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="paxImageUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Pax Image URL</label>
+                  <label
+                    htmlFor="paxImageUrl"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Pax Image URL
+                  </label>
                   <input
                     type="url"
                     id="paxImageUrl"
@@ -1097,7 +1336,9 @@ export default function AdminPage() {
                   />
                 </div>
 
-                <div className="md:col-span-2 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-6"> {/* Responsive buttons */}
+                <div className="md:col-span-2 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-6">
+                  {' '}
+                  {/* Responsive buttons */}
                   <button
                     type="button"
                     onClick={handleCancelLocationEdit}
@@ -1110,7 +1351,11 @@ export default function AdminPage() {
                     className={buttonPrimaryClasses}
                     disabled={loading}
                   >
-                    {loading ? 'Saving...' : (editLocationId ? 'Update Location' : 'Add Location')}
+                    {loading
+                      ? 'Saving...'
+                      : editLocationId
+                        ? 'Update Location'
+                        : 'Add Location'}
                   </button>
                 </div>
               </form>
@@ -1119,25 +1364,60 @@ export default function AdminPage() {
             {!showLocationAddEditForm && (
               <>
                 {locations.length === 0 && !loading && (
-                  <p className="text-center py-4 text-gray-600 dark:text-gray-400">No locations found. Add one above!</p>
+                  <p className="text-center py-4 text-gray-600 dark:text-gray-400">
+                    No locations found. Add one above!
+                  </p>
                 )}
                 {locations.length > 0 && (
-                  <div className="overflow-x-auto rounded-lg shadow-md"> {/* Added overflow-x-auto here */}
+                  <div className="overflow-x-auto rounded-lg shadow-md">
+                    {' '}
+                    {/* Added overflow-x-auto here */}
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                       <thead className="bg-gray-50 dark:bg-gray-800">
                         <tr>
-                          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Name</th>
-                          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Address</th>
-                          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden sm:table-cell">Q</th> {/* Hide Q on extra small screens */}
-                          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Actions</th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
+                          >
+                            Name
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
+                          >
+                            Address
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden sm:table-cell"
+                          >
+                            Q
+                          </th>{' '}
+                          {/* Hide Q on extra small screens */}
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
+                          >
+                            Actions
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
                         {locations.map((location) => (
-                          <tr key={location._id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                            <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{location.name}</td>
-                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300">{location.address}</td>
-                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">{location.q}</td> {/* Hide Q on extra small screens */}
+                          <tr
+                            key={location._id}
+                            className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                          >
+                            <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                              {location.name}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300">
+                              {location.address}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">
+                              {location.q}
+                            </td>{' '}
+                            {/* Hide Q on extra small screens */}
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                               <button
                                 onClick={() => handleEditLocation(location)}
@@ -1146,7 +1426,9 @@ export default function AdminPage() {
                                 Edit
                               </button>
                               <button
-                                onClick={() => handleDeleteLocation(location._id)}
+                                onClick={() =>
+                                  handleDeleteLocation(location._id)
+                                }
                                 className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                               >
                                 Delete
@@ -1166,28 +1448,42 @@ export default function AdminPage() {
         {/* --- Tab Content: Workouts --- */}
         {activeTab === 'workouts' && (
           <section className={sectionClasses}>
-            <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100 text-2xl sm:text-3xl">Workout Management</h2>
+            <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100 text-2xl sm:text-3xl">
+              Workout Management
+            </h2>
 
             {!showWorkoutAddEditForm && (
               <div className="flex justify-end mb-4">
                 <button
                   onClick={handleAddWorkoutClick}
-                  className={buttonPrimaryClasses + " !w-auto px-6 py-2"}
+                  className={buttonPrimaryClasses + ' !w-auto px-6 py-2'}
                 >
                   + Add New Workout
                 </button>
               </div>
             )}
 
-            {loading && <p className="text-center py-4 text-gray-600 dark:text-gray-400">Loading workouts...</p>}
+            {loading && (
+              <p className="text-center py-4 text-gray-600 dark:text-gray-400">
+                Loading workouts...
+              </p>
+            )}
 
             {showWorkoutAddEditForm && (
-              <form onSubmit={handleSubmitWorkout} className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 p-6 border border-gray-200 rounded-lg dark:border-gray-700">
+              <form
+                onSubmit={handleSubmitWorkout}
+                className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 p-6 border border-gray-200 rounded-lg dark:border-gray-700"
+              >
                 <h3 className="md:col-span-2 text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">
                   {editWorkoutId ? 'Edit Workout' : 'Add New Workout'}
                 </h3>
                 <div>
-                  <label htmlFor="locationId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Associated Location (AO)</label>
+                  <label
+                    htmlFor="locationId"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Associated Location (AO)
+                  </label>
                   <select
                     id="locationId"
                     name="locationId"
@@ -1197,14 +1493,21 @@ export default function AdminPage() {
                     required
                   >
                     <option value="">Select a location</option>
-                    {locations.map(loc => (
-                      <option key={loc._id} value={loc._id}>{loc.name}</option>
+                    {locations.map((loc) => (
+                      <option key={loc._id} value={loc._id}>
+                        {loc.name}
+                      </option>
                     ))}
                   </select>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Time</label>
+                    <label
+                      htmlFor="startTime"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Start Time
+                    </label>
                     <input
                       type="time"
                       id="startTime"
@@ -1216,7 +1519,12 @@ export default function AdminPage() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 dark:text-gray-300">End Time (Optional)</label>
+                    <label
+                      htmlFor="endTime"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      End Time (Optional)
+                    </label>
                     <input
                       type="time"
                       id="endTime"
@@ -1229,9 +1537,11 @@ export default function AdminPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Days of the Week</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Days of the Week
+                  </label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {allDays.map(day => (
+                    {allDays.map((day) => (
                       <div key={day} className="flex items-center">
                         <input
                           type="checkbox"
@@ -1242,26 +1552,40 @@ export default function AdminPage() {
                           onChange={handleNewWorkoutChange}
                           className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:checked:bg-indigo-500"
                         />
-                        <label htmlFor={`day-${day}`} className="ml-2 text-sm text-gray-900 dark:text-gray-300">{day}</label>
+                        <label
+                          htmlFor={`day-${day}`}
+                          className="ml-2 text-sm text-gray-900 dark:text-gray-300"
+                        >
+                          {day}
+                        </label>
                       </div>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Workout Types</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Workout Types
+                  </label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {allWorkoutTypes.map(type => (
+                    {allWorkoutTypes.map((type) => (
                       <div key={type} className="flex items-center">
                         <input
                           type="checkbox"
                           id={`type-${type}`}
                           name="types"
                           value={type}
-                          checked={newWorkoutForm.types?.includes(type) || false}
+                          checked={
+                            newWorkoutForm.types?.includes(type) || false
+                          }
                           onChange={handleNewWorkoutChange}
                           className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:checked:bg-indigo-500"
                         />
-                        <label htmlFor={`type-${type}`} className="ml-2 text-sm text-gray-900 dark:text-gray-300">{type}</label>
+                        <label
+                          htmlFor={`type-${type}`}
+                          className="ml-2 text-sm text-gray-900 dark:text-gray-300"
+                        >
+                          {type}
+                        </label>
                       </div>
                     ))}
                   </div>
@@ -1269,7 +1593,12 @@ export default function AdminPage() {
 
                 {/* NEW FIELDS */}
                 <div>
-                  <label htmlFor="frequencyPrefix" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Frequency Prefix</label>
+                  <label
+                    htmlFor="frequencyPrefix"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Frequency Prefix
+                  </label>
                   <select
                     id="frequencyPrefix"
                     name="frequencyPrefix"
@@ -1278,8 +1607,10 @@ export default function AdminPage() {
                     className={selectClasses}
                   >
                     <option value="">None (e.g., Every)</option>
-                    {frequencyPrefixOptions.map(prefix => (
-                      <option key={prefix} value={prefix}>{prefix}</option>
+                    {frequencyPrefixOptions.map((prefix) => (
+                      <option key={prefix} value={prefix}>
+                        {prefix}
+                      </option>
                     ))}
                   </select>
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -1287,7 +1618,12 @@ export default function AdminPage() {
                   </p>
                 </div>
                 <div className="md:col-span-2">
-                  <label htmlFor="comments" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Comments</label>
+                  <label
+                    htmlFor="comments"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Comments
+                  </label>
                   <textarea
                     id="comments"
                     name="comments"
@@ -1299,7 +1635,9 @@ export default function AdminPage() {
                   />
                 </div>
 
-                <div className="md:col-span-2 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-6"> {/* Responsive buttons */}
+                <div className="md:col-span-2 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 mt-6">
+                  {' '}
+                  {/* Responsive buttons */}
                   <button
                     type="button"
                     onClick={handleCancelWorkoutEdit}
@@ -1312,7 +1650,11 @@ export default function AdminPage() {
                     className={buttonPrimaryClasses}
                     disabled={loading}
                   >
-                    {loading ? 'Saving...' : (editWorkoutId ? 'Update Workout' : 'Add Workout')}
+                    {loading
+                      ? 'Saving...'
+                      : editWorkoutId
+                        ? 'Update Workout'
+                        : 'Add Workout'}
                   </button>
                 </div>
               </form>
@@ -1321,31 +1663,90 @@ export default function AdminPage() {
             {!showWorkoutAddEditForm && (
               <>
                 {workouts.length === 0 && !loading && (
-                  <p className="text-center py-4 text-gray-600 dark:text-gray-400">No workouts found. Add one above!</p>
+                  <p className="text-center py-4 text-gray-600 dark:text-gray-400">
+                    No workouts found. Add one above!
+                  </p>
                 )}
                 {workouts.length > 0 && (
-                  <div className="overflow-x-auto rounded-lg shadow-md"> {/* Added overflow-x-auto here */}
+                  <div className="overflow-x-auto rounded-lg shadow-md">
+                    {' '}
+                    {/* Added overflow-x-auto here */}
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                       <thead className="bg-gray-50 dark:bg-gray-800">
                         <tr>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Location (AO)</th>
-                          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 whitespace-nowrap">Time</th>
-                          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden sm:table-cell">Days</th> {/* Hide on extra small screens */}
-                          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden md:table-cell">Types</th> {/* Hide on small screens */}
-                          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden lg:table-cell whitespace-nowrap">Frequency Prefix</th> {/* Hide on medium/small screens */}
-                          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden xl:table-cell">Comments</th> {/* Hide on large/medium/small screens */}
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Actions</th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
+                          >
+                            Location (AO)
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 whitespace-nowrap"
+                          >
+                            Time
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden sm:table-cell"
+                          >
+                            Days
+                          </th>{' '}
+                          {/* Hide on extra small screens */}
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden md:table-cell"
+                          >
+                            Types
+                          </th>{' '}
+                          {/* Hide on small screens */}
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden lg:table-cell whitespace-nowrap"
+                          >
+                            Frequency Prefix
+                          </th>{' '}
+                          {/* Hide on medium/small screens */}
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 hidden xl:table-cell"
+                          >
+                            Comments
+                          </th>{' '}
+                          {/* Hide on large/medium/small screens */}
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
+                          >
+                            Actions
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
                         {workouts.map((workout) => (
-                          <tr key={workout._id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                            <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{getLocationName(workout.locationId)}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{workout.startTime}{workout.endTime ? ` - ${workout.endTime}` : ''}</td>
-                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">{workout.days.join(', ')}</td>
-                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 hidden md:table-cell">{workout.types.join(', ')}</td>
-                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 hidden lg:table-cell">{workout.frequencyPrefix || 'N/A'}</td>
-                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 hidden xl:table-cell">{workout.comments || 'N/A'}</td>
+                          <tr
+                            key={workout._id}
+                            className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                          >
+                            <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                              {getLocationName(workout.locationId)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                              {workout.startTime}
+                              {workout.endTime ? ` - ${workout.endTime}` : ''}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 hidden sm:table-cell">
+                              {workout.days.join(', ')}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 hidden md:table-cell">
+                              {workout.types.join(', ')}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 hidden lg:table-cell">
+                              {workout.frequencyPrefix || 'N/A'}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 hidden xl:table-cell">
+                              {workout.comments || 'N/A'}
+                            </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                               <button
                                 onClick={() => handleEditWorkout(workout)}
@@ -1354,7 +1755,9 @@ export default function AdminPage() {
                                 Edit
                               </button>
                               <button
-                                onClick={() => handleDeleteWorkout(workout._id || '')}
+                                onClick={() =>
+                                  handleDeleteWorkout(workout._id || '')
+                                }
                                 className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                               >
                                 Delete
