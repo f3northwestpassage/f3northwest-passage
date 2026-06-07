@@ -3,7 +3,10 @@ interface FAQProps {
   regionName?: string;
 }
 
-export default function FAQ({ city = 'Cypress and Houston', regionName = 'F3 Northwest Passage' }: FAQProps) {
+export default function FAQ({
+  city = 'Cypress and Houston',
+  regionName = 'F3 Northwest Passage',
+}: FAQProps) {
   const faqs = [
     {
       question: `Are the workouts in ${city} really free?`,
@@ -15,31 +18,38 @@ export default function FAQ({ city = 'Cypress and Houston', regionName = 'F3 Nor
     },
     {
       question: 'What types of workouts do you offer?',
-      answer: 'We offer a variety of outdoor fitness workouts including bootcamp-style training, running clubs, strength training, and high-intensity interval training (HIIT). Our Cypress and Houston fitness groups provide peer-led workouts adaptable to any fitness level.',
+      answer:
+        'We offer a variety of outdoor fitness workouts including bootcamp-style training, running clubs, strength training, and high-intensity interval training (HIIT). Our Cypress and Houston fitness groups provide peer-led workouts adaptable to any fitness level.',
     },
     {
-      question: 'Do I need experience to join the men\'s workouts?',
-      answer: 'No experience needed! Our free workouts welcome men of all fitness levels, from beginners to advanced athletes. Modify exercises as needed and work at your own pace.',
+      question: "Do I need experience to join the men's workouts?",
+      answer:
+        'No experience needed! Our free workouts welcome men of all fitness levels, from beginners to advanced athletes. Modify exercises as needed and work at your own pace.',
     },
     {
       question: `When do the ${city} workouts happen?`,
-      answer: 'We meet for outdoor workouts Monday through Saturday mornings. Weekday workouts are typically 45 minutes starting around 5:30 AM, and Saturday workouts are 60 minutes. Check specific location times on our workout schedule.',
+      answer:
+        'We meet for outdoor workouts Monday through Saturday mornings. Weekday workouts are typically 45 minutes starting around 5:30 AM, and Saturday workouts are 60 minutes. Check specific location times on our workout schedule.',
     },
     {
       question: 'What should I bring to my first workout?',
-      answer: 'Just bring yourself, workout clothes, water, and a positive attitude. We recommend gloves for some exercises. All workouts are held rain or shine, so dress appropriately for the weather.',
+      answer:
+        'Just bring yourself, workout clothes, water, and a positive attitude. We recommend gloves for some exercises. All workouts are held rain or shine, so dress appropriately for the weather.',
     },
     {
       question: `Is F3 Northwest only in ${city}?`,
       answer: `F3 Northwest Passage serves ${city}, Cypress, Jersey Village, Bridgeland, Northwest Houston, and surrounding areas in Texas. We\'re the premier free fitness group in the Houston area and part of F3 Nation, a nationwide network of free men\'s workout groups.`,
     },
     {
-      question: 'How is F3 Northwest different from other Cypress, Jersey Village, or Houston run clubs?',
-      answer: 'While run clubs in Cypress, Jersey Village, Bridgeland, and Houston focus mainly on running, F3 Northwest Passage is a complete fitness program. We combine running, boot camp workouts, strength training, and functional fitness across multiple locations. Plus, we emphasize fellowship and community leadership - not just physical fitness. And unlike paid fitness groups, we\'re 100% free.',
+      question:
+        'How is F3 Northwest different from other Cypress, Jersey Village, or Houston run clubs?',
+      answer:
+        "While run clubs in Cypress, Jersey Village, Bridgeland, and Houston focus mainly on running, F3 Northwest Passage is a complete fitness program. We combine running, boot camp workouts, strength training, and functional fitness across multiple locations. Plus, we emphasize fellowship and community leadership - not just physical fitness. And unlike paid fitness groups, we're 100% free.",
     },
     {
       question: 'Why are the workouts only for men?',
-      answer: 'F3 focuses on building authentic male community and leadership. We believe men need a dedicated space to support each other in fitness, fellowship, and faith. (F3 stands for Fitness, Fellowship, and Faith.)',
+      answer:
+        'F3 focuses on building authentic male community and leadership. We believe men need a dedicated space to support each other in fitness, fellowship, and faith. (F3 stands for Fitness, Fellowship, and Faith.)',
     },
   ];
 
@@ -49,19 +59,34 @@ export default function FAQ({ city = 'Cypress and Houston', regionName = 'F3 Nor
         <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-10 text-center">
           Frequently Asked Questions
         </h2>
-        <div className="space-y-6">
+        <div className="space-y-4">
           {faqs.map((faq, index) => (
-            <div
+            <details
               key={index}
-              className="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6"
+              className="group bg-white dark:bg-gray-700 rounded-lg shadow-md"
             >
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
-                {faq.question}
-              </h3>
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                {faq.answer}
-              </p>
-            </div>
+              <summary className="flex items-center justify-between cursor-pointer p-6 text-xl font-bold text-gray-900 dark:text-white list-none [&::-webkit-details-marker]:hidden">
+                <span>{faq.question}</span>
+                <svg
+                  className="w-5 h-5 shrink-0 ml-4 transition-transform duration-200 group-open:rotate-180"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                  />
+                </svg>
+              </summary>
+              <div className="px-6 pb-6">
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  {faq.answer}
+                </p>
+              </div>
+            </details>
           ))}
         </div>
       </div>

@@ -1,114 +1,35 @@
-'use client'; // This page is a Client Component
-
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Script from 'next/script'; // Import Script for Google Analytics
 
 import Header from '../_components/Header';
 import Footer from '../_components/Footer';
 import Hero from '../_components/Hero';
+import FngFormToggle from './FngFormToggle';
 
 /** replace with a regional image */
-import f3HeroImg from '../../../public/fod.png'; // Make sure this path is correct and the image exists.
+import f3HeroImg from '../../../public/fod.png';
 
 import { fetchLocaleData } from '@/utils/fetchLocaleData';
-// CORRECTED: Ensure this path correctly points to your canonical types/workout.ts file
-import type { LocaleData } from '../../../types/workout'; // <-- THIS LINE IS CORRECTED
 
-export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store'; // Ensures data is always fresh, not cached at build time
+export const revalidate = 300; // ISR: revalidate every 5 minutes
 
-export default function Page() {
-  const [localeData, setLocaleData] = useState<LocaleData | null>(null);
-  const [localeLoading, setLocaleLoading] = useState(true);
-  const [localeError, setLocaleError] = useState<string | null>(null);
+export default async function Page() {
+  const localeData = await fetchLocaleData();
 
-  // Initialize showFngForm from localStorage
-  const [showFngForm, setShowFngForm] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const savedState = localStorage.getItem('showFngForm');
-      return savedState === 'true'; // Convert 'true' string back to boolean
-    }
-    return false; // Default to false if not in browser environment
-  });
+  const fngFormEmbedUrl = localeData?.region_fng_form_url
+    ? localeData.region_fng_form_url.replace(/\/viewform$/, '/embed')
+    : null;
 
-  const [fngFormEmbedUrl, setFngFormEmbedUrl] = useState<string | null>(null);
-  const [fngFormError, setFngFormError] = useState<string | null>(null);
-
-  // Get Google Analytics ID from environment variables
-  const googleAnalyticsId = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
-  const enableAnalytics = typeof googleAnalyticsId === 'string' && googleAnalyticsId.length > 0;
-
-  // Fetch locale data
-  useEffect(() => {
-    const getLocale = async () => {
-      try {
-        const data = await fetchLocaleData();
-        setLocaleData(data);
-        // Assuming region_fng_form_url is available in LocaleData
-        if (data?.region_fng_form_url) {
-          setFngFormEmbedUrl(data.region_fng_form_url.replace(/\/viewform$/, '/embed'));
-        } else {
-          setFngFormError("FNG Form URL is not configured in locale data.");
-        }
-      } catch (err) {
-        console.error('Failed to fetch locale data for FNG page:', err);
-        setLocaleError('Failed to load page content.');
-      } finally {
-        setLocaleLoading(false);
-      }
-    };
-    getLocale();
-  }, []); // Empty dependency array means this runs once on mount
-
-  // Persist showFngForm state to localStorage whenever it changes
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('showFngForm', String(showFngForm));
-    }
-  }, [showFngForm]);
-
-
-  const handleToggleFngForm = () => {
-    setShowFngForm(prev => !prev);
-    // When showing, ensure no previous errors are displayed initially
-    if (!showFngForm && !fngFormEmbedUrl) {
-      setFngFormError(localeData?.region_fng_form_url ? null : "FNG Form URL is not configured.");
-    }
-  };
-
-  const href = '/fng'; // This seems to be the current page's link
-
-  const overallLoading = localeLoading;
-  const overallError = localeError;
+  const href = '/fng';
 
   return (
     <>
       <Header href={href} regionName={localeData?.region_name} />
-      {enableAnalytics && (
-        <>
-          <Script
-            src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
-            strategy="afterInteractive"
-          />
-          <Script id="google-analytics" strategy="afterInteractive">
-            {`
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', '${googleAnalyticsId}', {
-                page_path: window.location.pathname,
-              });
-            `}
-          </Script>
-        </>
-      )}
       <main className="bg-white dark:bg-black dark:bg-gray-950 text-gray-900 dark:text-gray-100">
         <Hero
           title="NEW TO F3"
           subtitle="WELCOME [FNG]"
           imgUrl={f3HeroImg.src}
-          imgAlt="A group of F3 men exercising outdoors" // Added a descriptive alt text
+          imgAlt="A group of F3 men exercising outdoors"
         />
 
         {/* Section 1: F.N.G. Information */}
@@ -119,16 +40,17 @@ export default function Page() {
           <p className="text-gray-700 dark:text-gray-300 pt-5 max-w-4xl mx-auto">
             We appreciate you joining us and there is a lot of information to
             tell you but to avoid overwhelming you here are a few ways to keep
-            in touch and know what&apos;s going on in {localeData?.region_name ?? "your region"}. If you still
-            have questions just ask any of the guys and they&apos;ll help or
-            point you in the right direction!
+            in touch and know what&apos;s going on in{' '}
+            {localeData?.region_name ?? 'your region'}. If you still have
+            questions just ask any of the guys and they&apos;ll help or point
+            you in the right direction!
           </p>
           <p className="text-gray-700 dark:text-gray-300 pt-5 max-w-4xl mx-auto">
             So, you got past{' '}
             <Link
               href="https://f3nation.com/top-five-eh-excuses/"
               target="_blank"
-              rel="noopener noreferrer" // Added for security best practices with target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline transition-colors"
             >
               our favorite excuses
@@ -157,41 +79,7 @@ export default function Page() {
 
         {/* Section 2: FNG Form Button */}
         <section className="bg-gray-200 dark:bg-gray-900 py-16 px-4 leading-tight text-center">
-          <button
-            onClick={handleToggleFngForm}
-            disabled={overallLoading || !localeData} // Disable if locale data is still loading
-            className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-white text-base font-medium rounded-md text-white bg-blue-900 bg-f3-blue hover:bg-blue-700 dark:bg-f3-blue-light dark:hover:bg-blue-800 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {showFngForm ? 'Hide FNG Form' : '👉 Fill out FNG Form 👈'}
-          </button>
-
-          {showFngForm && (
-            <div className="mt-8 max-w-2xl mx-auto">
-              {overallLoading ? (
-                <div className="text-center py-8 text-gray-600 dark:text-gray-400">Loading FNG form...</div>
-              ) : fngFormError ? (
-                <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded dark:bg-red-800 dark:border-red-600 dark:text-red-100" role="alert">
-                  <p className="font-bold">Form Error:</p>
-                  <p className="text-sm">{fngFormError}</p>
-                </div>
-              ) : !fngFormEmbedUrl ? (
-                <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded dark:bg-yellow-800 dark:border-yellow-600 dark:text-yellow-100" role="alert">
-                  <p className="font-bold">Form Unavailable:</p>
-                  <p className="text-sm">The FNG form URL is not configured by the admin or is invalid.</p>
-                </div>
-              ) : (
-                <iframe
-                  src={fngFormEmbedUrl}
-                  frameBorder="0"
-                  className="w-full min-h-[600px] md:min-h-[700px] lg:min-h-[800px] rounded-lg shadow-md"
-                  title="FNG Google Form"
-                  allowFullScreen
-                >
-                  Loading FNG Google Form...
-                </iframe>
-              )}
-            </div>
-          )}
+          <FngFormToggle embedUrl={fngFormEmbedUrl} />
         </section>
 
         {/* Section 3: Tips for Your First Workout */}
@@ -216,7 +104,7 @@ export default function Page() {
               <Link
                 href="https://f3nation.com/disclaimer-and-notice/"
                 target="_blank"
-                rel="noopener noreferrer" // Added for security best practices
+                rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline transition-colors"
               >
                 disclaimer
@@ -240,7 +128,7 @@ export default function Page() {
               <Link
                 href="https://f3nation.com/lexicon/"
                 target="_blank"
-                rel="noopener noreferrer" // Added for security best practices
+                rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline transition-colors"
               >
                 Lexicon
@@ -264,11 +152,11 @@ export default function Page() {
         </section>
       </main>
       <Footer
-        regionName={localeData?.region_name ?? ""}
-        regionFacebook={localeData?.region_facebook ?? ""}
-        regionInstagram={localeData?.region_instagram ?? ""}
-        regionLinkedin={localeData?.region_linkedin ?? ""}
-        regionXTwitter={localeData?.region_x_twitter ?? ""}
+        regionName={localeData?.region_name ?? ''}
+        regionFacebook={localeData?.region_facebook ?? ''}
+        regionInstagram={localeData?.region_instagram ?? ''}
+        regionLinkedin={localeData?.region_linkedin ?? ''}
+        regionXTwitter={localeData?.region_x_twitter ?? ''}
       />
     </>
   );

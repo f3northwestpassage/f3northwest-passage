@@ -1,70 +1,70 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import Script from "next/script";
-import "./globals.css";
-import ThemeProvider from "./_components/ThemeProvider";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import Script from 'next/script';
+import './globals.css';
+import ThemeProvider from './_components/ThemeProvider';
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 // Default metadata - can be overridden by page-level metadata
 export const metadata: Metadata = {
   title: {
     default: "F3 Northwest Passage | Free Men's Fitness Workouts",
-    template: "%s | F3 Northwest Passage",
+    template: '%s | F3 Northwest Passage',
   },
   description:
-    "Join F3 Northwest Passage for free, peer-led outdoor fitness workouts for men in Cypress, Jersey Village, Bridgeland, and Northwest Houston, TX. No membership fees. Rain or shine. All fitness levels welcome.",
+    'Join F3 Northwest Passage for free, peer-led outdoor fitness workouts for men in Cypress, Jersey Village, Bridgeland, and Northwest Houston, TX. No membership fees. Rain or shine. All fitness levels welcome.',
   keywords: [
-    "F3",
-    "F3 Northwest",
-    "F3 Northwest Passage",
-    "F3 Cypress",
-    "F3 Houston",
-    "F3 Jersey Village",
-    "F3 Bridgeland",
+    'F3',
+    'F3 Northwest',
+    'F3 Northwest Passage',
+    'F3 Cypress',
+    'F3 Houston',
+    'F3 Jersey Village',
+    'F3 Bridgeland',
     "men's fitness",
-    "free workouts",
-    "outdoor fitness",
-    "peer-led workouts",
-    "fitness fellowship faith",
-    "Cypress workouts",
-    "Houston workouts",
-    "Jersey Village workouts",
-    "Bridgeland workouts",
-    "Cypress fitness",
-    "Houston fitness",
-    "Jersey Village fitness",
-    "Bridgeland fitness",
-    "Northwest Houston fitness",
-    "Cypress run club",
-    "Houston run club",
-    "Jersey Village run club",
-    "Bridgeland run club",
-    "Cypress boot camp",
-    "Houston boot camp",
-    "Jersey Village boot camp",
-    "Bridgeland boot camp",
-    "Cypress exercise group",
-    "Houston exercise group",
-    "Jersey Village exercise group",
-    "Bridgeland exercise group",
-    "free outdoor workouts",
+    'free workouts',
+    'outdoor fitness',
+    'peer-led workouts',
+    'fitness fellowship faith',
+    'Cypress workouts',
+    'Houston workouts',
+    'Jersey Village workouts',
+    'Bridgeland workouts',
+    'Cypress fitness',
+    'Houston fitness',
+    'Jersey Village fitness',
+    'Bridgeland fitness',
+    'Northwest Houston fitness',
+    'Cypress run club',
+    'Houston run club',
+    'Jersey Village run club',
+    'Bridgeland run club',
+    'Cypress boot camp',
+    'Houston boot camp',
+    'Jersey Village boot camp',
+    'Bridgeland boot camp',
+    'Cypress exercise group',
+    'Houston exercise group',
+    'Jersey Village exercise group',
+    'Bridgeland exercise group',
+    'free outdoor workouts',
     "men's fitness group",
   ],
-  authors: [{ name: "F3 Northwest Passage" }],
+  authors: [{ name: 'F3 Northwest Passage' }],
   openGraph: {
-    type: "website",
-    locale: "en_US",
-    siteName: "F3 Northwest Passage",
+    type: 'website',
+    locale: 'en_US',
+    siteName: 'F3 Northwest Passage',
     title: "F3 Northwest Passage | Free Men's Fitness Workouts",
     description:
-      "Join F3 Northwest Passage for free, peer-led outdoor fitness workouts for men. No membership fees. Rain or shine. All fitness levels welcome.",
+      'Join F3 Northwest Passage for free, peer-led outdoor fitness workouts for men. No membership fees. Rain or shine. All fitness levels welcome.',
   },
   twitter: {
-    card: "summary_large_image",
+    card: 'summary_large_image',
     title: "F3 Northwest Passage | Free Men's Fitness Workouts",
     description:
-      "Join F3 Northwest Passage for free, peer-led outdoor fitness workouts for men. No membership fees. Rain or shine. All fitness levels welcome.",
+      'Join F3 Northwest Passage for free, peer-led outdoor fitness workouts for men. No membership fees. Rain or shine. All fitness levels welcome.',
   },
   robots: {
     index: true,
@@ -72,9 +72,9 @@ export const metadata: Metadata = {
     googleBot: {
       index: true,
       follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
     },
   },
   verification: {
@@ -85,7 +85,7 @@ export const metadata: Metadata = {
 export default function Layout({ children }: { children: React.ReactNode }) {
   const googleAnalyticsId = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
   const enableAnalytics =
-    typeof googleAnalyticsId === "string" && googleAnalyticsId.length > 0;
+    typeof googleAnalyticsId === 'string' && googleAnalyticsId.length > 0;
 
   return (
     <html lang="en" className="dark">
@@ -111,7 +111,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         )}
       </head>
       <body
-        className={`${inter.className} bg-white dark:bg-iron text-black dark:text-white font-sans text-lg text-center justify-center`}
+        className={`${inter.className} ${inter.variable} bg-white dark:bg-iron text-black dark:text-white font-sans text-lg text-center justify-center`}
       >
         <ThemeProvider>{children}</ThemeProvider>
       </body>

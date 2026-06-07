@@ -13,13 +13,14 @@ const config: Config = {
     extend: {
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+        'gradient-conic':
+          'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
       },
       colors: {
         ...colors,
       },
       fontFamily: {
-        sans: ['"Roboto"', '"Helvetica Neue"', 'sans-serif', ...defaultTheme.fontFamily.sans],
+        sans: ['var(--font-inter)', ...defaultTheme.fontFamily.sans],
         blackops: ['"BlackOps"', ...defaultTheme.fontFamily.sans],
       },
     },

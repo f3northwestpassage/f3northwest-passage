@@ -1,10 +1,4 @@
 // app/_components/Hero.tsx
-// This component can remain a 'use client' component if you intend to add client-side interactivity
-// like parallax effects or animations later. However, for a static hero image, it could also
-// function as a Server Component if all its children are also Server Components or handled correctly.
-// For now, let's keep 'use client' as it's often a safe default for components with styling logic.
-"use client";
-
 import { twMerge } from 'tailwind-merge';
 import Image from 'next/image'; // Import the Next.js Image component
 
@@ -17,10 +11,18 @@ interface HeroProps {
   imgAlt?: string; // Add an alt text prop for accessibility
 }
 
-export default function Hero({ leadIn, title, subtitle, imgUrl, imgAlt = "" }: HeroProps) {
+export default function Hero({
+  leadIn,
+  title,
+  subtitle,
+  imgUrl,
+  imgAlt = '',
+}: HeroProps) {
   return (
     // We'll adjust the height directly on the section or allow the Image component to handle it
-    <section className="relative py-52 px-4 flex items-center justify-center text-center overflow-hidden h-[500px]"> {/* Added h-[500px] for explicit height */}
+    <section className="relative py-52 px-4 flex items-center justify-center text-center overflow-hidden h-[500px]">
+      {' '}
+      {/* Added h-[500px] for explicit height */}
       {/*
           Use Next.js Image component for optimized images.
           It handles responsive images, lazy loading, and prevents layout shifts.
@@ -39,7 +41,6 @@ export default function Hero({ leadIn, title, subtitle, imgUrl, imgAlt = "" }: H
           className="absolute inset-0 grayscale opacity-60 -z-50" // Apply styles directly to Image
         />
       )}
-
       {/* Content overlay */}
       <div className="relative z-10 w-full leading-none text-white bg-black bg-opacity-50 p-4 rounded-lg">
         {!!leadIn && <p className="uppercase subtitle">{leadIn}</p>}

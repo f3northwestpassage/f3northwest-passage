@@ -1,4 +1,3 @@
-"use client";
 interface CorePrincipleProps {
   principle: string;
   description: string;
