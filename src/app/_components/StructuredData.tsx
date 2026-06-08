@@ -13,11 +13,13 @@ interface StructuredDataProps {
 }
 
 export default function StructuredData({ localeData }: StructuredDataProps) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://f3northwestpassage.com';
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL || 'https://f3northwestpassage.com';
   const regionName = localeData?.region_name || 'F3 Northwest Passage';
   const city = localeData?.region_city || '';
   const state = localeData?.region_state || '';
-  const description = localeData?.meta_description ||
+  const description =
+    localeData?.meta_description ||
     'Free, peer-led outdoor fitness workouts for men. No membership fees. All fitness levels welcome.';
 
   // Organization Schema
@@ -32,6 +34,7 @@ export default function StructuredData({ localeData }: StructuredDataProps) {
       'F3 Houston',
       'F3 Jersey Village',
       'F3 Bridgeland',
+      'F3 Hockley',
     ],
     url: baseUrl,
     logo: `${baseUrl}/logo.png`,
@@ -50,23 +53,27 @@ export default function StructuredData({ localeData }: StructuredDataProps) {
   };
 
   // Local Business Schema
-  const localBusinessSchema = city && state ? {
-    '@context': 'https://schema.org',
-    '@type': 'SportsActivityLocation',
-    name: regionName,
-    alternateName: 'F3 Northwest Passage - Cypress, Jersey Village & Houston Fitness',
-    description: `${description} Free boot camp and run club serving Cypress, Jersey Village, Bridgeland, Houston, and Northwest Houston, TX.`,
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: city,
-      addressRegion: state,
-      addressCountry: 'US',
-    },
-    url: baseUrl,
-    priceRange: 'FREE',
-    openingHours: 'Mo-Sa 05:00-07:00',
-    isAccessibleForFree: true,
-  } : null;
+  const localBusinessSchema =
+    city && state
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'SportsActivityLocation',
+          name: regionName,
+          alternateName:
+            'F3 Northwest Passage - Cypress, Hockley, Jersey Village & Houston Fitness',
+          description: `${description} Free boot camp and run club serving Cypress, Hockley, Jersey Village, Bridgeland, Houston, and Northwest Houston, TX.`,
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: city,
+            addressRegion: state,
+            addressCountry: 'US',
+          },
+          url: baseUrl,
+          priceRange: 'FREE',
+          openingHours: 'Mo-Sa 05:00-07:00',
+          isAccessibleForFree: true,
+        }
+      : null;
 
   // Event Series Schema for recurring workouts
   // Using a generic upcoming Monday as start date since workouts are recurring
@@ -84,21 +91,25 @@ export default function StructuredData({ localeData }: StructuredDataProps) {
     '@context': 'https://schema.org',
     '@type': 'EventSeries',
     name: `${regionName} Workouts`,
-    description: 'Free, peer-led outdoor fitness workouts for men. Workouts are held Monday through Saturday mornings.',
+    description:
+      'Free, peer-led outdoor fitness workouts for men. Workouts are held Monday through Saturday mornings.',
     image: `${baseUrl}/logo.png`,
     startDate: getNextMonday(),
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
     eventStatus: 'https://schema.org/EventScheduled',
-    location: city && state ? {
-      '@type': 'Place',
-      name: regionName,
-      address: {
-        '@type': 'PostalAddress',
-        addressLocality: city,
-        addressRegion: state,
-        addressCountry: 'US',
-      },
-    } : undefined,
+    location:
+      city && state
+        ? {
+            '@type': 'Place',
+            name: regionName,
+            address: {
+              '@type': 'PostalAddress',
+              addressLocality: city,
+              addressRegion: state,
+              addressCountry: 'US',
+            },
+          }
+        : undefined,
     organizer: {
       '@type': 'Organization',
       name: regionName,
@@ -112,7 +123,14 @@ export default function StructuredData({ localeData }: StructuredDataProps) {
     eventSchedule: {
       '@type': 'Schedule',
       repeatFrequency: 'P1D',
-      byDay: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      byDay: [
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+      ],
     },
     offers: {
       '@type': 'Offer',

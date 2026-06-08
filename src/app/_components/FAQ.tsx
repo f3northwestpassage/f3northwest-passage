@@ -14,12 +14,12 @@ export default function FAQ({
     },
     {
       question: `Where do you hold outdoor workouts in ${city}?`,
-      answer: `We hold free outdoor workouts at multiple locations across ${city}, Jersey Village, Bridgeland, and Northwest Houston, including parks and public spaces. Check our workout locations page to find the nearest workout spot.`,
+      answer: `We hold free outdoor workouts at multiple locations across ${city}, Hockley, Jersey Village, Bridgeland, and Northwest Houston, including parks and public spaces. Check our workout locations page to find the nearest workout spot.`,
     },
     {
       question: 'What types of workouts do you offer?',
       answer:
-        'We offer a variety of outdoor fitness workouts including bootcamp-style training, running clubs, strength training, and high-intensity interval training (HIIT). Our Cypress and Houston fitness groups provide peer-led workouts adaptable to any fitness level.',
+        'We offer a variety of outdoor fitness workouts including bootcamp-style training, running clubs, strength training, and high-intensity interval training (HIIT). Our Cypress, Hockley, and Houston fitness groups provide peer-led workouts adaptable to any fitness level.',
     },
     {
       question: "Do I need experience to join the men's workouts?",
@@ -38,13 +38,13 @@ export default function FAQ({
     },
     {
       question: `Is F3 Northwest only in ${city}?`,
-      answer: `F3 Northwest Passage serves ${city}, Cypress, Jersey Village, Bridgeland, Northwest Houston, and surrounding areas in Texas. We\'re the premier free fitness group in the Houston area and part of F3 Nation, a nationwide network of free men\'s workout groups.`,
+      answer: `F3 Northwest Passage serves ${city}, Cypress, Hockley, Jersey Village, Bridgeland, Northwest Houston, and surrounding areas in Texas. We\'re the premier free fitness group in the Houston area and part of F3 Nation, a nationwide network of free men\'s workout groups.`,
     },
     {
       question:
-        'How is F3 Northwest different from other Cypress, Jersey Village, or Houston run clubs?',
+        'How is F3 Northwest different from other Cypress, Hockley, Jersey Village, or Houston run clubs?',
       answer:
-        "While run clubs in Cypress, Jersey Village, Bridgeland, and Houston focus mainly on running, F3 Northwest Passage is a complete fitness program. We combine running, boot camp workouts, strength training, and functional fitness across multiple locations. Plus, we emphasize fellowship and community leadership - not just physical fitness. And unlike paid fitness groups, we're 100% free.",
+        "While run clubs in Cypress, Hockley, Jersey Village, Bridgeland, and Houston focus mainly on running, F3 Northwest Passage is a complete fitness program. We combine running, boot camp workouts, strength training, and functional fitness across multiple locations. Plus, we emphasize fellowship and community leadership - not just physical fitness. And unlike paid fitness groups, we're 100% free.",
     },
     {
       question: 'Why are the workouts only for men?',

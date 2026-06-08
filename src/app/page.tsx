@@ -38,18 +38,20 @@ export async function generateMetadata(): Promise<Metadata> {
     // Return fallback metadata if fetch fails
     return {
       title:
-        "F3 Northwest Passage | Free Men's Workouts in Cypress, Jersey Village & Houston, TX",
+        "F3 Northwest Passage | Free Men's Workouts in Cypress, Hockley, Jersey Village & Houston, TX",
       description:
-        'Free outdoor workouts for men in Cypress, Jersey Village, Bridgeland, and Northwest Houston, TX. Join F3 Northwest Passage for peer-led fitness, fellowship, and faith. No membership fees.',
+        'Free outdoor workouts for men in Cypress, Hockley, Jersey Village, Bridgeland, and Northwest Houston, TX. Join F3 Northwest Passage for peer-led fitness, fellowship, and faith. No membership fees.',
       keywords: [
         'Cypress workouts',
         'Houston workouts',
         'Jersey Village workouts',
         'Bridgeland workouts',
+        'Hockley workouts',
         'Northwest Houston fitness',
         'Cypress fitness',
         'Jersey Village fitness',
         'Bridgeland fitness',
+        'Hockley fitness',
         'free workouts Cypress TX',
         "men's workouts Houston",
         'outdoor fitness Cypress',
@@ -59,6 +61,7 @@ export async function generateMetadata(): Promise<Metadata> {
         'F3 Houston',
         'F3 Jersey Village',
         'F3 Bridgeland',
+        'F3 Hockley',
       ],
     };
   }
@@ -76,15 +79,18 @@ export async function generateMetadata(): Promise<Metadata> {
       'Cypress workouts',
       'Jersey Village workouts',
       'Bridgeland workouts',
+      'Hockley workouts',
       'Northwest Houston fitness',
       'Cypress fitness',
       'Houston fitness',
       'Jersey Village fitness',
       'Bridgeland fitness',
+      'Hockley fitness',
       'Cypress run club',
       'Houston run club',
       'Jersey Village run club',
       'Bridgeland run club',
+      'Hockley run club',
       'Northwest Houston run club',
       'F3 Northwest',
       'F3 Northwest Passage',
@@ -92,19 +98,23 @@ export async function generateMetadata(): Promise<Metadata> {
       'F3 Cypress',
       'F3 Jersey Village',
       'F3 Bridgeland',
+      'F3 Hockley',
       'Cypress boot camp',
       'Houston boot camp',
       'Jersey Village boot camp',
       'Bridgeland boot camp',
+      'Hockley boot camp',
       'Northwest Houston boot camp',
       'Cypress exercise group',
       'Houston exercise group',
       'Jersey Village exercise group',
       'Bridgeland exercise group',
+      'Hockley exercise group',
       'Cypress outdoor fitness',
       'Houston outdoor fitness',
       'Jersey Village outdoor fitness',
       'Bridgeland outdoor fitness',
+      'Hockley outdoor fitness',
       `free workouts ${city}`,
       `men's workouts ${city}`,
       `outdoor fitness ${city}`,
@@ -114,10 +124,12 @@ export async function generateMetadata(): Promise<Metadata> {
       "Houston men's fitness",
       "Jersey Village men's fitness",
       "Bridgeland men's fitness",
+      "Hockley men's fitness",
       'Cypress morning workouts',
       'Houston morning workouts',
       'Jersey Village morning workouts',
       'Bridgeland morning workouts',
+      'Hockley morning workouts',
     ],
     openGraph: {
       title: `${regionName} | Free Men's Workouts in ${city}, ${state}`,
@@ -205,7 +217,7 @@ export default async function Page() {
                 </h2>
                 <p className="subtitle text-xl pb-10 opacity-70">
                   {localeData?.meta_description ??
-                    'Free outdoor fitness workouts for men in Cypress, Houston, and Northwest Houston, TX. No membership fees required.'}
+                    'Free outdoor fitness workouts for men in Cypress, Hockley, Houston, and Northwest Houston, TX. No membership fees required.'}
                 </p>
               </div>
 
@@ -225,31 +237,33 @@ export default async function Page() {
             >
               <div>
                 <h3 className="pb-6 text-2xl font-semibold">
-                  FREE MEN&apos;S FITNESS IN CYPRESS, JERSEY VILLAGE & HOUSTON
+                  FREE MEN&apos;S FITNESS IN CYPRESS, HOCKLEY, JERSEY VILLAGE &
+                  HOUSTON
                 </h3>
                 <p className="pb-6">
                   {`${100}+ men who meet for free outdoor workouts `}in parks
                   and public spaces around{' '}
                   {localeData?.region_city ||
-                    'Cypress, Jersey Village, Bridgeland, and Northwest Houston'}
+                    'Cypress, Hockley, Jersey Village, Bridgeland, and Northwest Houston'}
                   , {localeData?.region_state || 'TX'}.
                 </p>
                 <p className="pb-10 font-bold">
                   We hold free outdoor workouts in{' '}
                   {localeData?.region_city ||
-                    'Cypress, Jersey Village, Bridgeland, and Houston'}{' '}
+                    'Cypress, Hockley, Jersey Village, Bridgeland, and Houston'}{' '}
                   each week. Weekday workouts are generally 45 minutes and 60
                   minutes on Saturday mornings.
                 </p>
               </div>
               <div>
                 <h3 className="pb-6 text-2xl font-semibold">
-                  YOUR CYPRESS, JERSEY VILLAGE & HOUSTON RUN CLUB ALTERNATIVE
+                  YOUR CYPRESS, HOCKLEY, JERSEY VILLAGE & HOUSTON RUN CLUB
+                  ALTERNATIVE
                 </h3>
                 <p className="pb-6">
                   More than just a run club - we&apos;re a complete fitness
-                  community. Our Cypress, Jersey Village, Bridgeland, and
-                  Houston boot camp style workouts include running, strength
+                  community. Our Cypress, Hockley, Jersey Village, Bridgeland,
+                  and Houston boot camp style workouts include running, strength
                   training, and functional fitness. Part of F3 Nation, a network
                   of 5,404 free, peer-led workouts for men in 450 regions with a
                   mission to:
